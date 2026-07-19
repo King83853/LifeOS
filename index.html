@@ -12,7 +12,18 @@ html{scroll-behavior:auto}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1917;min-height:100vh;overscroll-behavior:none}
 @media(prefers-color-scheme:dark){body{background:#1a1917;color:#e8e6df}}
-.page{display:none;padding:14px 16px 50px}.page.active{display:block}
+.page{display:none;padding:14px 16px 88px}.page.active{display:block}
+
+.tabbar{position:fixed;left:0;right:0;bottom:0;height:56px;background:#f5f4f0;border-top:1px solid #e8e5e0;display:flex;align-items:stretch;z-index:150;padding-bottom:env(safe-area-inset-bottom)}
+@media(prefers-color-scheme:dark){.tabbar{background:#1a1917;border-color:#2a2927}}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:#aaa;font-size:10px;font-weight:700;font-family:inherit;background:none;border:none;padding:0}
+.tab-item.active{color:#1a1917}
+@media(prefers-color-scheme:dark){.tab-item.active{color:#e8e6df}}
+.tab-item svg{stroke:currentColor}
+.tab-plus{flex:1;display:flex;align-items:center;justify-content:center}
+.tab-plus-btn{width:36px;height:36px;border-radius:50%;background:#1a1917;color:#fff;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;flex-shrink:0}
+@media(prefers-color-scheme:dark){.tab-plus-btn{background:#e8e6df;color:#1a1917}}
+.tab-plus-btn:active{opacity:.7}
 
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 0 8px}
 .logo{font-size:14px;font-weight:700;color:#aaa}
@@ -227,6 +238,13 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 </head>
 <body>
 
+<div class="tabbar">
+  <button class="tab-item" data-tab="today" onclick="TabBar.go('today')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Today</span></button>
+  <button class="tab-item" data-tab="overview" onclick="TabBar.go('overview')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Overview</span></button>
+  <button class="tab-item" data-tab="lockedin" onclick="TabBar.go('lockedin')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Locked In</span></button>
+  <div class="tab-plus"><button class="tab-plus-btn" onclick="TabPlus.tap()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>
+</div>
+
 <div class="page active" id="p-overview">
   <div class="hdr">
     <button class="menu-btn" onclick="Menu.open()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
@@ -251,21 +269,14 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 <div class="menu-overlay" id="menu-overlay" onclick="if(event.target===this)Menu.close()">
   <div class="menu-panel">
     <div style="display:flex;justify-content:flex-end;padding:28px 0 14px"><button style="width:44px;height:44px;border:1.5px solid #1a1917;border-radius:14px;background:#f5f4f0;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" onclick="Menu.close()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-    <div class="menu-item" onclick="Menu.close();Nav.goHome()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Overview</div>
-    <div class="menu-item" onclick="Menu.close();Nav.go('today')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Today</div>
-    <div class="menu-item" onclick="Menu.close();Nav.go('lockedin')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Locked In</div>
-
-    <div class="menu-item" onclick="Menu.close();A.newCategory()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg> Add category</div>
-    <div class="menu-item" onclick="Menu.close();A.newProject()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add project</div>
     <div class="menu-item" onclick="Menu.close();Nav.go('editlayout')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit layout</div>
-    <div class="menu-item" onclick="Menu.close();Nav.go('archive')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg> Archive <span class="ab" id="ab2"></span></div>
     <div class="menu-item" onclick="Menu.close();Nav.go('settings')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Settings</div>
   </div>
 </div>
 
 <div class="page" id="p-archive">
   <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-  <div class="dhdr"><div class="dico">📦</div><div style="flex:1"><div class="dtitle">Archive</div><div class="dsub">Completed tasks</div></div>
+  <div class="dhdr"><div class="dico">🏆</div><div style="flex:1"><div class="dtitle">Achieved Goals</div><div class="dsub">Completed tasks</div></div>
     <button class="rbtn" onclick="A.clearArchive()">Clear all</button>
   </div>
   <div id="arch-list"></div>
@@ -289,12 +300,21 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 <div class="page" id="p-editlayout">
   <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
   <div class="dhdr"><div class="dico">✏️</div><div><div class="dtitle">Edit layout</div><div class="dsub">Reorder or remove</div></div></div>
+  <div style="display:flex;gap:10px;margin-bottom:18px">
+    <button class="addbtn" style="flex:1;font-size:14px;min-height:48px" onclick="A.newCategory()">+ Add category</button>
+    <button class="addbtn" style="flex:1;font-size:14px;min-height:48px" onclick="A.newProject()">+ Add project</button>
+  </div>
   <div id="el-content"></div>
 </div>
 
 <div class="page" id="p-settings">
   <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
   <div class="dhdr"><div class="dico">⚙️</div><div><div class="dtitle">Settings</div><div class="dsub">App preferences</div></div></div>
+  <div class="opt-row" onclick="Nav.go('archive')" style="margin-bottom:24px">
+    <div style="font-size:22px">🏆</div>
+    <div class="opt-text"><div class="opt-title">Achieved Goals</div><div class="opt-desc">Completed tasks you can restore</div></div>
+    <span class="ab" id="ab2" style="margin-left:auto"></span>
+  </div>
   <div class="sl">Completing tasks</div>
   <div id="settings-complete"></div>
   <div class="sl" style="margin-top:28px">Data</div>
@@ -315,11 +335,6 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
   <div id="dpanels"></div>
   <div class="shdr" style="margin-top:20px">📅 One-time tasks</div>
   <div id="once-list"></div>
-  <div class="addrow">
-    <input class="addinp" id="once-text-inp" placeholder="Task…">
-    <input type="date" id="once-date-inp" class="addinp" style="flex:0 0 138px;font-size:14px;padding:14px 8px">
-    <button class="addbtn" onclick="A.addOnce()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-  </div>
 </div>
 
 
@@ -411,6 +426,28 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
     <div class="sheet-btns">
       <button class="sheet-cancel" onclick="DailyItemSheet.close()">Cancel</button>
       <button class="sheet-save" onclick="DailyItemSheet.save()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="add-choice-overlay" onclick="if(event.target===this)AddChoice.cancel()">
+  <div class="sheet">
+    <div class="sheet-title" id="add-choice-title">Add</div>
+    <div id="add-choice-list"></div>
+    <button class="sheet-cancel" style="width:100%;margin-top:10px" onclick="AddChoice.cancel()">Cancel</button>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="once-add-sheet-overlay" onclick="if(event.target===this)OnceAddSheet.close()">
+  <div class="sheet">
+    <div class="sheet-title">One-time task</div>
+    <div class="sheet-label">Task</div>
+    <input class="sheet-inp" id="once-add-text" placeholder="Task">
+    <div class="sheet-label">Date</div>
+    <input type="date" class="sheet-inp" id="once-add-date">
+    <div class="sheet-btns">
+      <button class="sheet-cancel" onclick="OnceAddSheet.close()">Cancel</button>
+      <button class="sheet-save" onclick="OnceAddSheet.save()">Save</button>
     </div>
   </div>
 </div>
@@ -932,7 +969,7 @@ var A={
   newCategory:function(){
     InputSheet.show('Category name','e.g. Business',function(name){
       DB.addCategory(name,'📁');
-      renderGrids();
+      renderGrids();renderEditLayout();
     });
   },
   newProject:function(){
@@ -1033,13 +1070,20 @@ var A={
     item.style.opacity='0';
     setTimeout(function(){item.remove();buildPanels();restoreChecks(Nav.sd);},300);
   },
-  addOnce:function(){
-    var t=document.getElementById('once-text-inp'),dEl=document.getElementById('once-date-inp');
-    var text=t.value.trim(),date=dEl.value;
-    if(!text||!date)return;
-    DB.addOnce(text,date);
-    t.value='';dEl.value='';
-    renderDailyOnceList();buildPanels();restoreChecks(Nav.sd);
+  startRepeatingTask:function(){
+    var cats=DB.data.dailyCats;
+    if(!cats.length){
+      InputSheet.show('New category name','e.g. Chores',function(name){
+        var catId=DB.addDailyCat(name,'📌');
+        DailyCatSheet.render();
+        DailyItemSheet.open(catId,null);
+      });
+      return;
+    }
+    if(cats.length===1){DailyItemSheet.open(cats[0].id,null);return;}
+    AddChoice.show('Pick category',cats.map(function(c){
+      return{icon:c.icon,label:c.name,fn:function(){DailyItemSheet.open(c.id,null);}};
+    }));
   },
   resetDay:function(){
     DB.resetDailyDay(pDate(Nav.sd));
@@ -1122,7 +1166,7 @@ function navBack(){
     _unfix(cur);cur.classList.remove('active');
     window.scrollTo({top:savedY,behavior:'instant'});
     _unfix(ov);
-    ov.classList.add('active');Nav.cur='overview';
+    ov.classList.add('active');Nav.cur='overview';TabBar.updateActive();
   });
 }
 
@@ -1188,7 +1232,7 @@ function navBack(){
         _unfix(cur);cur.classList.remove('active');
         window.scrollTo({top:savedY,behavior:'instant'});
         _unfix(ov);
-        ov.classList.add('active');Nav.cur='overview';
+        ov.classList.add('active');Nav.cur='overview';TabBar.updateActive();
       });
     } else {
       _slideUnit(cur,ov,pct,0,120,function(){
@@ -1207,6 +1251,7 @@ var Nav={cur:'overview',sd:0,
     if(id===DB.data.habitsProjectId)id='habits';
     navForward(id);
     this.cur=id;
+    TabBar.updateActive();
   },
   back:function(){navBack();},
   goHome:function(){if(this.cur!=='overview')navBack();}
@@ -1659,6 +1704,78 @@ var ConfirmSheet={
   }
 };
 
+// ── CONTEXTUAL ADD (bottom tab bar +) ──────────────────────
+var AddChoice={
+  show:function(title,options){
+    document.getElementById('add-choice-title').textContent=title;
+    var c=document.getElementById('add-choice-list');
+    c.innerHTML='';
+    options.forEach(function(o){
+      var btn=document.createElement('div');
+      btn.className='cat-choice';
+      btn.innerHTML=o.icon+' '+esc(o.label);
+      btn.onclick=function(){AddChoice.cancel();o.fn();};
+      c.appendChild(btn);
+    });
+    _overlayOpen('add-choice-overlay');
+  },
+  cancel:function(){_overlayClose('add-choice-overlay');}
+};
+
+var OnceAddSheet={
+  open:function(){
+    document.getElementById('once-add-text').value='';
+    document.getElementById('once-add-date').value='';
+    _overlayOpen('once-add-sheet-overlay');
+    setTimeout(function(){document.getElementById('once-add-text').focus();},300);
+  },
+  save:function(){
+    var text=document.getElementById('once-add-text').value.trim();
+    var date=document.getElementById('once-add-date').value;
+    if(!text||!date)return;
+    DB.addOnce(text,date);
+    _overlayClose('once-add-sheet-overlay');
+    renderDailyOnceList();buildPanels();restoreChecks(Nav.sd);
+    if(Nav.cur==='today')renderToday();
+  },
+  close:function(){_overlayClose('once-add-sheet-overlay');}
+};
+
+var TabBar={
+  go:function(id){
+    if(Nav.cur===id)return;
+    if(id==='overview')Nav.goHome();
+    else Nav.go(id);
+    setTimeout(function(){TabBar.updateActive();},0);
+  },
+  updateActive:function(){
+    document.querySelectorAll('.tab-item').forEach(function(el){
+      el.classList.toggle('active',el.getAttribute('data-tab')===Nav.cur);
+    });
+  }
+};
+
+var TabPlus={
+  tap:function(){
+    var cur=Nav.cur;
+    if(cur==='habits'){
+      AddChoice.show('Add task',[
+        {icon:'📅',label:'One-time task',fn:function(){OnceAddSheet.open();}},
+        {icon:'🔁',label:'Repeating task',fn:function(){A.startRepeatingTask();}}
+      ]);
+      return;
+    }
+    if(DB.data.projects[cur]){
+      var inp=document.getElementById('inp-'+cur)||document.getElementById('trk-inp-'+cur);
+      if(inp){inp.scrollIntoView({behavior:'smooth',block:'center'});inp.focus();return;}
+    }
+    AddChoice.show('Add',[
+      {icon:'📁',label:'Category',fn:function(){A.newCategory();}},
+      {icon:'➕',label:'Project',fn:function(){A.newProject();}}
+    ]);
+  }
+};
+
 // ── CATEGORY PICKER ───────────────────────────────────────
 var CatPicker={
   _resolve:null,
@@ -1792,7 +1909,7 @@ var SheetEditor={
       var pid=DB.addProject(this.newCatId,name,icon,this.selectedColor,desc,this.projectType||'todo',unit);
       if(this.projectType==='daily'){DB.data.habitsProjectId=pid;DB.save();}
       buildProjPages();
-      renderGrids();
+      renderGrids();renderEditLayout();
       _overlayClose('proj-sheet-overlay');
     } else if(this.pid){
       // Edit existing
@@ -1827,6 +1944,7 @@ applyHoldMode();
 document.getElementById('tlbl').textContent=T.toLocaleDateString('de-CH',{weekday:'short',day:'numeric',month:'short'});
 renderWar();
 renderGrids();
+TabBar.updateActive();
 </script>
 </body>
 </html>

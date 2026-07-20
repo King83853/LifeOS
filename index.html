@@ -1136,6 +1136,20 @@ function _slideUnit(a,b,from,to,dur,done){
   requestAnimationFrame(step);
 }
 
+function _renderPage(id){
+  if(DB.data.projects[id]){
+    renderProj(id);
+    var aw=document.getElementById('addwrap-'+id);if(aw)aw.style.display='none';
+  }
+  if(id==='overview'){renderWar();renderGrids();}
+  if(id==='archive')renderArchive();
+  if(id==='lockedin')renderLockedIn();
+  if(id==='editlayout')renderEditLayout();
+  if(id==='settings')renderSettings();
+  if(id==='habits')renderHabits();
+  if(id==='today')renderToday();
+}
+
 function navForward(id){
   var cur=document.querySelector('.page.active');
   var next=document.getElementById('p-'+id);
@@ -1144,20 +1158,29 @@ function navForward(id){
   _fixPage(cur,0);
   cur.scrollTop=_scrollPos[cur.id]||0; // prevent top-flash when fixing
   _fixPage(next,100);
-  if(DB.data.projects[id]){
-    renderProj(id);
-    var aw=document.getElementById('addwrap-'+id);if(aw)aw.style.display='none';
-  }
-  if(id==='archive')renderArchive();
-  if(id==='lockedin')renderLockedIn();
-  if(id==='editlayout')renderEditLayout();
-  if(id==='settings')renderSettings();
-  if(id==='habits')renderHabits();
-  if(id==='today')renderToday();
+  _renderPage(id);
   _slideUnit(next,cur,100,0,160,function(){
     document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');_unfix(p);});
     next.classList.add('active');
     window.scrollTo({top:0,behavior:'instant'}); // projects always start at top
+  });
+}
+
+// Instant switch between tab-bar pages: quick fade, no slide
+function navSwitch(id){
+  var cur=document.querySelector('.page.active');
+  var next=document.getElementById('p-'+id);
+  if(!next||cur===next)return;
+  _saveScroll(cur);
+  _renderPage(id);
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');_unfix(p);});
+  next.classList.add('active');
+  window.scrollTo({top:_scrollPos['p-'+id]||0,behavior:'instant'});
+  next.style.opacity='0';
+  requestAnimationFrame(function(){
+    next.style.transition='opacity .1s';
+    next.style.opacity='1';
+    setTimeout(function(){next.style.transition='';next.style.opacity='';},130);
   });
 }
 
@@ -1755,9 +1778,9 @@ var OnceAddSheet={
 var TabBar={
   go:function(id){
     if(Nav.cur===id)return;
-    if(id==='overview')Nav.goHome();
-    else Nav.go(id);
-    setTimeout(function(){TabBar.updateActive();},0);
+    navSwitch(id);
+    Nav.cur=id;
+    TabBar.updateActive();
   },
   updateActive:function(){
     document.querySelectorAll('.tab-item').forEach(function(el){

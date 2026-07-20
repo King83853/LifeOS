@@ -12,18 +12,21 @@ html{scroll-behavior:auto}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1917;min-height:100vh;overscroll-behavior:none}
 @media(prefers-color-scheme:dark){body{background:#1a1917;color:#e8e6df}}
-.page{display:none;padding:14px 16px 88px}.page.active{display:block}
+.page{display:none;padding:14px 16px 118px}.page.active{display:block}
 
-.tabbar{position:fixed;left:0;right:0;bottom:0;height:56px;background:#f5f4f0;border-top:1px solid #e8e5e0;display:flex;align-items:stretch;z-index:150;padding-bottom:env(safe-area-inset-bottom)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;background:#f5f4f0;border-top:1px solid #e8e5e0;display:flex;align-items:stretch;z-index:150;padding:8px 0 calc(env(safe-area-inset-bottom) + 16px)}
 @media(prefers-color-scheme:dark){.tabbar{background:#1a1917;border-color:#2a2927}}
-.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:#aaa;font-size:10px;font-weight:700;font-family:inherit;background:none;border:none;padding:0}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:#aaa;font-size:10px;font-weight:700;font-family:inherit;background:none;border:none;padding:6px 0}
 .tab-item.active{color:#1a1917}
 @media(prefers-color-scheme:dark){.tab-item.active{color:#e8e6df}}
 .tab-item svg{stroke:currentColor}
-.tab-plus{flex:1;display:flex;align-items:center;justify-content:center}
-.tab-plus-btn{width:36px;height:36px;border-radius:50%;background:#1a1917;color:#fff;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;flex-shrink:0}
-@media(prefers-color-scheme:dark){.tab-plus-btn{background:#e8e6df;color:#1a1917}}
-.tab-plus-btn:active{opacity:.7}
+.fab{display:none;position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom) + 96px);width:52px;height:52px;border-radius:50%;background:#1a1917;color:#fff;align-items:center;justify-content:center;border:none;cursor:pointer;z-index:149;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.fab.show{display:flex}
+@media(prefers-color-scheme:dark){.fab{background:#e8e6df;color:#1a1917}}
+.fab:active{opacity:.7}
+.hdr-add{width:44px;height:44px;border-radius:14px;border:1.5px solid #1a1917;background:#f5f4f0;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+@media(prefers-color-scheme:dark){.hdr-add{border-color:#e8e6df;background:#1a1917}}
+.hdr-add:active{opacity:.7}
 
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 0 8px}
 .logo{font-size:14px;font-weight:700;color:#aaa}
@@ -242,8 +245,10 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
   <button class="tab-item" data-tab="today" onclick="TabBar.go('today')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Today</span></button>
   <button class="tab-item" data-tab="overview" onclick="TabBar.go('overview')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Overview</span></button>
   <button class="tab-item" data-tab="lockedin" onclick="TabBar.go('lockedin')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Locked In</span></button>
-  <div class="tab-plus"><button class="tab-plus-btn" onclick="TabPlus.tap()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>
+  <button class="tab-item" data-tab="settings" onclick="TabBar.go('settings')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
 </div>
+
+<button class="fab" id="fab" onclick="TabPlus.tap()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
 
 <div class="page active" id="p-overview">
   <div class="hdr">
@@ -251,6 +256,7 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
     <div class="logo">Life OS</div>
     <div class="hdr-r">
       <span class="tlbl" id="tlbl"></span>
+      <button class="hdr-add" onclick="TabPlus.tap()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
     </div>
   </div>
   <div class="wr" id="war-box" style="display:none">
@@ -310,10 +316,14 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 <div class="page" id="p-settings">
   <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
   <div class="dhdr"><div class="dico">⚙️</div><div><div class="dtitle">Settings</div><div class="dsub">App preferences</div></div></div>
-  <div class="opt-row" onclick="Nav.go('archive')" style="margin-bottom:24px">
+  <div class="opt-row" onclick="Nav.go('archive')">
     <div style="font-size:22px">🏆</div>
     <div class="opt-text"><div class="opt-title">Achieved Goals</div><div class="opt-desc">Completed tasks you can restore</div></div>
     <span class="ab" id="ab2" style="margin-left:auto"></span>
+  </div>
+  <div class="opt-row" onclick="Nav.go('editlayout')" style="margin-bottom:24px">
+    <div style="font-size:22px">✏️</div>
+    <div class="opt-text"><div class="opt-title">Edit layout</div><div class="opt-desc">Reorder or remove categories &amp; projects</div></div>
   </div>
   <div class="sl">Completing tasks</div>
   <div id="settings-complete"></div>
@@ -1138,7 +1148,10 @@ function navForward(id){
   _fixPage(cur,0);
   cur.scrollTop=_scrollPos[cur.id]||0; // prevent top-flash when fixing
   _fixPage(next,100);
-  if(DB.data.projects[id])renderProj(id);
+  if(DB.data.projects[id]){
+    renderProj(id);
+    var aw=document.getElementById('addwrap-'+id);if(aw)aw.style.display='none';
+  }
   if(id==='archive')renderArchive();
   if(id==='lockedin')renderLockedIn();
   if(id==='editlayout')renderEditLayout();
@@ -1331,6 +1344,7 @@ function buildProjPages(){
     h+='<button class="edit-proj-btn" onclick="SheetEditor.open(\''+pid+'\')" ><div class="edot"></div><div class="edot"></div><div class="edot"></div></button></div>';
     h+='<div id="sc-'+pid+'"></div>';
     if(p.type!=='tracker'&&p.type!=='daily'){
+    h+='<div id="addwrap-'+pid+'" style="display:none">';
     h+='<div class="pri-row" id="pri-'+pid+'">';
     h+='<span class="pri-pill bu" data-p="bu" onclick="selPri(this,event)">War Room</span>';
     h+='<span class="pri-pill bs on" data-p="bs" onclick="selPri(this,event)">High</span>';
@@ -1340,6 +1354,7 @@ function buildProjPages(){
     h+='<div class="addrow">';
     h+='<input class="addinp" id="inp-'+pid+'" placeholder="Add a task…">';
     h+='<button class="addbtn" data-pid="'+pid+'" onclick="A.addTask(this.getAttribute(\'data-pid\'))"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#1a1917\" stroke-width=\"2\" stroke-linecap=\"round\"><line x1=\"12\" y1=\"5\" x2=\"12\" y2=\"19\"/><line x1=\"5\" y1=\"12\" x2=\"19\" y2=\"12\"/></svg></button>';
+    h+='</div>';
     h+='</div>';
   }
   h+='</div>';
@@ -1752,6 +1767,8 @@ var TabBar={
     document.querySelectorAll('.tab-item').forEach(function(el){
       el.classList.toggle('active',el.getAttribute('data-tab')===Nav.cur);
     });
+    var fab=document.getElementById('fab');
+    if(fab)fab.classList.toggle('show',Nav.cur==='habits'||!!DB.data.projects[Nav.cur]);
   }
 };
 
@@ -1766,6 +1783,8 @@ var TabPlus={
       return;
     }
     if(DB.data.projects[cur]){
+      var wrap=document.getElementById('addwrap-'+cur);
+      if(wrap)wrap.style.display='';
       var inp=document.getElementById('inp-'+cur)||document.getElementById('trk-inp-'+cur);
       if(inp){inp.scrollIntoView({behavior:'smooth',block:'center'});inp.focus();return;}
     }

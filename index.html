@@ -868,7 +868,7 @@ function renderTracker(pid){
   c.innerHTML='<div class="trk-val">'+latest+'</div>'
     +'<div class="trk-unit">'+unit+'</div>'
     +svgH
-    +'<div style="display:flex;gap:8px;margin:10px 0 16px">'
+    +'<div id="trk-addwrap-'+pid+'" style="display:none;gap:8px;margin:10px 0 16px">'
     +'<input id="trk-inp-'+pid+'" class="trk-addinp" type="number" placeholder="Enter value" inputmode="decimal">'
     +'<button class="addbtn" onclick="A.addTrackerEntry(\''+pid+'\')" >'+addSvg+'</button></div>'
     +(listH||'<div style="color:#ccc;font-size:14px;text-align:center;padding:20px">No entries yet</div>');
@@ -1215,7 +1215,7 @@ function navSwitch(id){
   _renderPage(id);
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');_unfix(p);});
   next.classList.add('active');
-  window.scrollTo({top:_scrollPos['p-'+id]||0,behavior:'instant'});
+  window.scrollTo({top:0,behavior:'instant'});
   next.style.opacity='0';
   requestAnimationFrame(function(){
     next.style.transition='opacity .1s';
@@ -1236,9 +1236,10 @@ function navBack(){
   renderWar();renderGrids();
   _slideUnit(cur,ov,0,100,180,function(){
     _unfix(cur);cur.classList.remove('active');
-    window.scrollTo({top:savedY,behavior:'instant'});
     _unfix(ov);
-    ov.classList.add('active');Nav.cur='overview';TabBar.updateActive();
+    ov.classList.add('active');
+    window.scrollTo({top:savedY,behavior:'instant'});
+    Nav.cur='overview';TabBar.updateActive();
   });
 }
 
@@ -1302,9 +1303,10 @@ function navBack(){
       _slideUnit(cur,ov,pct,100,120,function(){
         document.body.style.overflow='';
         _unfix(cur);cur.classList.remove('active');
-        window.scrollTo({top:savedY,behavior:'instant'});
         _unfix(ov);
-        ov.classList.add('active');Nav.cur='overview';TabBar.updateActive();
+        ov.classList.add('active');
+        window.scrollTo({top:savedY,behavior:'instant'});
+        Nav.cur='overview';TabBar.updateActive();
       });
     } else {
       _slideUnit(cur,ov,pct,0,120,function(){
@@ -1917,6 +1919,8 @@ var TabPlus={
     if(DB.data.projects[cur]){
       var wrap=document.getElementById('addwrap-'+cur);
       if(wrap)wrap.style.display='';
+      var trkWrap=document.getElementById('trk-addwrap-'+cur);
+      if(trkWrap)trkWrap.style.display='flex';
       var inp=document.getElementById('inp-'+cur)||document.getElementById('trk-inp-'+cur);
       if(inp){inp.scrollIntoView({behavior:'smooth',block:'center'});inp.focus();return;}
     }
@@ -1926,6 +1930,36 @@ var TabPlus={
     ]);
   }
 };
+
+// Bottom bar / FAB: act on touchend instead of relying solely on click.
+// iOS eats the click on the first tap while the page still has scroll
+// momentum (that tap only stops the scroll), forcing a second tap —
+// touchend still fires immediately in that case, so we use it directly.
+(function(){
+  function wireTap(el,action){
+    var sx=0,sy=0,moved=false,down=false;
+    el.addEventListener('touchstart',function(e){
+      down=true;moved=false;
+      sx=e.touches[0].clientX;sy=e.touches[0].clientY;
+    },{passive:true});
+    el.addEventListener('touchmove',function(e){
+      if(!down)return;
+      var dx=Math.abs(e.touches[0].clientX-sx),dy=Math.abs(e.touches[0].clientY-sy);
+      if(dx>10||dy>10)moved=true;
+    },{passive:true});
+    el.addEventListener('touchend',function(e){
+      if(!down)return;
+      down=false;
+      if(!moved){e.preventDefault();action();}
+    },{passive:false});
+  }
+  document.querySelectorAll('.tab-item').forEach(function(btn){
+    var tab=btn.getAttribute('data-tab');
+    wireTap(btn,function(){TabBar.go(tab);});
+  });
+  var fab=document.getElementById('fab');
+  if(fab)wireTap(fab,function(){TabPlus.tap();});
+})();
 
 // ── CATEGORY PICKER ───────────────────────────────────────
 var CatPicker={

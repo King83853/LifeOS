@@ -252,8 +252,8 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 <button class="fab" id="fab" onclick="TabPlus.tap()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
 
 <div class="page active" id="p-overview">
-  <div class="hdr">
-    <div class="dhdr" style="margin-bottom:0">
+  <div class="dhdr" style="justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:14px">
       <div class="dico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></div>
       <div><div class="dtitle">Overview</div></div>
     </div>
@@ -1931,34 +1931,34 @@ var TabPlus={
   }
 };
 
-// Bottom bar / FAB: act on touchend instead of relying solely on click.
+// Buttons/nav controls: act on touchend instead of relying solely on click.
 // iOS eats the click on the first tap while the page still has scroll
 // momentum (that tap only stops the scroll), forcing a second tap —
-// touchend still fires immediately in that case, so we use it directly.
+// touchend still fires immediately in that case, so for anything
+// button-like we fire the click ourselves off touchend and suppress
+// the (possibly-absent) native one, everywhere in the app, not just
+// the tab bar.
 (function(){
-  function wireTap(el,action){
-    var sx=0,sy=0,moved=false,down=false;
-    el.addEventListener('touchstart',function(e){
-      down=true;moved=false;
-      sx=e.touches[0].clientX;sy=e.touches[0].clientY;
-    },{passive:true});
-    el.addEventListener('touchmove',function(e){
-      if(!down)return;
-      var dx=Math.abs(e.touches[0].clientX-sx),dy=Math.abs(e.touches[0].clientY-sy);
-      if(dx>10||dy>10)moved=true;
-    },{passive:true});
-    el.addEventListener('touchend',function(e){
-      if(!down)return;
-      down=false;
-      if(!moved){e.preventDefault();action();}
-    },{passive:false});
-  }
-  document.querySelectorAll('.tab-item').forEach(function(btn){
-    var tab=btn.getAttribute('data-tab');
-    wireTap(btn,function(){TabBar.go(tab);});
-  });
-  var fab=document.getElementById('fab');
-  if(fab)wireTap(fab,function(){TabPlus.tap();});
+  var TAPPABLE='.tab-item,.fab,.hdr-add,.menu-btn,.menu-item,.acard,.opt-row,'
+    +'.back,.edit-proj-btn,.rstbtn,.rbtn,.addbtn,.el-btn,.type-btn,.pri-pill,'
+    +'.cat-choice,.dpill,.sheet-save,.sheet-cancel';
+  var sx=0,sy=0,moved=false,target=null;
+  document.addEventListener('touchstart',function(e){
+    target=e.target.closest(TAPPABLE);
+    if(!target)return;
+    moved=false;
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    if(!target)return;
+    var dx=Math.abs(e.touches[0].clientX-sx),dy=Math.abs(e.touches[0].clientY-sy);
+    if(dx>10||dy>10)moved=true;
+  },{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(!target)return;
+    var t=target;target=null;
+    if(!moved){e.preventDefault();t.click();}
+  },{passive:false});
 })();
 
 // ── CATEGORY PICKER ───────────────────────────────────────

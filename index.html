@@ -226,6 +226,13 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 .type-btn{flex:1;padding:10px;border:1.5px solid #e8e5e0;border-radius:12px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#888}
 @media(prefers-color-scheme:dark){.type-btn{border-color:#2a2927}}
 .type-btn.active{border-color:#1a1917;color:#1a1917;background:#f3f4f6}
+
+.seg-row{display:flex;gap:8px;margin-bottom:18px}
+.seg-btn{flex:1;padding:12px 6px;border:1.5px solid #e8e5e0;border-radius:14px;text-align:center;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;color:#999;background:#fff}
+@media(prefers-color-scheme:dark){.seg-btn{background:#1e1c1a;border-color:#2a2927}}
+.seg-btn.active{border-color:#1a1917;color:#1a1917}
+@media(prefers-color-scheme:dark){.seg-btn.active{border-color:#e8e6df;color:#e8e6df}}
+.seg-btn:active{opacity:.7}
 @media(prefers-color-scheme:dark){.type-btn.active{border-color:#e8e6df;color:#e8e6df;background:#252320}}
 
 .trk-val{font-size:32px;font-weight:800;letter-spacing:-.02em;margin:4px 0 2px}
@@ -301,6 +308,11 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 
 <div class="page" id="p-lockedin">
   <div class="dhdr"><div class="dico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div><div class="dtitle">Locked In</div></div></div>
+  <div class="seg-row" id="li-seg">
+    <button class="seg-btn active" data-view="tasks" onclick="LockedIn.setView('tasks')">Tasks</button>
+    <button class="seg-btn" data-view="list" onclick="LockedIn.setView('list')">List</button>
+    <button class="seg-btn" data-view="calendar" onclick="LockedIn.setView('calendar')">Calendar</button>
+  </div>
   <div id="lockedin-list"></div>
 </div>
 
@@ -315,7 +327,7 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 </div>
 
 <div class="page" id="p-settings">
-  <div class="dhdr"><div class="dico">⚙️</div><div><div class="dtitle">Settings</div><div class="dsub">App preferences</div></div></div>
+  <div class="dhdr"><div class="dico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><div><div class="dtitle">Settings</div></div></div>
   <div class="opt-row" onclick="Nav.go('archive')">
     <div style="font-size:22px">🏆</div>
     <div class="opt-text"><div class="opt-title">Achieved Goals</div><div class="opt-desc">Completed tasks you can restore</div></div>
@@ -914,7 +926,20 @@ function renderArchive(){
   c.innerHTML=h+'</div>';
 }
 
+var LockedIn={
+  view:'tasks',
+  setView:function(v){
+    this.view=v;
+    document.querySelectorAll('#li-seg .seg-btn').forEach(function(b){
+      b.classList.toggle('active',b.getAttribute('data-view')===v);
+    });
+    renderLockedIn();
+  }
+};
+
 function renderLockedIn(){
+  if(LockedIn.view==='list')return renderLockedInList();
+  if(LockedIn.view==='calendar')return renderLockedInCalendar();
   var all=[];
   for(var pid in DB.data.extraTasks){
     var p=DB.data.projects[pid];
@@ -925,12 +950,50 @@ function renderLockedIn(){
   }
   all.sort(function(a,b){return po(a.pri)-po(b.pri);});
   var c=document.getElementById('lockedin-list');
-  if(!all.length){c.innerHTML='';return;}
+  if(!all.length){c.innerHTML='<div class="empty">No tasks yet.</div>';return;}
   c.innerHTML=all.map(function(t){
     return '<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
       +'<input type="checkbox" onchange="A.doneLockedIn(this)">'
       +'<div style="flex:1" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div><div class="ts">'+esc(t.section)+'</div></div>'
       +(t.pri==='bu'?'':'<span class="bdg '+t.pri+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+PLBL[t.pri]+'</span>')+'</div>';
+  }).join('');
+}
+
+function renderLockedInList(){
+  var c=document.getElementById('lockedin-list');
+  var h='';
+  DB.data.categoryOrder.forEach(function(catId){
+    (DB.data.projectOrder[catId]||[]).forEach(function(pid){
+      var p=DB.data.projects[pid];
+      if(!p||p.type!=='list')return;
+      var tasks=DB.data.extraTasks[pid]||[];
+      if(!tasks.length)return;
+      var col=COLORS[p.color||'c-grey']||'#6b7280';
+      tasks.forEach(function(t){
+        h+='<div class="ti" data-key="'+t.key+'" data-sec="'+esc(p.name)+'" data-text="'+esc(t.text)+'" data-pid="'+pid+'">'
+          +'<input type="checkbox" onchange="A.done(this)">'
+          +'<div style="flex:1" onclick="TaskSheet.open(\''+pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div></div>'
+          +'<span class="bdg" style="background:'+col+'20;color:'+col+';border:1.5px solid '+col+'" onclick="TaskSheet.open(\''+pid+'\',\''+t.key+'\')">'+esc(p.name)+'</span></div>';
+      });
+    });
+  });
+  c.innerHTML=h||'<div class="empty">No list tasks yet.</div>';
+}
+
+function renderLockedInCalendar(){
+  var c=document.getElementById('lockedin-list');
+  var items=DB.data.dailyOnce.slice().sort(function(a,b){return a.date<b.date?-1:(a.date>b.date?1:0);});
+  if(!items.length){c.innerHTML='<div class="empty">No one-time tasks yet.</div>';return;}
+  var todayStr=dStr(new Date());
+  c.innerHTML=items.map(function(o){
+    var overdue=o.date<todayStr;
+    var dl=new Date(o.date+'T00:00:00');
+    var dLbl=dl.toLocaleDateString('de-CH',{day:'numeric',month:'short',year:'numeric'});
+    return '<div class="ti" data-once="'+o.id+'">'
+      +'<input type="checkbox" onchange="A.completeOnce(this,\''+o.id+'\')">'
+      +'<div style="flex:1"><div class="tt">'+esc(o.text)+'</div><div class="ts">'+dLbl+'</div></div>'
+      +(overdue?'<span class="bdg bu">Overdue</span>':'')
+      +'</div>';
   }).join('');
 }
 
@@ -1941,7 +2004,7 @@ var TabPlus={
 (function(){
   var TAPPABLE='.tab-item,.fab,.hdr-add,.menu-btn,.menu-item,.acard,.opt-row,'
     +'.back,.edit-proj-btn,.rstbtn,.rbtn,.addbtn,.el-btn,.type-btn,.pri-pill,'
-    +'.cat-choice,.dpill,.sheet-save,.sheet-cancel';
+    +'.cat-choice,.dpill,.sheet-save,.sheet-cancel,.seg-btn';
   var sx=0,sy=0,moved=false,target=null;
   document.addEventListener('touchstart',function(e){
     target=e.target.closest(TAPPABLE);

@@ -345,6 +345,9 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
     <button class="addbtn" style="flex:1;font-size:14px;min-height:48px" onclick="A.importData()">Import</button>
   </div>
   <div style="font-size:12px;color:#bbb;margin-top:10px;line-height:1.5">Export copies your data to clipboard. Import pastes it back — useful when switching devices or after re-adding to home screen.</div>
+  <div class="sl" style="margin-top:28px">App</div>
+  <button class="addbtn" id="update-btn" style="width:100%;font-size:14px;min-height:48px;margin-top:4px" onclick="A.checkForUpdate()">🔄 Check for updates</button>
+  <div style="font-size:12px;color:#bbb;margin-top:10px;line-height:1.5">The app works fully offline and won't re-download itself automatically. Tap this after a new version has been released to fetch it.</div>
 </div>
 
 <div class="page" id="p-habits">
@@ -1072,6 +1075,7 @@ var A={
     renderProj(pid);renderWar();renderGrids();
     inp.value='';inp.blur();
     var aw=document.getElementById('addwrap-'+pid);if(aw)aw.style.display='none';
+    var fab=document.getElementById('fab');if(fab)fab.style.display='';
   },
   restore:function(idx){
     DB.restoreTask(idx);
@@ -1115,6 +1119,7 @@ var A={
     DB.data.trackerEntries[pid].push({val:val,ts:Date.now()});
     DB.save();inp.value='';
     renderTracker(pid);
+    var fab=document.getElementById('fab');if(fab)fab.style.display='';
   },
   delTrackerEntry:function(pid,ts){
     var self=this;
@@ -1148,6 +1153,23 @@ var A={
         DB.load();buildProjPages();renderWar();renderGrids();
       }catch(e){}
     });
+  },
+  checkForUpdate:function(){
+    var btn=document.getElementById('update-btn');
+    if(btn){btn.textContent='Checking…';btn.disabled=true;}
+    function reload(){location.reload();}
+    if('caches' in window){
+      caches.keys().then(function(keys){
+        return Promise.all(keys.map(function(k){return caches.delete(k);}));
+      }).then(function(){
+        if('serviceWorker' in navigator){
+          navigator.serviceWorker.getRegistration().then(function(reg){
+            if(reg)reg.update().then(reload).catch(reload);
+            else reload();
+          });
+        } else reload();
+      }).catch(reload);
+    } else reload();
   },
     setHoldMode:function(val){
     DB.data.settings.holdToComplete=val;DB.save();
@@ -1965,7 +1987,10 @@ var TabBar={
       el.classList.toggle('active',el.getAttribute('data-tab')===Nav.cur);
     });
     var fab=document.getElementById('fab');
-    if(fab)fab.classList.toggle('show',Nav.cur==='habits'||!!DB.data.projects[Nav.cur]);
+    if(fab){
+      fab.style.display=''; // clear any "hidden while adding" override from the previous page
+      fab.classList.toggle('show',Nav.cur==='habits'||!!DB.data.projects[Nav.cur]);
+    }
   }
 };
 
@@ -1985,7 +2010,10 @@ var TabPlus={
       var trkWrap=document.getElementById('trk-addwrap-'+cur);
       if(trkWrap)trkWrap.style.display='flex';
       var inp=document.getElementById('inp-'+cur)||document.getElementById('trk-inp-'+cur);
-      if(inp){inp.scrollIntoView({behavior:'smooth',block:'center'});inp.focus();return;}
+      if(inp){
+        var fab=document.getElementById('fab');if(fab)fab.style.display='none';
+        inp.scrollIntoView({behavior:'smooth',block:'center'});inp.focus();return;
+      }
     }
     AddChoice.show('Add',[
       {icon:'📁',label:'Category',fn:function(){A.newCategory();}},
@@ -2211,6 +2239,11 @@ document.getElementById('tlbl').textContent=T.toLocaleDateString('de-CH',{weekda
 renderWar();
 renderGrids();
 TabBar.updateActive();
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
 </script>
 </body>
 </html>

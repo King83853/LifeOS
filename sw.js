@@ -3,9 +3,17 @@
 // round-trip and works fully offline. New code only reaches the device
 // when the user taps "Check for updates" in Settings (see A.checkForUpdate
 // in index.html), which clears this cache and re-fetches from network.
-var CACHE_NAME = 'lifeos-cache-v1';
+var CACHE_NAME = 'lifeos-cache-v2';
 var SCOPE_URL = self.registration.scope;
-var ASSETS = [SCOPE_URL, SCOPE_URL + 'index.html'];
+var ASSETS = [
+  SCOPE_URL,
+  SCOPE_URL + 'index.html',
+  SCOPE_URL + 'manifest.json',
+  SCOPE_URL + 'apple-touch-icon.png',
+  SCOPE_URL + 'favicon-32.png',
+  SCOPE_URL + 'icon-192.png',
+  SCOPE_URL + 'icon-512.png'
+];
 
 self.addEventListener('install', function (e) {
   self.skipWaiting();
@@ -17,7 +25,7 @@ self.addEventListener('install', function (e) {
       return Promise.all(ASSETS.map(function (url) {
         return fetch(url, { cache: 'reload' }).then(function (resp) {
           return cache.put(url, resp);
-        });
+        }).catch(function () { /* icon/manifest missing shouldn't block install */ });
       }));
     })
   );
@@ -36,6 +44,23 @@ self.addEventListener('activate', function (e) {
 
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
+
+  // Navigation requests (the standalone home-screen app launching, or any
+  // full-page load) are the ones that trigger iOS's "no internet" alert if
+  // they fall through to a real network fetch while offline. Always answer
+  // these straight from the cached app shell so a launch never needs the
+  // network at all, regardless of the exact URL requested.
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      caches.match(SCOPE_URL + 'index.html').then(function (cached) {
+        return cached || fetch(e.request, { cache: 'reload' });
+      }).catch(function () {
+        return caches.match(SCOPE_URL + 'index.html');
+      })
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(function (cached) {
       if (cached) return cached;

@@ -3,7 +3,7 @@
 // round-trip and works fully offline. New code only reaches the device
 // when the user taps "Check for updates" in Settings (see A.checkForUpdate
 // in index.html), which clears this cache and re-fetches from network.
-var CACHE_NAME = 'lifeos-cache-v2';
+var CACHE_NAME = 'lifeos-cache-v3';
 var SCOPE_URL = self.registration.scope;
 var ASSETS = [
   SCOPE_URL,
@@ -53,7 +53,15 @@ self.addEventListener('fetch', function (e) {
   if (e.request.mode === 'navigate') {
     e.respondWith(
       caches.match(SCOPE_URL + 'index.html').then(function (cached) {
-        return cached || fetch(e.request, { cache: 'reload' });
+        if (cached) return cached;
+        // Cache miss (e.g. right after "Check for updates" cleared it) —
+        // fetch fresh AND re-populate the cache, otherwise offline loading
+        // stays permanently broken from this point on.
+        return fetch(e.request, { cache: 'reload' }).then(function (resp) {
+          var copy = resp.clone();
+          caches.open(CACHE_NAME).then(function (cache) { cache.put(SCOPE_URL + 'index.html', copy); });
+          return resp;
+        });
       }).catch(function () {
         return caches.match(SCOPE_URL + 'index.html');
       })

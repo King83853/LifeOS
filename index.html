@@ -363,8 +363,6 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
   <div class="wnav"><span class="wlbl" id="wlbl"></span><button class="rstbtn" onclick="A.resetDay()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.85"/></svg></button></div>
   <div class="wdays" id="wdays"></div>
   <div id="dpanels"></div>
-  <div class="shdr" style="margin-top:20px">📅 One-time tasks</div>
-  <div id="once-list"></div>
 </div>
 
 
@@ -1054,7 +1052,7 @@ function renderSettings(){
     +'<div class="opt-text"><div class="opt-title">Hold to complete</div><div class="opt-desc">Press and hold to check off — prevents accidental taps</div></div></div>';
 }
 
-function renderHabits(){buildPills();buildPanels();var p=document.getElementById('dp-'+Nav.sd);if(p)p.classList.add('on');restoreChecks(Nav.sd);updWL();renderDailyOnceList();}
+function renderHabits(){buildPills();buildPanels();var p=document.getElementById('dp-'+Nav.sd);if(p)p.classList.add('on');restoreChecks(Nav.sd);updWL();}
 
 // ── ACTIONS ───────────────────────────────────────────────
 var A={
@@ -1199,7 +1197,7 @@ var A={
     var item=cb.closest('.cali');
     DB.completeOnce(id);
     item.style.opacity='0';
-    setTimeout(function(){item.remove();renderDailyOnceList();buildPanels();restoreChecks(Nav.sd);},300);
+    setTimeout(function(){item.remove();buildPanels();restoreChecks(Nav.sd);},300);
   },
   completeOnce:function(cb,id){
     var item=cb.closest('.ti');
@@ -1598,22 +1596,6 @@ function restoreChecks(pi){
     var l=cb.nextElementSibling;if(l){l.style.textDecoration=on?'line-through':'none';l.style.opacity=on?'0.35':'1';}
   });
 }
-function renderDailyOnceList(){
-  var c=document.getElementById('once-list');if(!c)return;
-  var items=DB.data.dailyOnce.slice().sort(function(a,b){return a.date<b.date?-1:(a.date>b.date?1:0);});
-  if(!items.length){c.innerHTML='<div class="empty">No one-time tasks yet.</div>';return;}
-  var todayStr=dStr(new Date());
-  c.innerHTML=items.map(function(o){
-    var overdue=o.date<todayStr;
-    var dl=new Date(o.date+'T00:00:00');
-    var dLbl=dl.toLocaleDateString('de-CH',{day:'numeric',month:'short',year:'numeric'});
-    return '<div class="ti" data-once="'+o.id+'">'
-      +'<input type="checkbox" onchange="A.completeOnce(this,\''+o.id+'\')">'
-      +'<div style="flex:1"><div class="tt">'+esc(o.text)+'</div><div class="ts">'+dLbl+'</div></div>'
-      +(overdue?'<span class="bdg bu">Overdue</span>':'')
-      +'</div>';
-  }).join('');
-}
 function renderToday(){
   var all=[];
   for(var pid in DB.data.extraTasks){
@@ -1918,7 +1900,7 @@ var OnceAddSheet={
     if(!text||!date)return;
     DB.addOnce(text,date);
     _overlayClose('once-add-sheet-overlay');
-    renderDailyOnceList();buildPanels();restoreChecks(Nav.sd);
+    buildPanels();restoreChecks(Nav.sd);
     if(Nav.cur==='today')renderToday();
   },
   close:function(){_overlayClose('once-add-sheet-overlay');}

@@ -28,6 +28,16 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
 - Single-file architecture means CSS/JS changes can have non-obvious global
   side effects — check surrounding sections after edits, not just the
   section touched.
+- iOS home-screen launches can briefly flash a "No Internet Connection"
+  warning even though the app is fully cached and works fine right after.
+  Root cause: a WebKit race where the very first navigation from the home
+  screen icon can hit the network before the service worker has finished
+  activating. Fix in place: `start.html` is a tiny bootstrap page set as
+  the manifest `start_url` — it waits for the service worker to actually
+  control the page before redirecting to `index.html`, keeping that race
+  off the real app's navigation. Because iOS bakes in the target URL at
+  "Add to Home Screen" time (it doesn't re-read manifest.json for existing
+  icons), this only takes effect after the icon is removed and re-added.
 
 ## Definition of "done" for a change
 1. No console errors on load or on interaction with the changed feature

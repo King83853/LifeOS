@@ -1161,19 +1161,28 @@ var A={
   checkForUpdate:function(){
     var btn=document.getElementById('update-btn');
     if(btn){btn.textContent='Checking…';btn.disabled=true;}
-    function reload(){location.reload();}
-    if('caches' in window){
-      caches.keys().then(function(keys){
-        return Promise.all(keys.map(function(k){return caches.delete(k);}));
-      }).then(function(){
-        if('serviceWorker' in navigator){
-          navigator.serviceWorker.getRegistration().then(function(reg){
-            if(reg)reg.update().then(reload).catch(reload);
-            else reload();
-          });
-        } else reload();
-      }).catch(reload);
-    } else reload();
+    function fail(){
+      if(btn){btn.textContent='🔄 Check for updates';btn.disabled=false;}
+      alert("Couldn't reach the network — try again once you have a connection. Nothing was changed.");
+    }
+    // Confirm a fresh copy is actually reachable BEFORE touching any cache —
+    // otherwise a network hiccup here wipes the cache with nothing to
+    // replace it, leaving a blank white screen until connectivity returns.
+    fetch('index.html',{cache:'reload'}).then(function(resp){
+      if(!resp.ok)throw new Error('bad status '+resp.status);
+    }).then(function(){
+      if('caches' in window){
+        return caches.keys().then(function(keys){
+          return Promise.all(keys.map(function(k){return caches.delete(k);}));
+        });
+      }
+    }).then(function(){
+      if('serviceWorker' in navigator){
+        return navigator.serviceWorker.getRegistration().then(function(reg){
+          if(reg)return reg.update();
+        });
+      }
+    }).then(function(){location.reload();}).catch(fail);
   },
     setHoldMode:function(val){
     DB.data.settings.holdToComplete=val;DB.save();

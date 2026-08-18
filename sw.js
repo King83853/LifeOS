@@ -3,11 +3,10 @@
 // round-trip and works fully offline. New code only reaches the device
 // when the user taps "Check for updates" in Settings (see A.checkForUpdate
 // in index.html), which clears this cache and re-fetches from network.
-var CACHE_NAME = 'lifeos-cache-v4';
+var CACHE_NAME = 'lifeos-cache-v5';
 var SCOPE_URL = self.registration.scope;
 var ASSETS = [
   SCOPE_URL,
-  SCOPE_URL + 'start.html',
   SCOPE_URL + 'index.html',
   SCOPE_URL + 'manifest.json',
   SCOPE_URL + 'apple-touch-icon.png',

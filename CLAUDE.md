@@ -30,14 +30,29 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   section touched.
 - iOS home-screen launches can briefly flash a "No Internet Connection"
   warning even though the app is fully cached and works fine right after.
-  Root cause: a WebKit race where the very first navigation from the home
-  screen icon can hit the network before the service worker has finished
-  activating. Fix in place: `start.html` is a tiny bootstrap page set as
-  the manifest `start_url` — it waits for the service worker to actually
-  control the page before redirecting to `index.html`, keeping that race
-  off the real app's navigation. Because iOS bakes in the target URL at
-  "Add to Home Screen" time (it doesn't re-read manifest.json for existing
-  icons), this only takes effect after the icon is removed and re-added.
+  Tried: a `start.html` bootstrap page as the manifest `start_url` that
+  waits for the service worker to control the page before redirecting to
+  `index.html` (theory: a WebKit race lets the first navigation hit the
+  network before the SW finishes activating). Confirmed on a genuinely
+  fresh install that it did NOT stop the warning — reverted. Worse, it
+  exposed a real bug: sw.js's navigate handler always writes the fetched
+  response under the hardcoded `index.html` cache key regardless of which
+  URL was actually requested, so a cache-miss on `start.html` could get
+  its (tiny redirect stub) content wrongly cached as `index.html`, causing
+  an infinite redirect loop that looks exactly like a white screen. Don't
+  reintroduce a second navigable URL without fixing that cache-key bug
+  first (key the cache.put on `e.request.url`, not a hardcoded constant).
+  Current read: this warning is very likely an iOS/WebKit-level thing that
+  can't be reliably fixed from app code — not worth chasing further given
+  how easily changes here cause real (data-risk) breakage. See also: the
+  `checkForUpdate` flow (index.html, `A.checkForUpdate`) used to delete
+  all caches before confirming a fresh copy was fetchable — any hiccup
+  left a blank white screen with no recovery short of deleting and
+  re-adding the home-screen icon (which, on iOS, has ITS OWN isolated
+  localStorage/cache/SW separate from Safari and from any other icon of
+  the same site — deleting one without an Export first loses its data
+  permanently). Fixed by fetching a fresh copy first and only clearing
+  the cache once that succeeds.
 
 ## Definition of "done" for a change
 1. No console errors on load or on interaction with the changed feature

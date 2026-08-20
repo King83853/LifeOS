@@ -200,6 +200,16 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 .color-opt.sel{border-color:#1a1917}
 @media(prefers-color-scheme:dark){.color-opt.sel{border-color:#e8e6df}}
 
+.update-overlay{display:none;position:fixed;inset:0;background:rgba(243,244,246,.97);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+@media(prefers-color-scheme:dark){.update-overlay{background:rgba(26,25,23,.97)}}
+.update-overlay.on{display:flex}
+.update-spinner{width:34px;height:34px;border:3px solid #e8e5e0;border-top-color:#1a1917;border-radius:50%;animation:uspin .7s linear infinite}
+@media(prefers-color-scheme:dark){.update-spinner{border-color:#333;border-top-color:#e8e6df}}
+@keyframes uspin{to{transform:rotate(360deg)}}
+.update-check{font-size:34px;line-height:1}
+.update-text{font-size:15px;font-weight:700;color:#1a1917}
+@media(prefers-color-scheme:dark){.update-text{color:#e8e6df}}
+
 .sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500}
 .sheet-overlay.on{display:block}
 .sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;overflow-y:auto;max-height:90vh;border-radius:24px 24px 0 0;padding:24px 20px 44px;z-index:501;transform:translateY(100%);transition:transform .25s}
@@ -368,6 +378,12 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 
 
 
+
+<div class="update-overlay" id="update-overlay">
+  <div class="update-spinner" id="update-spinner"></div>
+  <div class="update-check" id="update-check" style="display:none">✓</div>
+  <div class="update-text" id="update-text">Updating…</div>
+</div>
 
 <div class="sheet-overlay" id="input-sheet-overlay" onclick="if(event.target===this)InputSheet.cancel()">
   <div class="sheet" style="padding:24px 20px 40px">
@@ -1161,30 +1177,48 @@ var A={
   checkForUpdate:function(){
     var btn=document.getElementById('update-btn');
     if(btn){btn.textContent='Checking…';btn.disabled=true;}
+    var settled=false;
+    var watchdog=setTimeout(function(){done("Couldn't check for updates — try again later. Nothing was changed.");},12000);
+    // `settled` + the watchdog together guarantee this always ends in a
+    // visible result — a message, or a reload — no matter what happens:
+    // no update, a slow/dropped connection, a mid-deploy hiccup on the
+    // server, or an install that fails partway through. Nothing here ever
+    // touches the cache or reloads the page unless an update is confirmed
+    // fully installed and ready to take over, so there's no path back to
+    // a blank or broken screen.
     function done(msg){
+      if(settled)return;settled=true;
+      clearTimeout(watchdog);
       if(btn){btn.textContent='🔄 Check for updates';btn.disabled=false;}
+      UpdateOverlay.hide();
       if(msg)alert(msg);
     }
     if(!('serviceWorker' in navigator)){done("Updates aren't supported in this browser.");return;}
     navigator.serviceWorker.getRegistration().then(function(reg){
+      if(settled)return;
       if(!reg){done('Nothing to update yet — close and reopen the app once first.');return;}
       reg.update().then(function(){
+        if(settled)return;
         var sw=reg.installing||reg.waiting;
         if(!sw){done("You're already on the latest version.");return;}
         // A new version was actually found — nothing is deleted manually here.
         // The new service worker caches its own assets during install, and
         // only replaces the old cache in its own activate handler once that's
         // done, so there's never a moment with no working cache to fall back
-        // on. Reload once it's actually taken over.
+        // on. Show a visible "Updating…" state, wait for it to actually take
+        // over, flash a checkmark so it's clear something happened, then reload.
+        UpdateOverlay.show('Updating…');
         navigator.serviceWorker.addEventListener('controllerchange',function onCC(){
           navigator.serviceWorker.removeEventListener('controllerchange',onCC);
-          location.reload();
+          if(settled)return;settled=true;clearTimeout(watchdog);
+          UpdateOverlay.done('✓ Updated');
+          setTimeout(function(){location.reload();},700);
         });
         sw.addEventListener('statechange',function(){
-          if(sw.state==='redundant')done('Update failed — try again later.');
+          if(sw.state==='redundant')done('Update failed — try again later. Nothing was changed.');
         });
       }).catch(function(){done("Couldn't reach the network — try again once you have a connection.");});
-    });
+    }).catch(function(){done("Couldn't check for updates — try again later.");});
   },
     setHoldMode:function(val){
     DB.data.settings.holdToComplete=val;DB.save();
@@ -1841,6 +1875,22 @@ document.addEventListener('touchmove',function(e){
 },{passive:false});
 
 
+var UpdateOverlay={
+  show:function(text){
+    document.getElementById('update-text').textContent=text;
+    document.getElementById('update-spinner').style.display='';
+    document.getElementById('update-check').style.display='none';
+    document.getElementById('update-overlay').classList.add('on');
+  },
+  done:function(text){
+    document.getElementById('update-text').textContent=text;
+    document.getElementById('update-spinner').style.display='none';
+    document.getElementById('update-check').style.display='';
+  },
+  hide:function(){
+    document.getElementById('update-overlay').classList.remove('on');
+  }
+};
 var InputSheet={
   _cb:null,
   show:function(title,placeholder,cb){

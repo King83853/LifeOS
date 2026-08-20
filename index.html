@@ -1161,28 +1161,30 @@ var A={
   checkForUpdate:function(){
     var btn=document.getElementById('update-btn');
     if(btn){btn.textContent='Checking…';btn.disabled=true;}
-    function fail(){
+    function done(msg){
       if(btn){btn.textContent='🔄 Check for updates';btn.disabled=false;}
-      alert("Couldn't reach the network — try again once you have a connection. Nothing was changed.");
+      if(msg)alert(msg);
     }
-    // Confirm a fresh copy is actually reachable BEFORE touching any cache —
-    // otherwise a network hiccup here wipes the cache with nothing to
-    // replace it, leaving a blank white screen until connectivity returns.
-    fetch('index.html',{cache:'reload'}).then(function(resp){
-      if(!resp.ok)throw new Error('bad status '+resp.status);
-    }).then(function(){
-      if('caches' in window){
-        return caches.keys().then(function(keys){
-          return Promise.all(keys.map(function(k){return caches.delete(k);}));
+    if(!('serviceWorker' in navigator)){done("Updates aren't supported in this browser.");return;}
+    navigator.serviceWorker.getRegistration().then(function(reg){
+      if(!reg){done('Nothing to update yet — close and reopen the app once first.');return;}
+      reg.update().then(function(){
+        var sw=reg.installing||reg.waiting;
+        if(!sw){done("You're already on the latest version.");return;}
+        // A new version was actually found — nothing is deleted manually here.
+        // The new service worker caches its own assets during install, and
+        // only replaces the old cache in its own activate handler once that's
+        // done, so there's never a moment with no working cache to fall back
+        // on. Reload once it's actually taken over.
+        navigator.serviceWorker.addEventListener('controllerchange',function onCC(){
+          navigator.serviceWorker.removeEventListener('controllerchange',onCC);
+          location.reload();
         });
-      }
-    }).then(function(){
-      if('serviceWorker' in navigator){
-        return navigator.serviceWorker.getRegistration().then(function(reg){
-          if(reg)return reg.update();
+        sw.addEventListener('statechange',function(){
+          if(sw.state==='redundant')done('Update failed — try again later.');
         });
-      }
-    }).then(function(){location.reload();}).catch(fail);
+      }).catch(function(){done("Couldn't reach the network — try again once you have a connection.");});
+    });
   },
     setHoldMode:function(val){
     DB.data.settings.holdToComplete=val;DB.save();

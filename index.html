@@ -352,7 +352,9 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
     <div style="font-size:22px">✏️</div>
     <div class="opt-text"><div class="opt-title">Edit layout</div><div class="opt-desc">Reorder or remove categories &amp; projects</div></div>
   </div>
-  <div class="sl">Completing tasks</div>
+  <div class="sl">Today</div>
+  <div id="settings-today"></div>
+  <div class="sl" style="margin-top:28px">Completing tasks</div>
   <div id="settings-complete"></div>
   <div class="sl" style="margin-top:28px">Data</div>
   <div style="display:flex;gap:10px;margin-top:4px">
@@ -563,7 +565,7 @@ var DB={
       categories:{}, // {id:{name,icon}}
       categoryOrder:[],      // [catId,...]
       projectOrder:{},       // {catId:[projId,...]}
-      settings:{holdToComplete:false}};
+      settings:{holdToComplete:false,todayHabitsDisappear:false}};
   },
   load:function(){
     try{var r=localStorage.getItem(this.KEY);if(r)this.data=JSON.parse(r);}catch(e){}
@@ -573,7 +575,8 @@ var DB={
     if(!d.categories)d.categories={};
     if(!d.categoryOrder)d.categoryOrder=[];
     if(!d.projectOrder)d.projectOrder={};
-    if(!d.settings)d.settings={holdToComplete:false};
+    if(!d.settings)d.settings={holdToComplete:false,todayHabitsDisappear:false};
+    if(d.settings.todayHabitsDisappear===undefined)d.settings.todayHabitsDisappear=false;
     // migrate to adaptable daily-tasks model — resets old fixed daily/habit data
     if(!d.dailyCats){d.dailyCats=[];d.dailyItems=[];d.dailyOnce=[];d.dailyChecks={};}
     if(!d.dailyItems)d.dailyItems=[];
@@ -1066,6 +1069,15 @@ function renderSettings(){
     +'<div class="opt-row'+(hold?' active':'')+'" onclick="A.setHoldMode(true)">'
     +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
     +'<div class="opt-text"><div class="opt-title">Hold to complete</div><div class="opt-desc">Press and hold to check off — prevents accidental taps</div></div></div>';
+
+  var vanish=DB.data.settings.todayHabitsDisappear;
+  document.getElementById('settings-today').innerHTML=
+    '<div class="opt-row'+(vanish?' active':'')+'" onclick="A.setTodayHabitsDisappear(true)">'
+    +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
+    +'<div class="opt-text"><div class="opt-title">Disappear when checked off</div><div class="opt-desc">Start with the full list, it shrinks as you go</div></div></div>'
+    +'<div class="opt-row'+(!vanish?' active':'')+'" onclick="A.setTodayHabitsDisappear(false)">'
+    +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
+    +'<div class="opt-text"><div class="opt-title">Stay checked off</div><div class="opt-desc">Completed items stay in the list, marked green</div></div></div>';
 }
 
 function renderHabits(){buildPills();buildPanels();var p=document.getElementById('dp-'+Nav.sd);if(p)p.classList.add('on');restoreChecks(Nav.sd);updWL();}
@@ -1224,11 +1236,27 @@ var A={
     DB.data.settings.holdToComplete=val;DB.save();
     applyHoldMode();renderSettings();
   },
+  setTodayHabitsDisappear:function(val){
+    DB.data.settings.todayHabitsDisappear=val;DB.save();
+    renderSettings();renderToday();
+  },
   toggleDailyItemFor:function(cb,dayIdx){
     var id=cb.getAttribute('data-id');
     var ds=pDate(dayIdx);
     DB.toggleDailyCheck(id,ds,cb.checked);
     var l=cb.nextElementSibling;if(l){l.style.textDecoration=cb.checked?'line-through':'none';l.style.opacity=cb.checked?'0.35':'1';}
+    if(Nav.cur==='today'&&DB.data.settings.todayHabitsDisappear&&cb.checked){
+      var item=cb.closest('.cali');
+      if(item){
+        var sec=item.closest('.calsec');
+        item.style.transition='opacity .3s';
+        item.style.opacity='0';
+        setTimeout(function(){
+          item.remove();
+          if(sec&&!sec.querySelector('.cali'))sec.remove();
+        },300);
+      }
+    }
   },
   deleteDailyItem:function(ev,id){
     if(ev){ev.preventDefault();ev.stopPropagation();}
@@ -1669,8 +1697,13 @@ function renderToday(){
     onceToday.forEach(function(o){h+=onceRow(o);});
     h+='</div>';
   }
+  var vanish=DB.data.settings.todayHabitsDisappear;
   DB.data.dailyCats.forEach(function(cat){
-    var items=DB.data.dailyItems.filter(function(it){return it.catId===cat.id&&it.days.indexOf(TI)!==-1;});
+    var items=DB.data.dailyItems.filter(function(it){
+      if(it.catId!==cat.id||it.days.indexOf(TI)===-1)return false;
+      if(vanish&&DB.isDailyChecked(it.id,ds))return false;
+      return true;
+    });
     if(!items.length)return;
     h+='<div class="calsec"><div class="caltitle">'+cat.icon+' '+esc(cat.name)+'</div>';
     items.forEach(function(it){h+=ci(it.id,it.text,TI);});

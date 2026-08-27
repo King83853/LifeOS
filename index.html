@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Life OS">
@@ -17,7 +17,9 @@ html{scroll-behavior:auto}
 input,textarea{-webkit-user-select:text;user-select:text}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f3f4f6;color:#1a1917;min-height:100vh;overscroll-behavior:none}
 @media(prefers-color-scheme:dark){body{background:#1f2937;color:#e8e6df}}
-.page{display:none;padding:14px 16px 118px}.page.active{display:block}
+.page{display:none;padding:calc(env(safe-area-inset-top) + 14px) 16px 118px}.page.active{display:block}
+.statusbar-blur{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:rgba(243,244,246,.7);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);z-index:140;pointer-events:none}
+@media(prefers-color-scheme:dark){.statusbar-blur{background:rgba(26,25,23,.7)}}
 
 .tabbar{position:fixed;left:0;right:0;bottom:0;background:#f3f4f6;border-top:1px solid #e8e5e0;display:flex;align-items:stretch;z-index:150;padding:8px 0 calc(env(safe-area-inset-bottom) + 16px)}
 @media(prefers-color-scheme:dark){.tabbar{background:#1f2937;border-color:#2a2927}}
@@ -264,6 +266,8 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 </style>
 </head>
 <body>
+
+<div class="statusbar-blur"></div>
 
 <div class="tabbar">
   <button class="tab-item" data-tab="today" onclick="TabBar.go('today')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Today</span></button>
@@ -972,18 +976,28 @@ function renderLockedIn(){
     var p=DB.data.projects[pid];
     if(p&&p.type==='list')continue;
     (DB.data.extraTasks[pid]||[]).forEach(function(t){
-      all.push({text:t.text,pri:t.pri||'bs',section:p?p.name:pid,key:t.key,pid:pid});
+      all.push({text:t.text,pri:t.pri||'bs',section:p?p.name:pid,key:t.key,pid:pid,color:p?p.color:'c-grey'});
     });
   }
-  all.sort(function(a,b){return po(a.pri)-po(b.pri);});
   var c=document.getElementById('lockedin-list');
   if(!all.length){c.innerHTML='<div class="empty">No tasks yet.</div>';return;}
-  c.innerHTML=all.map(function(t){
-    return '<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
-      +'<input type="checkbox" onchange="A.doneLockedIn(this)">'
-      +'<div style="flex:1" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div><div class="ts">'+esc(t.section)+'</div></div>'
-      +(t.pri==='bu'?'':'<span class="bdg '+t.pri+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+PLBL[t.pri]+'</span>')+'</div>';
-  }).join('');
+  // Grouped by priority tier — one header per tier instead of a badge on
+  // every row, and each row's badge shows its project (color + name)
+  // instead of repeating the priority the header already says.
+  var h='';
+  ['bu','bs','bp','bl'].forEach(function(pri){
+    var items=all.filter(function(t){return t.pri===pri;});
+    if(!items.length)return;
+    h+='<div class="sl"'+(h?' style="margin-top:20px"':'')+'>'+PLBL[pri]+'</div>';
+    h+=items.map(function(t){
+      var col=COLORS[t.color||'c-grey']||'#6b7280';
+      return '<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
+        +'<input type="checkbox" onchange="A.doneLockedIn(this)">'
+        +'<div style="flex:1" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div></div>'
+        +'<span class="bdg" style="background:'+col+'20;color:'+col+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span></div>';
+    }).join('');
+  });
+  c.innerHTML=h;
 }
 
 function renderLockedInList(){
@@ -1676,17 +1690,26 @@ function renderToday(){
     var pr=DB.data.projects[pid];
     if(pr&&pr.type==='list')continue;
     (DB.data.extraTasks[pid]||[]).forEach(function(t){
-      all.push({text:t.text,pri:t.pri||'bs',section:pr?pr.name:pid,key:t.key,pid:pid});
+      all.push({text:t.text,pri:t.pri||'bs',section:pr?pr.name:pid,key:t.key,pid:pid,color:pr?pr.color:'c-grey'});
     });
   }
   all.sort(function(a,b){return po(a.pri)-po(b.pri);});
   var top3=all.slice(0,3);
   var c1=document.getElementById('today-priorities');
   c1.innerHTML=top3.length?top3.map(function(t){
+    // War Room items match the War Room widget's own look — project-colored
+    // badge with the project name, no "War Room" text — instead of the
+    // generic priority badge the other tasks get.
+    var isWar=t.pri==='bu';
+    var col=COLORS[t.color||'c-grey']||'#6b7280';
+    var badge=isWar
+      ? '<span class="bdg" style="background:'+col+'20;color:'+col+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span>'
+      : '<span class="bdg '+t.pri+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+PLBL[t.pri]+'</span>';
+    var sub=isWar?'':'<div class="ts">'+esc(t.section)+'</div>';
     return '<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
       +'<input type="checkbox" onchange="A.doneLockedIn(this)">'
-      +'<div style="flex:1" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div><div class="ts">'+esc(t.section)+'</div></div>'
-      +'<span class="bdg '+t.pri+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+PLBL[t.pri]+'</span></div>';
+      +'<div style="flex:1" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div>'+sub+'</div>'
+      +badge+'</div>';
   }).join(''):'<div class="empty">No tasks yet.</div>';
 
   var ds=pDate(TI);

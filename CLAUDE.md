@@ -72,6 +72,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   about whether a given icon's storage is broken.
 
 ## Definition of "done" for a change
+0. If index.html (or any other cached asset) changed, bump `CACHE_NAME` in
+   sw.js — EVERY time, even for changes that have nothing to do with the
+   service worker. The update check only diffs sw.js's own bytes; if it's
+   unchanged, "Check for updates" truthfully-but-uselessly reports
+   "already on the latest version" while the actual app content served
+   stays stale. Got bitten by this exact bug once already — don't skip it.
 1. No console errors on load or on interaction with the changed feature
 2. Existing features still work (see smoke-test.js — run it after every change)
 3. Screenshot review of the changed UI state looks correct (no layout

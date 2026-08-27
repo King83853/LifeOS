@@ -78,6 +78,9 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
    unchanged, "Check for updates" truthfully-but-uselessly reports
    "already on the latest version" while the actual app content served
    stays stale. Got bitten by this exact bug once already — don't skip it.
+0b. Also bump `APP_VERSION` in index.html (Beta 1.0 → 1.1 → 1.2 …) and add
+    a matching entry to `CHANGELOG` for any user-visible change, so the
+    "What's new" sheet has something real to show after the update lands.
 1. No console errors on load or on interaction with the changed feature
 2. Existing features still work (see smoke-test.js — run it after every change)
 3. Screenshot review of the changed UI state looks correct (no layout

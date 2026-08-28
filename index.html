@@ -160,6 +160,13 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 @media(prefers-color-scheme:dark){.dpill.today .dname,.dpill.today .dnum{color:#86efac}.dpill.sel .dname,.dpill.sel .dnum{color:#e8e6df}}
 .dpanel{display:none}.dpanel.on{display:block}
 .calsec{background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.hd-bar-empty{fill:#e5e3dd}
+@media(prefers-color-scheme:dark){.hd-bar-empty{fill:#333230}}
+.hd-pie-track{stroke:#e5e3dd}
+@media(prefers-color-scheme:dark){.hd-pie-track{stroke:#333230}}
+.hd-pie-pct{fill:#1a1917}
+@media(prefers-color-scheme:dark){.hd-pie-pct{fill:#e8e6df}}
+.hd-bar-label{fill:#bbb}
 @media(prefers-color-scheme:dark){.calsec{background:#1e1c1a;border-color:#2a2927}}
 .caltitle{font-size:11px;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
 .cali{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #f5f3ef;min-height:40px;position:relative;overflow:hidden}
@@ -392,6 +399,31 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
   <div id="dpanels"></div>
 </div>
 
+<div class="page" id="p-habit-detail">
+  <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+  <div class="dhdr">
+    <div class="dico">🏃</div>
+    <div style="flex:1;min-width:0">
+      <div class="dtitle" id="hd-title" onclick="HabitDetail.rename()" style="cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Habit</div>
+      <div class="dsub" id="hd-sub"></div>
+    </div>
+    <button class="edit-proj-btn" onclick="HabitDetail.rename()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+  </div>
+  <div class="seg-row" id="hd-seg">
+    <button class="seg-btn active" data-view="day" onclick="HabitDetail.setView('day')">Day</button>
+    <button class="seg-btn" data-view="week" onclick="HabitDetail.setView('week')">Week</button>
+    <button class="seg-btn" data-view="month" onclick="HabitDetail.setView('month')">Month</button>
+  </div>
+  <div class="calsec" style="padding:16px 14px 10px">
+    <div id="hd-chart-readout" style="font-size:12px;font-weight:700;color:#999;margin-bottom:10px;min-height:16px">&nbsp;</div>
+    <div id="hd-chart"></div>
+  </div>
+  <div class="shdr" style="margin-top:22px">🔥 Consistency</div>
+  <div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:22px 14px;gap:10px">
+    <div id="hd-pie"></div>
+    <div id="hd-streak-text" style="font-size:13px;color:#999;text-align:center;line-height:1.5"></div>
+  </div>
+</div>
 
 
 
@@ -565,7 +597,7 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.3';
+var APP_VERSION='Beta 1.4';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -586,6 +618,12 @@ var CHANGELOG=[
   {v:'Beta 1.3',notes:[
     'War Room project badges now match the same size everywhere (were slightly smaller on Overview)',
     'Hold-to-complete takes a touch longer, and the fill bar is a softer grey instead of near-black'
+  ]},
+  {v:'Beta 1.4',notes:[
+    'New: tap any recurring habit (on Today or the Daily tab) to open its own stats page',
+    'Bar chart by day, week, or month — tap a bar to see the exact count',
+    'Consistency ring: your current unbroken streak against a 3-month target — 100% means never missing a scheduled day for a full 3 months',
+    'Rename a habit right from its stats page'
   ]}
 ];
 var COLORS={
@@ -777,6 +815,10 @@ var DB={
   deleteDailyItem:function(id){
     this.data.dailyItems=this.data.dailyItems.filter(function(x){return x.id!==id;});
     this.save();
+  },
+  renameDailyItem:function(id,text){
+    var it=this.data.dailyItems.find(function(x){return x.id===id;});
+    if(it&&text){it.text=text;this.save();}
   },
   toggleDailyCheck:function(itemId,ds,checked){
     if(!this.data.dailyChecks[ds])this.data.dailyChecks[ds]={};
@@ -1446,6 +1488,7 @@ function _renderPage(id){
   if(id==='settings')renderSettings();
   if(id==='habits')renderHabits();
   if(id==='today')renderToday();
+  if(id==='habit-detail')HabitDetail.render();
 }
 
 function navForward(id){
@@ -1718,14 +1761,192 @@ function pDate(pi){var m=new Date(T);m.setDate(T.getDate()-TI+pi);return dStr(m)
 function ci(itemId,text,dayIdx){
   return '<div class="cali" data-id="'+itemId+'">'
     +'<input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'" onchange="A.toggleDailyItemFor(this,'+dayIdx+')">'
-    +'<label onclick="if(!DB.data.settings.holdToComplete)this.previousSibling.click()">'+esc(text)+'</label></div>';
+    +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label></div>';
 }
 function ciEdit(itemId,text,dayIdx){
   return '<div class="cali" data-id="'+itemId+'">'
     +'<input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'" onchange="A.toggleDailyItemFor(this,'+dayIdx+')">'
-    +'<label onclick="if(!DB.data.settings.holdToComplete)this.previousSibling.click()">'+esc(text)+'</label>'
+    +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label>'
     +'<button class="trk-del" onclick="A.deleteDailyItem(event,\''+itemId+'\')">×</button></div>';
 }
+// ── HABIT STATS ───────────────────────────────────────────
+// Mo=0..So=6, matching TI/DN's convention throughout this file.
+function wIdx(d){return (d.getDay()+6)%7;}
+
+// Current unbroken streak of completed SCHEDULED days, against a fixed
+// 3-month (90-day) target scaled by how many days/week the habit runs.
+// A missed scheduled day breaks the streak; today doesn't count as missed
+// until it's actually over (still "pending" while unchecked). A brand new
+// habit naturally streaks-out at its own creation date, since there's no
+// check recorded for days before it existed — no separate creation date
+// needs to be tracked.
+function habitStreak(item){
+  var days=item.days||[];
+  if(!days.length)return{streak:0,target:1,pct:0};
+  var target=Math.max(1,Math.round(90*days.length/7));
+  var todayStr=dStr(T);
+  var cursor=new Date(T);
+  var streak=0,guard=0;
+  while(guard<450){
+    guard++;
+    if(days.indexOf(wIdx(cursor))!==-1){
+      var ds=dStr(cursor);
+      var done=!!(DB.data.dailyChecks[ds]&&DB.data.dailyChecks[ds][item.id]);
+      if(ds===todayStr&&!done){ /* today, still pending — not a miss yet */ }
+      else if(done)streak++;
+      else break;
+    }
+    cursor.setDate(cursor.getDate()-1);
+  }
+  return{streak:streak,target:target,pct:Math.min(100,Math.round(streak/target*100))};
+}
+
+// Bars: day view = one bar per scheduled day (binary — done or not).
+// Week/month = one bar per period, height = how many scheduled days in
+// that period were completed. Raw counts, not percentages.
+function habitPeriods(item,granularity,count){
+  var days=item.days||[];
+  var out=[];
+  if(!days.length)return out;
+  if(granularity==='day'){
+    var cursor=new Date(T),guard=0;
+    while(out.length<count&&guard<450){
+      guard++;
+      if(days.indexOf(wIdx(cursor))!==-1){
+        var ds=dStr(cursor);
+        var done=!!(DB.data.dailyChecks[ds]&&DB.data.dailyChecks[ds][item.id]);
+        out.unshift({label:cursor.getDate()+'.'+(cursor.getMonth()+1)+'.',completed:done?1:0,scheduled:1});
+      }
+      cursor.setDate(cursor.getDate()-1);
+    }
+  } else if(granularity==='week'){
+    var wkStart=new Date(T);wkStart.setDate(wkStart.getDate()-wIdx(T));
+    for(var w=count-1;w>=0;w--){
+      var start=new Date(wkStart);start.setDate(start.getDate()-7*w);
+      var completed=0,scheduled=0;
+      for(var d=0;d<7;d++){
+        var day=new Date(start);day.setDate(day.getDate()+d);
+        if(day>T)continue;
+        if(days.indexOf(d)!==-1){
+          scheduled++;
+          var ds2=dStr(day);
+          if(DB.data.dailyChecks[ds2]&&DB.data.dailyChecks[ds2][item.id])completed++;
+        }
+      }
+      out.push({label:start.getDate()+'.'+(start.getMonth()+1)+'.',completed:completed,scheduled:scheduled});
+    }
+  } else {
+    var base=new Date(T.getFullYear(),T.getMonth(),1);
+    for(var m=count-1;m>=0;m--){
+      var mstart=new Date(base.getFullYear(),base.getMonth()-m,1);
+      var mend=new Date(base.getFullYear(),base.getMonth()-m+1,0);
+      var completed2=0,scheduled2=0,cur=new Date(mstart);
+      while(cur<=mend){
+        if(cur<=T&&days.indexOf(wIdx(cur))!==-1){
+          scheduled2++;
+          var ds3=dStr(cur);
+          if(DB.data.dailyChecks[ds3]&&DB.data.dailyChecks[ds3][item.id])completed2++;
+        }
+        cur.setDate(cur.getDate()+1);
+      }
+      out.push({label:mstart.toLocaleDateString('de-CH',{month:'short'}),completed:completed2,scheduled:scheduled2});
+    }
+  }
+  return out;
+}
+
+function renderBarChart(periods){
+  if(!periods.length)return '<div class="empty" style="padding:20px 0">No schedule set for this habit.</div>';
+  var w=300,h=110,padBottom=18,padTop=6;
+  var n=periods.length,gap=n>20?2:6;
+  var barW=Math.max(2,(w-gap*(n-1))/n);
+  var maxVal=Math.max(1,Math.max.apply(null,periods.map(function(p){return p.completed;})));
+  var innerH=h-padTop-padBottom;
+  var bars='',labels='',everyN=Math.max(1,Math.ceil(n/10));
+  periods.forEach(function(p,i){
+    var barH=p.completed>0?Math.max(6,Math.round((p.completed/maxVal)*innerH)):3;
+    var x=i*(barW+gap),y=h-padBottom-barH,rx=Math.min(4,barW/2);
+    bars+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+barH+'" rx="'+rx.toFixed(1)+'"'
+      +(p.completed>0?' fill="#22c55e"':' class="hd-bar-empty"')+' data-i="'+i+'"></rect>';
+    if(i%everyN===0){
+      labels+='<text class="hd-bar-label" x="'+(x+barW/2).toFixed(1)+'" y="'+(h-4)+'" font-size="7.5" text-anchor="middle">'+esc(p.label)+'</text>';
+    }
+  });
+  return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:120px;display:block" id="hd-svg">'+bars+labels+'</svg>';
+}
+
+function renderPieChart(pct){
+  var r=42,circ=2*Math.PI*r;
+  var dash=(circ*pct/100).toFixed(1);
+  return '<svg viewBox="0 0 100 100" style="width:150px;height:150px">'
+    +'<circle class="hd-pie-track" cx="50" cy="50" r="'+r+'" fill="none" stroke-width="10"></circle>'
+    +'<circle cx="50" cy="50" r="'+r+'" fill="none" stroke="#22c55e" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+dash+' '+circ.toFixed(1)+'" transform="rotate(-90 50 50)"></circle>'
+    +'<text class="hd-pie-pct" x="50" y="57" text-anchor="middle" font-size="24" font-weight="800">'+pct+'%</text>'
+    +'</svg>';
+}
+
+var HabitDetail={
+  itemId:null,view:'day',
+  open:function(itemId){
+    this.itemId=itemId;this.view='day';
+    Nav.go('habit-detail');
+  },
+  setView:function(v){
+    this.view=v;
+    document.querySelectorAll('#hd-seg .seg-btn').forEach(function(b){
+      b.classList.toggle('active',b.getAttribute('data-view')===v);
+    });
+    this.renderChart();
+  },
+  rename:function(){
+    var item=DB.data.dailyItems.find(function(x){return x.id===HabitDetail.itemId;});
+    if(!item)return;
+    InputSheet.show('Rename habit',item.text,function(name){
+      name=(name||'').trim();if(!name)return;
+      DB.renameDailyItem(item.id,name);
+      HabitDetail.render();buildPanels();renderToday();
+    });
+  },
+  render:function(){
+    var item=DB.data.dailyItems.find(function(x){return x.id===HabitDetail.itemId;});
+    if(!item){navBack();return;}
+    var cat=DB.data.dailyCats.find(function(c){return c.id===item.catId;});
+    document.getElementById('hd-title').textContent=item.text;
+    document.getElementById('hd-sub').textContent=(cat?cat.icon+' '+cat.name+' · ':'')+(item.days||[]).map(function(i){return DN[i];}).join(', ');
+    document.querySelectorAll('#hd-seg .seg-btn').forEach(function(b){
+      b.classList.toggle('active',b.getAttribute('data-view')==='day');
+    });
+    this.view='day';
+    this.renderChart();
+    this.renderPie();
+  },
+  renderChart:function(){
+    var item=DB.data.dailyItems.find(function(x){return x.id===HabitDetail.itemId;});
+    if(!item)return;
+    var counts={day:14,week:8,month:6};
+    var periods=habitPeriods(item,this.view,counts[this.view]);
+    document.getElementById('hd-chart').innerHTML=renderBarChart(periods);
+    document.getElementById('hd-chart-readout').innerHTML='&nbsp;';
+    var svg=document.getElementById('hd-svg');
+    if(svg){
+      svg.addEventListener('click',function(e){
+        var r=e.target.closest('rect');if(!r)return;
+        var p=periods[+r.getAttribute('data-i')];if(!p)return;
+        var txt=p.scheduled>1?(p.completed+' / '+p.scheduled+' — '+p.label):(p.completed?'Done — '+p.label:'Not done — '+p.label);
+        document.getElementById('hd-chart-readout').textContent=txt;
+      });
+    }
+  },
+  renderPie:function(){
+    var item=DB.data.dailyItems.find(function(x){return x.id===HabitDetail.itemId;});
+    if(!item)return;
+    var s=habitStreak(item);
+    document.getElementById('hd-pie').innerHTML=renderPieChart(s.pct);
+    document.getElementById('hd-streak-text').innerHTML=
+      '<b>'+s.streak+'</b>-day streak · target <b>'+s.target+'</b> days<br>100% = never missed a scheduled day for 3 months straight';
+  }
+};
+
 function onceRow(o){
   return '<div class="cali" data-once="'+o.id+'">'
     +'<input type="checkbox" onchange="A.toggleOnceInline(this,\''+o.id+'\')">'

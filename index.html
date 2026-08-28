@@ -497,6 +497,8 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
   </div>
   <div class="sl">Today</div>
   <div id="settings-today"></div>
+  <div class="sl" style="margin-top:28px">Appearance</div>
+  <div id="settings-theme"></div>
   <div class="sl" style="margin-top:28px">Completing tasks</div>
   <div id="settings-complete"></div>
   <div class="sl" style="margin-top:28px">Data</div>
@@ -723,7 +725,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.7';
+var APP_VERSION='Beta 1.8';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -760,6 +762,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.7',notes:[
     'Status bar fade now starts right where the status bar actually ends (~2mm past it) instead of drifting a full centimeter down'
+  ]},
+  {v:'Beta 1.8',notes:[
+    'New: Settings > Appearance — force Light or Dark regardless of your device setting, or leave it on System'
   ]}
 ];
 var COLORS={
@@ -1306,6 +1311,16 @@ function renderEditLayout(){
 
 function renderSettings(){
   var vl=document.getElementById('version-lbl');if(vl)vl.textContent=APP_VERSION;
+  var theme=DB.data.settings.theme||'system';
+  document.getElementById('settings-theme').innerHTML=[
+    {v:'system',icon:'🌗',title:'System',desc:'Match your device setting'},
+    {v:'light',icon:'☀️',title:'Light',desc:'Always light'},
+    {v:'dark',icon:'🌙',title:'Dark',desc:'Always dark'}
+  ].map(function(o){
+    return '<div class="opt-row'+(theme===o.v?' active':'')+'" onclick="A.setTheme(\''+o.v+'\')">'
+      +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
+      +'<div class="opt-text"><div class="opt-title">'+o.icon+' '+o.title+'</div><div class="opt-desc">'+o.desc+'</div></div></div>';
+  }).join('');
   var hold=DB.data.settings.holdToComplete;
   document.getElementById('settings-complete').innerHTML=
     '<div class="opt-row'+(!hold?' active':'')+'" onclick="A.setHoldMode(false)">'
@@ -1514,6 +1529,10 @@ var A={
     if(tlbl)tlbl.textContent=T.toLocaleDateString('de-CH',{weekday:'short',day:'numeric',month:'short'});
     renderSettings();renderToday();
     if(Nav.cur==='habits')renderHabits();
+  },
+  setTheme:function(val){
+    DB.data.settings.theme=val;DB.save();
+    applyTheme();renderSettings();
   },
   toggleDailyItemFor:function(cb,dayIdx){
     var id=cb.getAttribute('data-id');
@@ -2861,6 +2880,7 @@ DB.load();
 recomputeT();Nav.sd=TI; // re-derive "today" now that the real dayStartHour setting is loaded
 buildProjPages();
 applyHoldMode();
+applyTheme();
 document.getElementById('tlbl').textContent=T.toLocaleDateString('de-CH',{weekday:'short',day:'numeric',month:'short'});
 renderWar();
 renderGrids();

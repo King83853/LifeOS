@@ -3,7 +3,7 @@
 // round-trip and works fully offline. New code only reaches the device
 // when the user taps "Check for updates" in Settings (see A.checkForUpdate
 // in index.html).
-var CACHE_NAME = 'lifeos-cache-v9';
+var CACHE_NAME = 'lifeos-cache-v10';
 var SCOPE_URL = self.registration.scope;
 var SHELL_URL = SCOPE_URL + 'index.html';
 var ASSETS = [

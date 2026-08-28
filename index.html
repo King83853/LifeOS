@@ -18,8 +18,9 @@ input,textarea{-webkit-user-select:text;user-select:text}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f3f4f6;color:#1a1917;min-height:100vh;overscroll-behavior:none}
 @media(prefers-color-scheme:dark){body{background:#1f2937;color:#e8e6df}}
 .page{display:none;padding:calc(env(safe-area-inset-top) + 14px) 16px 118px}.page.active{display:block}
-.statusbar-blur{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:rgba(243,244,246,.7);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);z-index:140;pointer-events:none}
-@media(prefers-color-scheme:dark){.statusbar-blur{background:rgba(26,25,23,.7)}}
+.statusbar-blur{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:rgba(243,244,246,.55);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);z-index:140;pointer-events:none;opacity:0;transition:opacity .25s ease}
+.statusbar-blur.on{opacity:1}
+@media(prefers-color-scheme:dark){.statusbar-blur{background:rgba(26,25,23,.55)}}
 
 .tabbar{position:fixed;left:0;right:0;bottom:0;background:#f3f4f6;border-top:1px solid #e8e5e0;display:flex;align-items:stretch;z-index:150;padding:8px 0 calc(env(safe-area-inset-bottom) + 16px)}
 @media(prefers-color-scheme:dark){.tabbar{background:#1f2937;border-color:#2a2927}}
@@ -566,7 +567,7 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.0';
+var APP_VERSION='Beta 1.1';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -575,6 +576,11 @@ var CHANGELOG=[
     'Content now blurs smoothly under the status bar instead of a flat bar',
     'Custom "day starts at" time, so late nights don\'t flip you into a new day early',
     'Update flow is safer and shows real progress instead of just freezing'
+  ]},
+  {v:'Beta 1.1',notes:[
+    'Fixed: "Check for updates" could miss a real update on fast connections and wrongly say you were already up to date',
+    'Status bar blur now only appears once you actually scroll, instead of sitting there permanently',
+    '"Day starts at" button is bigger and easier to tap'
   ]}
 ];
 var COLORS={
@@ -1136,7 +1142,7 @@ function renderSettings(){
     +'<div class="opt-row" style="cursor:default">'
     +'<div style="font-size:22px">🌙</div>'
     +'<div class="opt-text"><div class="opt-title">Day starts at</div><div class="opt-desc">Late nights before this time still count as the day before</div></div>'
-    +'<select class="addinp daystart-sel" onchange="A.setDayStartHour(this.value)" style="flex:none;width:auto;min-height:auto;padding:8px 10px;font-size:14px;margin-left:auto">'
+    +'<select class="addinp daystart-sel" onchange="A.setDayStartHour(this.value)" style="flex:none;width:auto;min-height:48px;padding:10px 14px;font-size:15px;font-weight:600;margin-left:auto">'
     +HOUR_OPTS.map(function(h){return '<option value="'+h+'"'+(h===DB.data.settings.dayStartHour?' selected':'')+'>'+hourLabel(h)+'</option>';}).join('')
     +'</select></div>';
 }
@@ -1270,30 +1276,40 @@ var A={
     navigator.serviceWorker.getRegistration().then(function(reg){
       if(settled)return;
       if(!reg){done('Nothing to update yet — close and reopen the app once first.');return;}
-      reg.update().then(function(){
-        if(settled)return;
-        var sw=reg.installing||reg.waiting;
-        if(!sw){done("You're already on the latest version.");return;}
-        // A new version was actually found — nothing is deleted manually here.
-        // The new service worker caches its own assets during install, and
-        // only replaces the old cache in its own activate handler once that's
-        // done, so there's never a moment with no working cache to fall back
-        // on. Progress is driven off real lifecycle stages (not faked), so
-        // it's an honest — if coarse — picture of what's actually happening.
+      var found=false,shownAt=0;
+      // Listen for 'updatefound' BEFORE calling update() — this is an event,
+      // not a state poll, so it reliably fires even when install+activate
+      // finish so fast (this app is tiny) that reg.installing/reg.waiting
+      // are already back to null by the time a check-after-the-fact would
+      // look for them. That race is exactly why a real update once landed
+      // silently while this still reported "already on the latest version".
+      reg.addEventListener('updatefound',function(){
+        found=true;
+        var sw=reg.installing;if(!sw)return;
         UpdateOverlay.show('Downloading…');
+        shownAt=Date.now();
         var stageProgress={installing:20,installed:65,activating:85};
         UpdateOverlay.progress(stageProgress[sw.state]||20);
         navigator.serviceWorker.addEventListener('controllerchange',function onCC(){
           navigator.serviceWorker.removeEventListener('controllerchange',onCC);
           if(settled)return;settled=true;clearTimeout(watchdog);
           UpdateOverlay.done('✓ Updated to '+APP_VERSION);
-          setTimeout(function(){location.reload();},700);
+          // Keep it on screen a beat even if everything finished instantly —
+          // otherwise a fast connection means it flashes by unseen.
+          var wait=Math.max(0,600-(Date.now()-shownAt));
+          setTimeout(function(){location.reload();},wait+600);
         });
         sw.addEventListener('statechange',function(){
           if(sw.state==='redundant'){done('Update failed — try again later. Nothing was changed.');return;}
           if(sw.state==='installed')UpdateOverlay.progress(65,'Installing…');
           else if(sw.state==='activating')UpdateOverlay.progress(85,'Almost there…');
         });
+      });
+      reg.update().then(function(){
+        // updatefound fires synchronously as part of this call when there's
+        // a real diff, so by the time this promise resolves we already know.
+        if(settled||found)return;
+        done("You're already on the latest version.");
       }).catch(function(){done("Couldn't reach the network — try again once you have a connection.");});
     }).catch(function(){done("Couldn't check for updates — try again later.");});
   },
@@ -1983,6 +1999,14 @@ document.addEventListener('touchstart',function(e){
 
 
 
+
+// Status bar blur only appears once content has actually scrolled up under
+// it — nothing to blur at rest, so no reason to show a bar there.
+var _sbb=null;
+window.addEventListener('scroll',function(){
+  if(!_sbb)_sbb=document.querySelector('.statusbar-blur');
+  _sbb.classList.toggle('on',window.scrollY>4);
+},{passive:true});
 
 var _overlayCount=0;
 // Safety: reset count if no overlays actually visible

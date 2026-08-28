@@ -18,17 +18,17 @@ input,textarea{-webkit-user-select:text;user-select:text}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f3f4f6;color:#1a1917;min-height:100vh;overscroll-behavior:none}
 @media(prefers-color-scheme:dark){body{background:#1f2937;color:#e8e6df}}
 .page{display:none;padding:calc(env(safe-area-inset-top) + 14px) 16px 118px}.page.active{display:block}
-.statusbar-blur{position:fixed;top:0;left:0;right:0;height:calc(env(safe-area-inset-top) + 28px);background:rgba(243,244,246,.55);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 env(safe-area-inset-top),transparent 100%);mask-image:linear-gradient(to bottom,#000 0,#000 env(safe-area-inset-top),transparent 100%);z-index:140;pointer-events:none;opacity:0;transition:opacity .25s ease}
+.statusbar-blur{position:fixed;top:0;left:0;right:0;height:calc(env(safe-area-inset-top) + 56px);background:rgba(243,244,246,.35);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 env(safe-area-inset-top),transparent 100%);mask-image:linear-gradient(to bottom,#000 0,#000 env(safe-area-inset-top),transparent 100%);z-index:140;pointer-events:none;opacity:0;transition:opacity .25s ease}
 .statusbar-blur.on{opacity:1}
-@media(prefers-color-scheme:dark){.statusbar-blur{background:rgba(26,25,23,.55)}}
+@media(prefers-color-scheme:dark){.statusbar-blur{background:rgba(26,25,23,.35)}}
 
-.tabbar{position:fixed;left:0;right:0;bottom:0;background:#f3f4f6;border-top:1px solid #e8e5e0;display:flex;align-items:stretch;z-index:150;padding:8px 0 calc(env(safe-area-inset-bottom) + 16px)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;background:#f3f4f6;border-top:1px solid #e8e5e0;display:flex;align-items:stretch;z-index:150;padding:10px 0 calc(env(safe-area-inset-bottom) + 6px)}
 @media(prefers-color-scheme:dark){.tabbar{background:#1f2937;border-color:#2a2927}}
 body.kb-open .tabbar,body.kb-open .fab{display:none!important}
-.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:#aaa;font-size:10px;font-weight:700;font-family:inherit;background:none;border:none;padding:6px 0}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#aaa;font-size:11px;font-weight:700;font-family:inherit;background:none;border:none;padding:6px 0}
 .tab-item.active{color:#1a1917}
 @media(prefers-color-scheme:dark){.tab-item.active{color:#e8e6df}}
-.tab-item svg{stroke:currentColor}
+.tab-item svg{stroke:currentColor;width:23px;height:23px}
 .fab{display:none;position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom) + 96px);width:52px;height:52px;border-radius:50%;background:#1a1917;color:#fff;align-items:center;justify-content:center;border:none;cursor:pointer;z-index:149;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .fab.show{display:flex}
 @media(prefers-color-scheme:dark){.fab{background:#e8e6df;color:#1a1917}}
@@ -597,7 +597,7 @@ body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox]
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.4';
+var APP_VERSION='Beta 1.5';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -624,6 +624,10 @@ var CHANGELOG=[
     'Bar chart by day, week, or month — tap a bar to see the exact count',
     'Consistency ring: your current unbroken streak against a 3-month target — 100% means never missing a scheduled day for a full 3 months',
     'Rename a habit right from its stats page'
+  ]},
+  {v:'Beta 1.5',notes:[
+    'Status bar fade is bigger and more transparent',
+    'Bottom tab bar buttons are bigger and sit lower'
   ]}
 ];
 var COLORS={

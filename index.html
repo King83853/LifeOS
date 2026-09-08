@@ -23,7 +23,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 html[data-theme="dark"] body{background:#1f2937;color:#e8e6df}
 html[data-theme="light"] body{background:#f3f4f6;color:#1a1917}
 .page{display:none;padding:calc(env(safe-area-inset-top) + 14px) 16px 118px}.page.active{display:block}
-.statusbar-blur{position:fixed;top:0;left:0;right:0;height:calc(env(safe-area-inset-top) + 32px);background:rgba(243,244,246,.35);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(env(safe-area-inset-top) + 8px),rgba(0,0,0,.5) 100%);mask-image:linear-gradient(to bottom,#000 0,#000 calc(env(safe-area-inset-top) + 8px),rgba(0,0,0,.5) 100%);z-index:140;pointer-events:none;opacity:0;transition:opacity .25s ease}
+.statusbar-blur{position:fixed;top:0;left:0;right:0;height:calc(env(safe-area-inset-top) + 16px);background:rgba(243,244,246,.35);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(env(safe-area-inset-top) + 8px),rgba(0,0,0,.5) 100%);mask-image:linear-gradient(to bottom,#000 0,#000 calc(env(safe-area-inset-top) + 8px),rgba(0,0,0,.5) 100%);z-index:140;pointer-events:none;opacity:0;transition:opacity .25s ease}
 .statusbar-blur.on{opacity:1}
 @media(prefers-color-scheme:dark){.statusbar-blur{background:rgba(26,25,23,.35)}}
 html[data-theme="dark"] .statusbar-blur{background:rgba(26,25,23,.35)}
@@ -754,7 +754,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.11';
+var APP_VERSION='Beta 1.12';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -809,6 +809,10 @@ var CHANGELOG=[
     'Project colors are solid, vivid chips in dark mode instead of a washed-out, muddy tint',
     'Color picker is now one compact field — tap it to choose from 20 colors instead of a big always-open grid',
     'Habit consistency % is now a simple cumulative total (e.g. 45 of 90 scheduled days = 50%) — it no longer resets when you miss a day'
+  ]},
+  {v:'Beta 1.12',notes:[
+    'Status bar fade covers less — starts higher up',
+    'Tracker charts (e.g. Weight) now show a visible line and dots in dark mode instead of black-on-black'
   ]}
 ];
 var COLORS={
@@ -1122,6 +1126,8 @@ function renderTracker(pid){
   var PL=44,PR=12,PT=12,PB=28; // padding left/right/top/bottom
   var W=300,H=140;
   var CW=W-PL-PR, CH=H-PT-PB;
+  var inkCol=isDarkNow()?'#e8e6df':'#1a1917'; // line + dots — was hardcoded dark, invisible on a dark card
+  var gridCol=isDarkNow()?'#333':'#e8e5e0';
   var svgH='<svg class="trk-chart" viewBox="0 0 '+W+' '+H+'" style="overflow:visible">';
 
   if(entries.length>0){
@@ -1137,13 +1143,13 @@ function renderTracker(pid){
     ];
     // Y axis grid lines + labels
     yLabels.forEach(function(l){
-      svgH+='<line x1="'+PL+'" y1="'+l.y+'" x2="'+(W-PR)+'" y2="'+l.y+'" stroke="#e8e5e0" stroke-width="1"/>';
+      svgH+='<line x1="'+PL+'" y1="'+l.y+'" x2="'+(W-PR)+'" y2="'+l.y+'" stroke="'+gridCol+'" stroke-width="1"/>';
       svgH+='<text x="'+(PL-6)+'" y="'+(l.y+4)+'" text-anchor="end" fill="#bbb" font-size="9">'+l.v+'</text>';
     });
 
     if(entries.length===1){
       var x=PL+CW/2, y=PT+CH/2;
-      svgH+='<circle cx="'+x+'" cy="'+y+'" r="3.5" fill="#1a1917"/>';
+      svgH+='<circle cx="'+x+'" cy="'+y+'" r="3.5" fill="'+inkCol+'"/>';
     } else {
       // X position proportional to actual elapsed time between entries
       var minTs=entries[0].ts, maxTs=entries[entries.length-1].ts;
@@ -1155,10 +1161,10 @@ function renderTracker(pid){
         var y=PT+(1-(e.val-minV)/range)*CH;
         return xOf(e.ts)+','+y;
       }).join(' ');
-      svgH+='<polyline fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="'+pts+'"/>';
+      svgH+='<polyline fill="none" stroke="'+inkCol+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="'+pts+'"/>';
       entries.forEach(function(e){
         var y=PT+(1-(e.val-minV)/range)*CH;
-        svgH+='<circle cx="'+xOf(e.ts)+'" cy="'+y+'" r="3" fill="#1a1917"/>';
+        svgH+='<circle cx="'+xOf(e.ts)+'" cy="'+y+'" r="3" fill="'+inkCol+'"/>';
       });
 
       if(p.maEnabled){

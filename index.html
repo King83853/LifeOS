@@ -350,6 +350,14 @@ html[data-theme="light"] .sheet-inp{background:#fff;border-color:#e8e5e0;color:#
 html[data-theme="dark"] .sheet-inp:focus{border-color:#e8e6df}
 html[data-theme="light"] .sheet-inp:focus{border-color:#1a1917}
 .sheet-colors{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.color-field{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid #e8e5e0;border-radius:14px;background:#fff;cursor:pointer;margin-bottom:14px}
+@media(prefers-color-scheme:dark){.color-field{background:#1e1c1a;border-color:#333;color:#e8e6df}}
+html[data-theme="dark"] .color-field{background:#1e1c1a;border-color:#333;color:#e8e6df}
+html[data-theme="light"] .color-field{background:#fff;border-color:#e8e5e0;color:#1a1917}
+.color-field:active{opacity:.7}
+.color-field-swatch{width:26px;height:26px;border-radius:8px;flex-shrink:0}
+.color-field-label{flex:1;font-size:15px}
+.color-field-chev{color:#bbb;flex-shrink:0}
 .sheet-color{width:40px;height:40px;border-radius:10px;cursor:pointer;border:3px solid transparent}
 .sheet-color.sel{border-color:#1a1917}
 @media(prefers-color-scheme:dark){.sheet-color.sel{border-color:#e8e6df}}
@@ -608,6 +616,14 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
   </div>
 </div>
 
+<div class="sheet-overlay" id="color-sheet-overlay" style="z-index:520" onclick="if(event.target===this)ColorPicker.close()">
+  <div class="sheet">
+    <div class="sheet-title">Choose color</div>
+    <div class="sheet-colors" id="sheet-colors"></div>
+    <button class="sheet-cancel" style="width:100%;margin-top:10px" onclick="ColorPicker.close()">Close</button>
+  </div>
+</div>
+
 <div class="sheet-overlay" id="proj-sheet-overlay" onclick="if(event.target===this)SheetEditor.close()">
   <div class="sheet" id="proj-sheet">
     <div class="sheet-title">Edit project</div>
@@ -632,7 +648,11 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
     <div class="sheet-label">Emoji icon</div>
     <input class="sheet-inp" id="sheet-icon" placeholder="📋" style="font-size:24px;text-align:center;max-width:80px">
     <div class="sheet-label">Color</div>
-    <div class="sheet-colors" id="sheet-colors"></div>
+    <div class="color-field" id="color-field" onclick="ColorPicker.open()">
+      <div class="color-field-swatch" id="color-field-swatch"></div>
+      <span class="color-field-label" id="color-field-label">Grey</span>
+      <svg class="color-field-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+    </div>
     <div id="ma-edit-row" style="display:none;margin-bottom:14px">
       <div class="sheet-label">Moving average</div>
       <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:10px;cursor:pointer">
@@ -734,7 +754,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.10';
+var APP_VERSION='Beta 1.11';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -783,21 +803,41 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.10',notes:[
     'Daily tab now scrolls a full week back and a month forward instead of only showing the current week'
+  ]},
+  {v:'Beta 1.11',notes:[
+    'Fixed a white flash during swipe/page-slide transitions in dark mode',
+    'Project colors are solid, vivid chips in dark mode instead of a washed-out, muddy tint',
+    'Color picker is now one compact field — tap it to choose from 20 colors instead of a big always-open grid',
+    'Habit consistency % is now a simple cumulative total (e.g. 45 of 90 scheduled days = 50%) — it no longer resets when you miss a day'
   ]}
 ];
 var COLORS={
   'c-grey': '#6b7280',
   'c-red':  '#ef4444',
+  'c-rose':  '#f43f5e',
   'c-orange':'#f97316',
   'c-amber': '#f59e0b',
   'c-yellow':'#eab308',
+  'c-lime':  '#84cc16',
   'c-green': '#22c55e',
+  'c-emerald':'#10b981',
   'c-teal':  '#14b8a6',
+  'c-cyan':  '#06b6d4',
+  'c-sky':   '#0ea5e9',
   'c-blue':  '#3b82f6',
   'c-indigo':'#6366f1',
   'c-violet':'#8b5cf6',
+  'c-purple':'#a855f7',
+  'c-fuchsia':'#d946ef',
   'c-pink':  '#ec4899',
+  'c-slate': '#64748b',
   'c-black': '#1a1917'
+};
+var COLOR_NAMES={
+  'c-grey':'Grey','c-red':'Red','c-rose':'Rose','c-orange':'Orange','c-amber':'Amber',
+  'c-yellow':'Yellow','c-lime':'Lime','c-green':'Green','c-emerald':'Emerald','c-teal':'Teal',
+  'c-cyan':'Cyan','c-sky':'Sky','c-blue':'Blue','c-indigo':'Indigo','c-violet':'Violet',
+  'c-purple':'Purple','c-fuchsia':'Fuchsia','c-pink':'Pink','c-slate':'Slate','c-black':'Black'
 };
 
 
@@ -1033,7 +1073,7 @@ function renderWar(){
     return '<div class="wri" data-key="'+t.key+'" data-sec="'+esc(t.pname)+'" data-text="'+esc(t.text)+'">'
       +'<input type="checkbox" onchange="A.done(this)">'
       +'<div style="flex:1" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')"><div class="wit">'+esc(t.text)+'</div></div>'
-      +'<span class="bdg" style="background:'+col+(isDarkNow()?'40':'20')+';color:'+col+'">'+t.pname+'</span></div>';
+      +'<span class="bdg" style="'+tintStyle(col)+'">'+t.pname+'</span></div>';
   }).join('');
 }
 
@@ -1057,7 +1097,7 @@ function renderGrids(){
       var col=COLORS[p.color||'c-grey']||'#6b7280';
       var cntLbl=p.type==='daily'?(d.dailyCats.length+' categories'):(n?n+' tasks':'Empty');
       h+='<div class="acard" onclick="Nav.go(\''+pid+'\')">'
-        +'<div class="aico" style="background:'+col+(isDarkNow()?'40':'20')+';color:'+col+'">'+p.icon+'</div>'
+        +'<div class="aico" style="'+tintStyle(col)+'">'+p.icon+'</div>'
         +'<div class="albl">'+p.name+'</div>'
         +'<div class="acnt">'+cntLbl+'</div></div>';
     });
@@ -1246,7 +1286,7 @@ function renderLockedIn(){
       return '<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
         +'<input type="checkbox" onchange="A.doneLockedIn(this)">'
         +'<div style="flex:1" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div></div>'
-        +'<span class="bdg" style="background:'+col+(isDarkNow()?'40':'20')+';color:'+col+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span></div>';
+        +'<span class="bdg" style="'+tintStyle(col)+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span></div>';
     }).join('');
   });
   c.innerHTML=h;
@@ -1266,7 +1306,7 @@ function renderLockedInList(){
         h+='<div class="ti" data-key="'+t.key+'" data-sec="'+esc(p.name)+'" data-text="'+esc(t.text)+'" data-pid="'+pid+'">'
           +'<input type="checkbox" onchange="A.done(this)">'
           +'<div style="flex:1" onclick="TaskSheet.open(\''+pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div></div>'
-          +'<span class="bdg" style="background:'+col+(isDarkNow()?'40':'20')+';color:'+col+';border:1.5px solid '+col+'" onclick="TaskSheet.open(\''+pid+'\',\''+t.key+'\')">'+esc(p.name)+'</span></div>';
+          +'<span class="bdg" style="'+tintStyle(col)+';border:1.5px solid '+col+'" onclick="TaskSheet.open(\''+pid+'\',\''+t.key+'\')">'+esc(p.name)+'</span></div>';
       });
     });
   });
@@ -1625,7 +1665,7 @@ function _fixPage(p,x){
   p.style.display='block';
   p.style.position='fixed';p.style.top='0';p.style.left='0';
   p.style.right='0';p.style.bottom='0';p.style.overflow='auto';
-  p.style.background='#f3f4f6';p.style.transform='translateX('+x+'%)';
+  p.style.background=isDarkNow()?'#1f2937':'#f3f4f6';p.style.transform='translateX('+x+'%)';
 }
 function _unfix(p){
   if(!p)return;
@@ -1875,7 +1915,7 @@ function buildProjPages(){
     h+='<div class="page" id="p-'+pid+'">';
     h+='<button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
     var pcol=COLORS[p.color||'c-grey']||'#6b7280';
-    h+='<div class="dhdr"><div class="dico" style="background:'+pcol+(isDarkNow()?'40':'20')+';color:'+pcol+'">'+p.icon+'</div>';
+    h+='<div class="dhdr"><div class="dico" style="'+tintStyle(pcol)+'">'+p.icon+'</div>';
     h+='<div style="flex:1"><div class="dtitle">'+p.name+'</div><div class="dsub">'+(p.sub||p.desc||'')+'</div></div>';
     h+='<button class="edit-proj-btn" onclick="SheetEditor.open(\''+pid+'\')" ><div class="edot"></div><div class="edot"></div><div class="edot"></div></button></div>';
     h+='<div id="sc-'+pid+'"></div>';
@@ -1954,25 +1994,20 @@ function wIdx(d){return (d.getDay()+6)%7;}
 // habit naturally streaks-out at its own creation date, since there's no
 // check recorded for days before it existed — no separate creation date
 // needs to be tracked.
-function habitStreak(item){
+// Cumulative, not a streak — every scheduled day you've ever completed
+// counts toward the total, gaps and all. 90/90 scheduled days completed
+// (ever) is 100%; 45/90 is 50%. They don't need to be back to back.
+function habitConsistency(item){
   var days=item.days||[];
-  if(!days.length)return{streak:0,target:1,pct:0};
+  if(!days.length)return{completed:0,target:1,pct:0};
   var target=Math.max(1,Math.round(90*days.length/7));
-  var todayStr=dStr(T);
-  var cursor=new Date(T);
-  var streak=0,guard=0;
-  while(guard<450){
-    guard++;
-    if(days.indexOf(wIdx(cursor))!==-1){
-      var ds=dStr(cursor);
-      var done=!!(DB.data.dailyChecks[ds]&&DB.data.dailyChecks[ds][item.id]);
-      if(ds===todayStr&&!done){ /* today, still pending — not a miss yet */ }
-      else if(done)streak++;
-      else break;
-    }
-    cursor.setDate(cursor.getDate()-1);
+  var completed=0;
+  for(var ds in DB.data.dailyChecks){
+    if(!DB.data.dailyChecks[ds][item.id])continue;
+    if(days.indexOf(wIdx(new Date(ds+'T00:00:00')))===-1)continue; // only count days it was actually scheduled
+    completed++;
   }
-  return{streak:streak,target:target,pct:Math.min(100,Math.round(streak/target*100))};
+  return{completed:completed,target:target,pct:Math.min(100,Math.round(completed/target*100))};
 }
 
 // Bars: day view = one bar per scheduled day (binary — done or not).
@@ -2114,10 +2149,10 @@ var HabitDetail={
   renderPie:function(){
     var item=DB.data.dailyItems.find(function(x){return x.id===HabitDetail.itemId;});
     if(!item)return;
-    var s=habitStreak(item);
+    var s=habitConsistency(item);
     document.getElementById('hd-pie').innerHTML=renderPieChart(s.pct);
     document.getElementById('hd-streak-text').innerHTML=
-      '<b>'+s.streak+'</b>-day streak · target <b>'+s.target+'</b> days<br>100% = never missed a scheduled day for 3 months straight';
+      '<b>'+s.completed+'</b> of <b>'+s.target+'</b> scheduled days completed<br>100% = every scheduled day for a 3-month equivalent — they don\'t need to be back to back';
   }
 };
 
@@ -2195,7 +2230,7 @@ function renderToday(){
     var isWar=t.pri==='bu';
     var col=COLORS[t.color||'c-grey']||'#6b7280';
     var badge=isWar
-      ? '<span class="bdg" style="background:'+col+(isDarkNow()?'40':'20')+';color:'+col+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span>'
+      ? '<span class="bdg" style="'+tintStyle(col)+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span>'
       : '<span class="bdg '+t.pri+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+PLBL[t.pri]+'</span>';
     var sub=isWar?'':'<div class="ts">'+esc(t.section)+'</div>';
     return '<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
@@ -2364,6 +2399,14 @@ function isDarkNow(){
   if(t==='dark')return true;
   if(t==='light')return false;
   return window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;
+}
+// A low-alpha tint of a saturated color reads fine on a white card but
+// always ends up looking muddy/dark blended over a dark one — no alpha
+// value fixes that, it's just how blending against dark works. So in
+// dark mode this is a solid chip (full color, white text) instead of a
+// tint, the same treatment the priority badges (.bu/.bs/etc) already use.
+function tintStyle(col){
+  return isDarkNow()?('background:'+col+';color:#fff'):('background:'+col+'20;color:'+col);
 }
 function playClick(){
   try{
@@ -2749,6 +2792,10 @@ document.addEventListener('focusout',function(e){
 })();
 
 // ── CATEGORY PICKER ───────────────────────────────────────
+var ColorPicker={
+  open:function(){_overlayOpen('color-sheet-overlay');},
+  close:function(){_overlayClose('color-sheet-overlay');}
+};
 var CatPicker={
   _resolve:null,
   pick:function(){
@@ -2873,9 +2920,20 @@ var SheetEditor={
         self.selectedColor=id;
         c.querySelectorAll('.sheet-color').forEach(function(x){x.classList.remove('sel');});
         sw.classList.add('sel');
+        self.updateColorField();
+        ColorPicker.close();
       };
       c.appendChild(sw);
     });
+    this.updateColorField();
+  },
+  updateColorField:function(){
+    var hex=COLORS[this.selectedColor]||'#6b7280';
+    var name=COLOR_NAMES[this.selectedColor]||this.selectedColor;
+    var swEl=document.getElementById('color-field-swatch');
+    var lbl=document.getElementById('color-field-label');
+    if(swEl)swEl.style.background=hex;
+    if(lbl)lbl.textContent=name;
   },
 
   save:function(){
@@ -2911,7 +2969,7 @@ var SheetEditor={
       var dico=document.querySelector('#p-'+this.pid+' .dico');
       var dtitle=document.querySelector('#p-'+this.pid+' .dtitle');
       var dsub=document.querySelector('#p-'+this.pid+' .dsub');
-      if(dico){dico.style.background=pcol+(isDarkNow()?'40':'20');dico.style.color=pcol;dico.textContent=icon;}
+      if(dico){dico.style.background=isDarkNow()?pcol:pcol+'20';dico.style.color=isDarkNow()?'#fff':pcol;dico.textContent=icon;}
       if(dtitle)dtitle.textContent=name;
       if(dsub)dsub.textContent=desc;
       if(p.type==='tracker')renderTracker(this.pid);

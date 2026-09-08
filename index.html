@@ -12,7 +12,10 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="manifest" href="manifest.json">
 <style>
-html{scroll-behavior:auto}
+html{scroll-behavior:auto;background:#f3f4f6}
+@media(prefers-color-scheme:dark){html{background:#1f2937;color-scheme:dark}}
+html[data-theme="dark"]{background:#1f2937;color-scheme:dark}
+html[data-theme="light"]{background:#f3f4f6;color-scheme:light}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 input,textarea{-webkit-user-select:text;user-select:text}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f3f4f6;color:#1a1917;min-height:100vh;overscroll-behavior:none}
@@ -43,10 +46,10 @@ html[data-theme="light"] .tab-item.active{color:#1a1917}
 html[data-theme="dark"] .fab{background:#e8e6df;color:#1a1917}
 html[data-theme="light"] .fab{background:#1a1917;color:#fff}
 .fab:active{opacity:.7}
-.hdr-add{width:44px;height:44px;border-radius:14px;border:1.5px solid #1a1917;background:#f3f4f6;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-@media(prefers-color-scheme:dark){.hdr-add{border-color:#e8e6df;background:#1f2937}}
-html[data-theme="dark"] .hdr-add{border-color:#e8e6df;background:#1f2937}
-html[data-theme="light"] .hdr-add{border-color:#1a1917;background:#f3f4f6}
+.hdr-add{width:44px;height:44px;border-radius:14px;border:1.5px solid #1a1917;background:#f3f4f6;color:#1a1917;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+@media(prefers-color-scheme:dark){.hdr-add{border-color:#e8e6df;background:#1f2937;color:#e8e6df}}
+html[data-theme="dark"] .hdr-add{border-color:#e8e6df;background:#1f2937;color:#e8e6df}
+html[data-theme="light"] .hdr-add{border-color:#1a1917;background:#f3f4f6;color:#1a1917}
 .hdr-add:active{opacity:.7}
 
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 0 8px}
@@ -98,6 +101,9 @@ html[data-theme="light"] .wrd{background:#fef2f2;color:#b91c1c}
 html[data-theme="dark"] .wri{background:#252320;border-color:#333}
 html[data-theme="light"] .wri{background:#fafaf8;border-color:#f0ede8}
 .wri input[type=checkbox]{accent-color:#1a1917;width:32px;height:32px;flex-shrink:0;cursor:pointer}
+@media(prefers-color-scheme:dark){.wri input[type=checkbox]{accent-color:#e8e6df}}
+html[data-theme="dark"] .wri input[type=checkbox]{accent-color:#e8e6df}
+html[data-theme="light"] .wri input[type=checkbox]{accent-color:#1a1917}
 .wit{font-size:14px;flex:1;line-height:1.4;font-weight:500}
 
 .agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:4px}
@@ -116,10 +122,10 @@ html[data-theme="dark"] .albl{color:#e8e6df}
 html[data-theme="light"] .albl{color:#1a1917}
 .acnt{font-size:10px;color:#bbb}
 
-.back{width:52px;height:52px;border-radius:14px;border:1.5px solid #1a1917;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:18px}
-@media(prefers-color-scheme:dark){.back{border-color:#e8e6df;background:#1e1c1a}}
-html[data-theme="dark"] .back{border-color:#e8e6df;background:#1e1c1a}
-html[data-theme="light"] .back{border-color:#1a1917;background:#fff}
+.back{width:52px;height:52px;border-radius:14px;border:1.5px solid #1a1917;background:#fff;color:#1a1917;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:18px}
+@media(prefers-color-scheme:dark){.back{border-color:#e8e6df;background:#1e1c1a;color:#e8e6df}}
+html[data-theme="dark"] .back{border-color:#e8e6df;background:#1e1c1a;color:#e8e6df}
+html[data-theme="light"] .back{border-color:#1a1917;background:#fff;color:#1a1917}
 .back:active{opacity:.7}
 .dhdr{display:flex;align-items:center;gap:14px;margin-bottom:20px}
 .dico{width:50px;height:50px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;background:#f3f4f6;color:#1a1917}
@@ -136,6 +142,9 @@ html[data-theme="dark"] .ti{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .ti{background:#fff;border-color:#e8e5e0}
 .ti[data-pri="bu"]{border:1.5px solid #e24b4a}
 .ti input[type=checkbox]{accent-color:#1a1917;width:32px;height:32px;flex-shrink:0;cursor:pointer}
+@media(prefers-color-scheme:dark){.ti input[type=checkbox]{accent-color:#e8e6df}}
+html[data-theme="dark"] .ti input[type=checkbox]{accent-color:#e8e6df}
+html[data-theme="light"] .ti input[type=checkbox]{accent-color:#1a1917}
 .tt{font-size:14px;flex:1;line-height:1.4}
 .ts{font-size:11px;color:#999;margin-top:3px}
 .bdg{font-size:11px;font-weight:700;padding:5px 10px;border-radius:99px;flex-shrink:0;white-space:nowrap;min-height:30px;display:inline-flex;align-items:center}
@@ -424,7 +433,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
     </div>
     <div class="hdr-r">
       <span class="tlbl" id="tlbl"></span>
-      <button class="hdr-add" onclick="TabPlus.tap()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <button class="hdr-add" onclick="TabPlus.tap()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
     </div>
   </div>
   <div class="wr" id="war-box" style="display:none">
@@ -442,14 +451,14 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 
 <div class="menu-overlay" id="menu-overlay" onclick="if(event.target===this)Menu.close()">
   <div class="menu-panel">
-    <div style="display:flex;justify-content:flex-end;padding:28px 0 14px"><button style="width:44px;height:44px;border:1.5px solid #1a1917;border-radius:14px;background:#f3f4f6;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" onclick="Menu.close()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div style="display:flex;justify-content:flex-end;padding:28px 0 14px"><button class="hdr-add" onclick="Menu.close()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="menu-item" onclick="Menu.close();Nav.go('editlayout')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit layout</div>
     <div class="menu-item" onclick="Menu.close();Nav.go('settings')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Settings</div>
   </div>
 </div>
 
 <div class="page" id="p-archive">
-  <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+  <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
   <div class="dhdr"><div class="dico">🏆</div><div style="flex:1"><div class="dtitle">Achieved Goals</div><div class="dsub">Completed tasks</div></div>
     <button class="rbtn" onclick="A.clearArchive()">Clear all</button>
   </div>
@@ -475,7 +484,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 </div>
 
 <div class="page" id="p-editlayout">
-  <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+  <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
   <div class="dhdr"><div class="dico">✏️</div><div><div class="dtitle">Edit layout</div><div class="dsub">Reorder or remove</div></div></div>
   <div style="display:flex;gap:10px;margin-bottom:18px">
     <button class="addbtn" style="flex:1;font-size:14px;min-height:48px" onclick="A.newCategory()">+ Add category</button>
@@ -518,7 +527,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 </div>
 
 <div class="page" id="p-habits">
-  <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+  <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
   <div class="dhdr"><div class="dico">🏃</div><div style="flex:1"><div class="dtitle">Daily</div><div class="dsub">Recurring &amp; one-time tasks</div></div>
     <button class="edit-proj-btn" onclick="DailyCatSheet.open()"><div class="edot"></div><div class="edot"></div><div class="edot"></div></button>
   </div>
@@ -528,7 +537,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 </div>
 
 <div class="page" id="p-habit-detail">
-  <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+  <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
   <div class="dhdr">
     <div class="dico">🏃</div>
     <div style="flex:1;min-width:0">
@@ -646,7 +655,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
     <div id="daily-cat-list"></div>
     <div class="addrow">
       <input class="addinp" id="daily-cat-inp" placeholder="New category name…">
-      <button class="addbtn" onclick="DailyCatSheet.add()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <button class="addbtn" onclick="DailyCatSheet.add()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
     </div>
     <button class="sheet-cancel" style="width:100%;margin-top:10px" onclick="DailyCatSheet.close()">Close</button>
   </div>
@@ -725,7 +734,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.8';
+var APP_VERSION='Beta 1.9';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -765,6 +774,12 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.8',notes:[
     'New: Settings > Appearance — force Light or Dark regardless of your device setting, or leave it on System'
+  ]},
+  {v:'Beta 1.9',notes:[
+    'Dark mode fixes: the + button icon, checkboxes, and back/close buttons were still hardcoded dark and hard to see',
+    'Project color badges are more vivid against dark backgrounds instead of washed out',
+    'Fixed a white flash during page-swipe transitions in dark mode',
+    'Hold-to-complete now tolerates small finger drift instead of cancelling the moment you move slightly off the checkbox'
   ]}
 ];
 var COLORS={
@@ -1015,7 +1030,7 @@ function renderWar(){
     return '<div class="wri" data-key="'+t.key+'" data-sec="'+esc(t.pname)+'" data-text="'+esc(t.text)+'">'
       +'<input type="checkbox" onchange="A.done(this)">'
       +'<div style="flex:1" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')"><div class="wit">'+esc(t.text)+'</div></div>'
-      +'<span class="bdg" style="background:'+col+'20;color:'+col+'">'+t.pname+'</span></div>';
+      +'<span class="bdg" style="background:'+col+(isDarkNow()?'40':'20')+';color:'+col+'">'+t.pname+'</span></div>';
   }).join('');
 }
 
@@ -1039,7 +1054,7 @@ function renderGrids(){
       var col=COLORS[p.color||'c-grey']||'#6b7280';
       var cntLbl=p.type==='daily'?(d.dailyCats.length+' categories'):(n?n+' tasks':'Empty');
       h+='<div class="acard" onclick="Nav.go(\''+pid+'\')">'
-        +'<div class="aico" style="background:'+col+'20;color:'+col+'">'+p.icon+'</div>'
+        +'<div class="aico" style="background:'+col+(isDarkNow()?'40':'20')+';color:'+col+'">'+p.icon+'</div>'
         +'<div class="albl">'+p.name+'</div>'
         +'<div class="acnt">'+cntLbl+'</div></div>';
     });
@@ -1141,7 +1156,7 @@ function renderTracker(pid){
       +'<div class="trk-entry-date">'+ds+'</div></div>'+delBtn+'</div>';
   }).join('');
 
-  var addSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+  var addSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
   c.innerHTML='<div class="trk-val">'+latest+'</div>'
     +'<div class="trk-unit">'+unit+'</div>'
     +svgH
@@ -1228,7 +1243,7 @@ function renderLockedIn(){
       return '<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
         +'<input type="checkbox" onchange="A.doneLockedIn(this)">'
         +'<div style="flex:1" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div></div>'
-        +'<span class="bdg" style="background:'+col+'20;color:'+col+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span></div>';
+        +'<span class="bdg" style="background:'+col+(isDarkNow()?'40':'20')+';color:'+col+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span></div>';
     }).join('');
   });
   c.innerHTML=h;
@@ -1248,7 +1263,7 @@ function renderLockedInList(){
         h+='<div class="ti" data-key="'+t.key+'" data-sec="'+esc(p.name)+'" data-text="'+esc(t.text)+'" data-pid="'+pid+'">'
           +'<input type="checkbox" onchange="A.done(this)">'
           +'<div style="flex:1" onclick="TaskSheet.open(\''+pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div></div>'
-          +'<span class="bdg" style="background:'+col+'20;color:'+col+';border:1.5px solid '+col+'" onclick="TaskSheet.open(\''+pid+'\',\''+t.key+'\')">'+esc(p.name)+'</span></div>';
+          +'<span class="bdg" style="background:'+col+(isDarkNow()?'40':'20')+';color:'+col+';border:1.5px solid '+col+'" onclick="TaskSheet.open(\''+pid+'\',\''+t.key+'\')">'+esc(p.name)+'</span></div>';
       });
     });
   });
@@ -1855,9 +1870,9 @@ function buildProjPages(){
   for(var pid in DB.data.projects){
     var p=DB.data.projects[pid];
     h+='<div class="page" id="p-'+pid+'">';
-    h+='<button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
+    h+='<button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
     var pcol=COLORS[p.color||'c-grey']||'#6b7280';
-    h+='<div class="dhdr"><div class="dico" style="background:'+pcol+'20;color:'+pcol+'">'+p.icon+'</div>';
+    h+='<div class="dhdr"><div class="dico" style="background:'+pcol+(isDarkNow()?'40':'20')+';color:'+pcol+'">'+p.icon+'</div>';
     h+='<div style="flex:1"><div class="dtitle">'+p.name+'</div><div class="dsub">'+(p.sub||p.desc||'')+'</div></div>';
     h+='<button class="edit-proj-btn" onclick="SheetEditor.open(\''+pid+'\')" ><div class="edot"></div><div class="edot"></div><div class="edot"></div></button></div>';
     h+='<div id="sc-'+pid+'"></div>';
@@ -1871,7 +1886,7 @@ function buildProjPages(){
     h+='</div>';
     h+='<div class="addrow">';
     h+='<input class="addinp" id="inp-'+pid+'" placeholder="Add a task…">';
-    h+='<button class="addbtn" data-pid="'+pid+'" onclick="A.addTask(this.getAttribute(\'data-pid\'))"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#1a1917\" stroke-width=\"2\" stroke-linecap=\"round\"><line x1=\"12\" y1=\"5\" x2=\"12\" y2=\"19\"/><line x1=\"5\" y1=\"12\" x2=\"19\" y2=\"12\"/></svg></button>';
+    h+='<button class="addbtn" data-pid="'+pid+'" onclick="A.addTask(this.getAttribute(\'data-pid\'))"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><line x1=\"12\" y1=\"5\" x2=\"12\" y2=\"19\"/><line x1=\"5\" y1=\"12\" x2=\"19\" y2=\"12\"/></svg></button>';
     h+='</div>';
     h+='</div>';
   }
@@ -2174,7 +2189,7 @@ function renderToday(){
     var isWar=t.pri==='bu';
     var col=COLORS[t.color||'c-grey']||'#6b7280';
     var badge=isWar
-      ? '<span class="bdg" style="background:'+col+'20;color:'+col+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span>'
+      ? '<span class="bdg" style="background:'+col+(isDarkNow()?'40':'20')+';color:'+col+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span>'
       : '<span class="bdg '+t.pri+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+PLBL[t.pri]+'</span>';
     var sub=isWar?'':'<div class="ts">'+esc(t.section)+'</div>';
     return '<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
@@ -2324,6 +2339,15 @@ function applyTheme(){
   if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);
   else document.documentElement.removeAttribute('data-theme'); // 'system' — follow prefers-color-scheme
 }
+// What's actually rendering right now — resolves 'system' against the real
+// OS preference. Used wherever JS (not CSS) needs to pick a dark-vs-light
+// value, e.g. the alpha used for project-color badge tints.
+function isDarkNow(){
+  var t=DB.data.settings.theme;
+  if(t==='dark')return true;
+  if(t==='light')return false;
+  return window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;
+}
 function playClick(){
   try{
     var ctx=window._audioCtx||(window._audioCtx=new(window.AudioContext||window.webkitAudioContext)());
@@ -2336,7 +2360,7 @@ function playClick(){
     o.start();o.stop(ctx.currentTime+0.08);
   }catch(e){}
 }
-var holdTimer=null;
+var holdTimer=null,holdSX=0,holdSY=0;
 document.addEventListener('touchstart',function(e){
   if(!DB.data.settings.holdToComplete)return;
   var item=e.target.closest('.ti,.wri,.cali');if(!item)return;
@@ -2347,6 +2371,7 @@ document.addEventListener('touchstart',function(e){
   var touch=e.touches[0];
   var pad=8;
   if(touch.clientX<r.left-pad||touch.clientX>r.right+pad||touch.clientY<r.top-pad||touch.clientY>r.bottom+pad)return;
+  holdSX=touch.clientX;holdSY=touch.clientY;
   if(item.classList.contains('cali')){
     item.classList.add('holding');
     holdTimer=setTimeout(function(){
@@ -2375,12 +2400,22 @@ document.addEventListener('touchstart',function(e){
     else A.done(cb);
   },700);
 },{passive:true});
-['touchend','touchcancel','touchmove'].forEach(function(evt){
-  document.addEventListener(evt,function(){
-    if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}
-    document.querySelectorAll('.holding').forEach(function(el){el.classList.remove('holding');});
-  },{passive:true});
+function _cancelHold(){
+  if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}
+  document.querySelectorAll('.holding').forEach(function(el){el.classList.remove('holding');});
+}
+['touchend','touchcancel'].forEach(function(evt){
+  document.addEventListener(evt,_cancelHold,{passive:true});
 });
+// Once a hold has actually started, a small amount of finger drift off the
+// checkbox shouldn't cancel it — only bail if the finger strays well past
+// a generous radius from where the hold began.
+document.addEventListener('touchmove',function(e){
+  if(!holdTimer)return;
+  var t=e.touches[0];
+  var dx=t.clientX-holdSX,dy=t.clientY-holdSY;
+  if(Math.sqrt(dx*dx+dy*dy)>40)_cancelHold();
+},{passive:true});
 
 
 
@@ -2859,7 +2894,7 @@ var SheetEditor={
       var dico=document.querySelector('#p-'+this.pid+' .dico');
       var dtitle=document.querySelector('#p-'+this.pid+' .dtitle');
       var dsub=document.querySelector('#p-'+this.pid+' .dsub');
-      if(dico){dico.style.background=pcol+'20';dico.style.color=pcol;dico.textContent=icon;}
+      if(dico){dico.style.background=pcol+(isDarkNow()?'40':'20');dico.style.color=pcol;dico.textContent=icon;}
       if(dtitle)dtitle.textContent=name;
       if(dsub)dsub.textContent=desc;
       if(p.type==='tracker')renderTracker(this.pid);

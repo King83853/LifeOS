@@ -18,7 +18,17 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   decisions already made below.
 
 ## Decisions made (don't redo these debates)
-- (fill in as they come up — e.g. "chose X gesture library over Y because Z")
+- `Nav.sd` (Daily tab's selected-day state) is an absolute day OFFSET from
+  today (0 = today, negative = past, positive = future) — NOT a weekday
+  index 0-6. It used to be a weekday index back when the day strip only
+  ever showed the current week (index doubled as both "which pill" and
+  "which weekday, for recurring-schedule matching"). Extending the strip
+  to DAILY_RANGE_BACK/DAILY_RANGE_FWD (buildPills/buildPanels) split those
+  two meanings apart: the offset drives `pDate(pi)` (which already
+  generalized fine to any integer), while a separate `wIdx(dateObj)` call
+  gives the real weekday for matching `item.days`. If you touch this area
+  again: recurring items are scheduled by weekday and apply every week —
+  don't reintroduce a index-is-both-things assumption.
 
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large

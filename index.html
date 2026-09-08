@@ -734,7 +734,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.9';
+var APP_VERSION='Beta 1.10';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -780,6 +780,9 @@ var CHANGELOG=[
     'Project color badges are more vivid against dark backgrounds instead of washed out',
     'Fixed a white flash during page-swipe transitions in dark mode',
     'Hold-to-complete now tolerates small finger drift instead of cancelling the moment you move slightly off the checkbox'
+  ]},
+  {v:'Beta 1.10',notes:[
+    'Daily tab now scrolls a full week back and a month forward instead of only showing the current week'
   ]}
 ];
 var COLORS={
@@ -1536,10 +1539,10 @@ var A={
     renderSettings();renderToday();
   },
   setDayStartHour:function(val){
-    var oldTI=TI;
     DB.data.settings.dayStartHour=parseInt(val,10)||0;DB.save();
     recomputeT();
-    if(Nav.sd===oldTI)Nav.sd=TI; // stay pinned to "today" if that's where they were
+    // No Nav.sd adjustment needed — it's an offset from today (0 = today),
+    // so it keeps tracking "today" correctly on its own regardless of TI.
     var tlbl=document.getElementById('tlbl');
     if(tlbl)tlbl.textContent=T.toLocaleDateString('de-CH',{weekday:'short',day:'numeric',month:'short'});
     renderSettings();renderToday();
@@ -1922,7 +1925,7 @@ function recomputeT(){
 }
 recomputeT();
 var DN=['Mo','Di','Mi','Do','Fr','Sa','So'];
-Nav.sd=TI;
+Nav.sd=0; // offset from today, not a weekday index — see buildPills/buildPanels
 var HOUR_OPTS=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
 function hourLabel(h){h=+h;var ap=h<12?'AM':'PM';var h12=h%12;if(h12===0)h12=12;return h12+':00 '+ap;}
 
@@ -2125,10 +2128,13 @@ function onceRow(o){
 }
 function buildPanels(){
   var c=document.getElementById('dpanels');c.innerHTML='';
-  var todayStr=pDate(TI);
-  for(var i=0;i<7;i++){
-    var p=document.createElement('div');p.className='dpanel';p.id='dp-'+i;
-    var ds=pDate(i);
+  var todayStr=pDate(0);
+  var mon=new Date(T);mon.setDate(T.getDate()-TI);
+  for(var pi=-DAILY_RANGE_BACK;pi<=DAILY_RANGE_FWD;pi++){
+    var p=document.createElement('div');p.className='dpanel';p.id='dp-'+pi;
+    var ds=pDate(pi);
+    var d=new Date(mon);d.setDate(mon.getDate()+pi);
+    var wi=wIdx(d); // real weekday for this date — recurring items are scheduled by weekday, not by offset
     var h='';
     // Overdue one-time tasks consolidate under today's pill (shown once,
     // not on their original date's pill) so they can't get stranded on a
@@ -2136,7 +2142,7 @@ function buildPanels(){
     // shows one-time items itself — anything due there has already rolled
     // into today.
     var onceToday;
-    if(i===TI)onceToday=DB.data.dailyOnce.filter(function(o){return o.date<=todayStr;});
+    if(pi===0)onceToday=DB.data.dailyOnce.filter(function(o){return o.date<=todayStr;});
     else if(ds>todayStr)onceToday=DB.data.dailyOnce.filter(function(o){return o.date===ds;});
     else onceToday=[];
     if(onceToday.length){
@@ -2148,13 +2154,13 @@ function buildPanels(){
       h+='<div class="empty">No categories yet.<br>Tap the ⋯ button above to add one.</div>';
     } else {
       DB.data.dailyCats.forEach(function(cat){
-        var items=DB.data.dailyItems.filter(function(it){return it.catId===cat.id&&it.days.indexOf(i)!==-1;});
+        var items=DB.data.dailyItems.filter(function(it){return it.catId===cat.id&&it.days.indexOf(wi)!==-1;});
         h+='<div class="calsec"><div class="caltitle" style="display:flex;align-items:center;justify-content:space-between">'
           +'<span>'+cat.icon+' '+esc(cat.name)+'</span>'
-          +'<button class="el-btn" style="width:28px;height:28px;border-radius:9px" onclick="DailyItemSheet.open(\''+cat.id+'\','+i+')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>'
+          +'<button class="el-btn" style="width:28px;height:28px;border-radius:9px" onclick="DailyItemSheet.open(\''+cat.id+'\','+wi+')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>'
           +'</div>';
         if(!items.length)h+='<div style="font-size:12px;color:#ccc;padding:4px 0 2px">No tasks</div>';
-        items.forEach(function(it){h+=ciEdit(it.id,it.text,i);});
+        items.forEach(function(it){h+=ciEdit(it.id,it.text,pi);});
         h+='</div>';
       });
     }
@@ -2304,15 +2310,22 @@ var DailyItemSheet={
   },
   close:function(){_overlayClose('daily-item-sheet-overlay');}
 };
+// Nav.sd is an absolute day OFFSET from today (0 = today), not a weekday
+// index — lets the strip range well past a single week in either
+// direction. pDate(pi) already generalizes correctly to any offset
+// (it's just "this week's Monday + pi days"), so only the pill/panel
+// building needed to change. wIdx(date) — the real weekday — is what
+// still drives recurring-schedule matching, kept separate from the offset.
+var DAILY_RANGE_BACK=7,DAILY_RANGE_FWD=30;
 function buildPills(){
   var c=document.getElementById('wdays');c.innerHTML='';
   var mon=new Date(T);mon.setDate(T.getDate()-TI);
-  for(var i=0;i<7;i++){
-    var d=new Date(mon);d.setDate(mon.getDate()+i);
+  for(var pi=-DAILY_RANGE_BACK;pi<=DAILY_RANGE_FWD;pi++){
+    var d=new Date(mon);d.setDate(mon.getDate()+pi);
     var p=document.createElement('div');
-    p.className='dpill'+(i===TI?' today':'')+(i===Nav.sd?' sel':'');
-    p.innerHTML='<span class="dname">'+DN[i]+'</span><span class="dnum">'+d.getDate()+'</span>';
-    p.setAttribute('data-i',i);
+    p.className='dpill'+(pi===0?' today':'')+(pi===Nav.sd?' sel':'');
+    p.innerHTML='<span class="dname">'+DN[wIdx(d)]+'</span><span class="dnum">'+d.getDate()+'</span>';
+    p.setAttribute('data-i',pi);
     p.onclick=function(){
       Nav.sd=parseInt(this.getAttribute('data-i'));
       document.querySelectorAll('.dpill').forEach(function(x){x.classList.remove('sel');});
@@ -2323,11 +2336,15 @@ function buildPills(){
     };
     c.appendChild(p);
   }
+  // Land on today by default instead of dumping the user a week back at
+  // the start of the strip.
+  var sel=c.querySelector('.dpill.sel')||c.querySelector('.dpill.today');
+  if(sel)sel.scrollIntoView({inline:'center',block:'nearest'});
 }
 function updWL(){
   var mon=new Date(T);mon.setDate(T.getDate()-TI);
   var sd=new Date(mon);sd.setDate(mon.getDate()+Nav.sd);
-  document.getElementById('wlbl').textContent=DN[Nav.sd]+', '+sd.getDate()+'.'+(sd.getMonth()+1)+'.'+sd.getFullYear();
+  document.getElementById('wlbl').textContent=DN[wIdx(sd)]+', '+sd.getDate()+'.'+(sd.getMonth()+1)+'.'+sd.getFullYear();
 }
 
 // ── HOLD TO COMPLETE ──────────────────────────────────────
@@ -2912,7 +2929,7 @@ window.onerror=function(msg,src,line){
   document.body.appendChild(d);
 };
 DB.load();
-recomputeT();Nav.sd=TI; // re-derive "today" now that the real dayStartHour setting is loaded
+recomputeT();Nav.sd=0; // re-derive "today" now that the real dayStartHour setting is loaded
 buildProjPages();
 applyHoldMode();
 applyTheme();

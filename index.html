@@ -134,6 +134,11 @@ html[data-theme="dark"] .dico{background:#1f2937;color:#e8e6df}
 html[data-theme="light"] .dico{background:#f3f4f6;color:#1a1917}
 .dtitle{font-size:20px;font-weight:800}
 .dsub{font-size:12px;color:#999;margin-top:3px}
+/* Project detail pages: back button, title/desc and the add-task "+"
+   button all sit in one header row (no bottom tab bar, no floating FAB
+   — see TabBar.updateActive() / TabPlus.tap()) */
+.proj-page{padding-bottom:calc(env(safe-area-inset-bottom) + 32px)}
+.proj-hdr .back{margin-bottom:0}
 
 .ti,.wri{position:relative;overflow:hidden}
 .ti{display:flex;align-items:center;gap:12px;padding:13px 14px;background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px;transition:opacity .3s}
@@ -754,7 +759,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.16';
+var APP_VERSION='Beta 1.17';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -832,6 +837,10 @@ var CHANGELOG=[
     'Fixed: War Room tasks lost their red border under a forced Light/Dark theme',
     'Back from a habit\'s stats page now returns to wherever you opened it from (Today or Daily) instead of always Overview',
     '"Today" now refreshes automatically if the app was left open across a day change'
+  ]},
+  {v:'Beta 1.17',notes:[
+    'Redesigned project headers: back button, name/description and a "+" to add a task now share one row',
+    'Projects no longer show the bottom tab bar or floating "+" — the header "+" adds tasks instead',
   ]}
 ];
 var COLORS={
@@ -1983,12 +1992,13 @@ function buildProjPages(){
   var h='';
   for(var pid in DB.data.projects){
     var p=DB.data.projects[pid];
-    h+='<div class="page" id="p-'+pid+'">';
+    h+='<div class="page proj-page" id="p-'+pid+'">';
+    h+='<div class="dhdr proj-hdr">';
     h+='<button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
-    var pcol=COLORS[p.color||'c-grey']||'#6b7280';
-    h+='<div class="dhdr"><div class="dico" style="'+tintStyle(pcol)+'">'+p.icon+'</div>';
-    h+='<div style="flex:1"><div class="dtitle">'+p.name+'</div><div class="dsub">'+(p.sub||p.desc||'')+'</div></div>';
-    h+='<button class="edit-proj-btn" onclick="SheetEditor.open(\''+pid+'\')" ><div class="edot"></div><div class="edot"></div><div class="edot"></div></button></div>';
+    h+='<div style="flex:1;min-width:0"><div class="dtitle">'+p.name+'</div><div class="dsub">'+(p.sub||p.desc||'')+'</div></div>';
+    h+='<button class="edit-proj-btn" onclick="SheetEditor.open(\''+pid+'\')"><div class="edot"></div><div class="edot"></div><div class="edot"></div></button>';
+    h+='<button class="edit-proj-btn" onclick="TabPlus.tap()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>';
+    h+='</div>';
     h+='<div id="sc-'+pid+'"></div>';
     if(p.type!=='tracker'&&p.type!=='daily'){
     h+='<div id="addwrap-'+pid+'" style="display:none">';
@@ -2789,8 +2799,13 @@ var TabBar={
     var fab=document.getElementById('fab');
     if(fab){
       fab.style.display=''; // clear any "hidden while adding" override from the previous page
-      fab.classList.toggle('show',Nav.cur==='habits'||!!DB.data.projects[Nav.cur]);
+      // Project pages now have their own header "+" (see buildProjPages /
+      // TabPlus.tap) instead of this floating button — only Habits still
+      // uses the floating FAB.
+      fab.classList.toggle('show',Nav.cur==='habits');
     }
+    var tb=document.querySelector('.tabbar');
+    if(tb)tb.style.display=DB.data.projects[Nav.cur]?'none':'';
   }
 };
 

@@ -23,7 +23,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 html[data-theme="dark"] body{background:#1f2937;color:#e8e6df}
 html[data-theme="light"] body{background:#f3f4f6;color:#1a1917}
 .page{display:none;padding:calc(env(safe-area-inset-top) + 14px) 16px 118px}.page.active{display:block}
-.statusbar-blur{position:fixed;top:0;left:0;right:0;height:calc(env(safe-area-inset-top) + 8px);background:rgba(243,244,246,.35);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(env(safe-area-inset-top) + 2px),rgba(0,0,0,.85) calc(env(safe-area-inset-top) + 3.5px),rgba(0,0,0,.65) calc(env(safe-area-inset-top) + 5px),rgba(0,0,0,.5) 100%);mask-image:linear-gradient(to bottom,#000 0,#000 calc(env(safe-area-inset-top) + 2px),rgba(0,0,0,.85) calc(env(safe-area-inset-top) + 3.5px),rgba(0,0,0,.65) calc(env(safe-area-inset-top) + 5px),rgba(0,0,0,.5) 100%);z-index:140;pointer-events:none;opacity:0;transition:opacity .25s ease}
+.statusbar-blur{position:fixed;top:0;left:0;right:0;height:calc(env(safe-area-inset-top) + 6px);background:rgba(243,244,246,.35);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);-webkit-mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.5) 100%);mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.5) 100%);z-index:140;pointer-events:none;opacity:0;transition:opacity .25s ease}
 .statusbar-blur.on{opacity:1}
 @media(prefers-color-scheme:dark){.statusbar-blur{background:rgba(26,25,23,.35)}}
 html[data-theme="dark"] .statusbar-blur{background:rgba(26,25,23,.35)}
@@ -754,7 +754,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.14';
+var APP_VERSION='Beta 1.15';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -822,6 +822,10 @@ var CHANGELOG=[
     'New: Settings > Today > "Tasks shown" — choose how many top-priority tasks get pulled into Today (was fixed at 3)',
     'Page titles (Today, Overview, Settings, etc.) no longer show an icon next to the name — footer icons unchanged',
     'Status bar fade starts higher up and eases in more smoothly instead of a flat linear ramp'
+  ]},
+  {v:'Beta 1.15',notes:[
+    'New: Settings > Today > choose whether a completed task is replaced by the next one automatically or just removed',
+    'Status bar fade is shorter and smoother — the multi-stop version was showing visible banding, simplified to one continuous fade'
   ]}
 ];
 var COLORS={
@@ -865,7 +869,7 @@ var DB={
       categories:{}, // {id:{name,icon}}
       categoryOrder:[],      // [catId,...]
       projectOrder:{},       // {catId:[projId,...]}
-      settings:{holdToComplete:false,todayHabitsDisappear:false,dayStartHour:0,lastSeenVersion:APP_VERSION,theme:'system',todayTaskCount:3}};
+      settings:{holdToComplete:false,todayHabitsDisappear:false,dayStartHour:0,lastSeenVersion:APP_VERSION,theme:'system',todayTaskCount:3,todayRefill:false}};
   },
   load:function(){
     try{var r=localStorage.getItem(this.KEY);if(r)this.data=JSON.parse(r);}catch(e){}
@@ -880,6 +884,7 @@ var DB={
     if(d.settings.dayStartHour===undefined)d.settings.dayStartHour=0;
     if(!d.settings.theme)d.settings.theme='system';
     if(!d.settings.todayTaskCount)d.settings.todayTaskCount=3;
+    if(d.settings.todayRefill===undefined)d.settings.todayRefill=false;
     // Missing entirely = a pre-existing install from before this system
     // existed — leave it unset (falsy) so the "what's new" sheet
     // correctly treats it as needing to catch up, once.
@@ -1411,6 +1416,7 @@ function renderSettings(){
     +'<div class="opt-text"><div class="opt-title">Hold to complete</div><div class="opt-desc">Press and hold to check off — prevents accidental taps</div></div></div>';
 
   var vanish=DB.data.settings.todayHabitsDisappear;
+  var refill=DB.data.settings.todayRefill;
   document.getElementById('settings-today').innerHTML=
     '<div class="opt-row'+(vanish?' active':'')+'" onclick="A.setTodayHabitsDisappear(true)">'
     +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
@@ -1424,6 +1430,12 @@ function renderSettings(){
     +'<select class="addinp daystart-sel" onchange="A.setTodayTaskCount(this.value)" style="flex:none;width:auto;min-height:48px;padding:10px 14px;font-size:15px;font-weight:600;margin-left:auto">'
     +[1,2,3,4,5,6,7,8,9,10].map(function(n){return '<option value="'+n+'"'+(n===DB.data.settings.todayTaskCount?' selected':'')+'>'+n+'</option>';}).join('')
     +'</select></div>'
+    +'<div class="opt-row'+(refill?' active':'')+'" onclick="A.setTodayRefill(true)">'
+    +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
+    +'<div class="opt-text"><div class="opt-title">Refill automatically</div><div class="opt-desc">Complete one and the next task takes its place</div></div></div>'
+    +'<div class="opt-row'+(!refill?' active':'')+'" onclick="A.setTodayRefill(false)">'
+    +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
+    +'<div class="opt-text"><div class="opt-title">Just remove it</div><div class="opt-desc">List shrinks — empty once you\'ve done them all</div></div></div>'
     +'<div class="opt-row" style="cursor:default">'
     +'<div style="font-size:22px">🌙</div>'
     +'<div class="opt-text"><div class="opt-title">Day starts at</div><div class="opt-desc">Late nights before this time still count as the day before</div></div>'
@@ -1448,7 +1460,12 @@ var A={
     var key=item.getAttribute('data-key'),text=item.getAttribute('data-text'),sec=item.getAttribute('data-sec');
     DB.completeTask(key,text,sec);
     item.style.opacity='0';
-    setTimeout(function(){item.remove();renderWar();renderGrids();},300);
+    setTimeout(function(){
+      item.remove();renderWar();renderGrids();
+      // Only Today's top-N list refills — Locked In always shows everything
+      // remaining anyway, so this would be a no-op there regardless.
+      if(Nav.cur==='today'&&DB.data.settings.todayRefill)renderToday();
+    },300);
   },
   addTask:function(pid){
     var inp=document.getElementById('inp-'+pid);if(!inp)return;
@@ -1619,6 +1636,10 @@ var A={
   setTodayTaskCount:function(val){
     DB.data.settings.todayTaskCount=parseInt(val,10)||3;DB.save();
     renderSettings();renderToday();
+  },
+  setTodayRefill:function(val){
+    DB.data.settings.todayRefill=val;DB.save();
+    renderSettings();
   },
   setTheme:function(val){
     DB.data.settings.theme=val;DB.save();

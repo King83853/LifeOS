@@ -140,7 +140,7 @@ html[data-theme="light"] .dico{background:#f3f4f6;color:#1a1917}
 @media(prefers-color-scheme:dark){.ti{background:#1e1c1a;border-color:#2a2927}}
 html[data-theme="dark"] .ti{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .ti{background:#fff;border-color:#e8e5e0}
-.ti[data-pri="bu"]{border:1.5px solid #e24b4a}
+html .ti[data-pri="bu"]{border:1.5px solid #e24b4a}
 .ti input[type=checkbox]{accent-color:#1a1917;width:32px;height:32px;flex-shrink:0;cursor:pointer}
 @media(prefers-color-scheme:dark){.ti input[type=checkbox]{accent-color:#e8e6df}}
 html[data-theme="dark"] .ti input[type=checkbox]{accent-color:#e8e6df}
@@ -754,7 +754,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.15';
+var APP_VERSION='Beta 1.16';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -826,6 +826,12 @@ var CHANGELOG=[
   {v:'Beta 1.15',notes:[
     'New: Settings > Today > choose whether a completed task is replaced by the next one automatically or just removed',
     'Status bar fade is shorter and smoother — the multi-stop version was showing visible banding, simplified to one continuous fade'
+  ]},
+  {v:'Beta 1.16',notes:[
+    'Fixed: the Daily tab\'s "today" highlight could land on the wrong day (always Monday\'s date on non-Monday days) — a real date-math bug, now verified against the actual calendar date',
+    'Fixed: War Room tasks lost their red border under a forced Light/Dark theme',
+    'Back from a habit\'s stats page now returns to wherever you opened it from (Today or Daily) instead of always Overview',
+    '"Today" now refreshes automatically if the app was left open across a day change'
   ]}
 ];
 var COLORS={
@@ -1792,28 +1798,39 @@ function navSwitch(id){
   });
 }
 
-function navBack(){
+// Default back target is Overview for every page, EXCEPT habit-detail —
+// that one's a drill-down from wherever it was opened (Today or Daily),
+// so back should return there instead. Centralized here so both the
+// back button (navBack with no arg) and the swipe-back gesture get the
+// right target without each call site needing to know about it.
+function _backTarget(){
   var cur=document.querySelector('.page.active');
-  var ov=document.getElementById('p-overview');
-  if(!cur||cur===ov)return;
-  var savedY=_scrollPos['p-overview']||0;
+  if(cur&&cur.id==='p-habit-detail')return HabitDetail.origin||'overview';
+  return 'overview';
+}
+function navBack(targetId){
+  targetId=targetId||_backTarget();
+  var cur=document.querySelector('.page.active');
+  var ov=document.getElementById('p-'+targetId);
+  if(!cur||!ov||cur===ov)return;
+  var savedY=_scrollPos['p-'+targetId]||0;
   _fixPage(cur,0);
   ov.style.display='block';
   ov.scrollTop=savedY;
   _fixPage(ov,-100);
-  renderWar();renderGrids();
+  _renderPage(targetId);
   _slideUnit(cur,ov,0,100,180,function(){
     _unfix(cur);cur.classList.remove('active');
     _unfix(ov);
     ov.classList.add('active');
     window.scrollTo({top:savedY,behavior:'instant'});
-    Nav.cur='overview';TabBar.updateActive();
+    Nav.cur=targetId;TabBar.updateActive();
   });
 }
 
 // Interactive swipe-back from left edge
 (function(){
-  var sx=0,sy=0,tracking=false,ready=false,cur=null,ov=null,W=0,curDx=0,savedY=0;
+  var sx=0,sy=0,tracking=false,ready=false,cur=null,ov=null,W=0,curDx=0,savedY=0,backTarget='overview';
   var moves=[]; // rolling window of {x,t} for velocity
 
   document.addEventListener('touchstart',function(e){
@@ -1822,8 +1839,9 @@ function navBack(){
     var c=document.querySelector('.page.active');
     if(!c||c.id==='p-overview'||c.id==='p-today'||c.id==='p-lockedin'||c.id==='p-settings')return;
     tracking=true;ready=false;cur=c;curDx=0;W=window.innerWidth;
-    ov=document.getElementById('p-overview');
-    savedY=_scrollPos['p-overview']||0;
+    backTarget=_backTarget();
+    ov=document.getElementById('p-'+backTarget);
+    savedY=_scrollPos['p-'+backTarget]||0;
     moves=[];
   },{passive:true});
 
@@ -1837,7 +1855,7 @@ function navBack(){
       if(dx<=0){tracking=false;return;}
       ready=true;
       document.body.style.overflow='hidden';
-      renderWar();renderGrids();
+      _renderPage(backTarget);
       _fixPage(cur,0);
       ov.style.display='block';
       _fixPage(ov,-100);
@@ -1874,7 +1892,7 @@ function navBack(){
         _unfix(ov);
         ov.classList.add('active');
         window.scrollTo({top:savedY,behavior:'instant'});
-        Nav.cur='overview';TabBar.updateActive();
+        Nav.cur=backTarget;TabBar.updateActive();
       });
     } else {
       _slideUnit(cur,ov,pct,0,120,function(){
@@ -2023,7 +2041,7 @@ var HOUR_OPTS=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
 function hourLabel(h){h=+h;var ap=h<12?'AM':'PM';var h12=h%12;if(h12===0)h12=12;return h12+':00 '+ap;}
 
 function dStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function pDate(pi){var m=new Date(T);m.setDate(T.getDate()-TI+pi);return dStr(m);}
+function pDate(pi){var m=new Date(T);m.setDate(T.getDate()+pi);return dStr(m);}
 
 function ci(itemId,text,dayIdx){
   return '<div class="cali" data-id="'+itemId+'">'
@@ -2148,9 +2166,10 @@ function renderPieChart(pct){
 }
 
 var HabitDetail={
-  itemId:null,view:'day',
+  itemId:null,view:'day',origin:'today',
   open:function(itemId){
     this.itemId=itemId;this.view='day';
+    this.origin=Nav.cur; // remember where we came from (Today or Daily) so back returns there, not Overview
     Nav.go('habit-detail');
   },
   setView:function(v){
@@ -2217,11 +2236,10 @@ function onceRow(o){
 function buildPanels(){
   var c=document.getElementById('dpanels');c.innerHTML='';
   var todayStr=pDate(0);
-  var mon=new Date(T);mon.setDate(T.getDate()-TI);
   for(var pi=-DAILY_RANGE_BACK;pi<=DAILY_RANGE_FWD;pi++){
     var p=document.createElement('div');p.className='dpanel';p.id='dp-'+pi;
     var ds=pDate(pi);
-    var d=new Date(mon);d.setDate(mon.getDate()+pi);
+    var d=new Date(T);d.setDate(T.getDate()+pi);
     var wi=wIdx(d); // real weekday for this date — recurring items are scheduled by weekday, not by offset
     var h='';
     // Overdue one-time tasks consolidate under today's pill (shown once,
@@ -2292,7 +2310,7 @@ function renderToday(){
       +badge+'</div>';
   }).join(''):'<div class="empty">No tasks yet.</div>';
 
-  var ds=pDate(TI);
+  var ds=pDate(0);
   var h='';
   // Overdue one-time tasks consolidate under today, same as the Daily page.
   var onceToday=DB.data.dailyOnce.filter(function(o){return o.date<=ds;});
@@ -2400,16 +2418,19 @@ var DailyItemSheet={
 };
 // Nav.sd is an absolute day OFFSET from today (0 = today), not a weekday
 // index — lets the strip range well past a single week in either
-// direction. pDate(pi) already generalizes correctly to any offset
-// (it's just "this week's Monday + pi days"), so only the pill/panel
-// building needed to change. wIdx(date) — the real weekday — is what
-// still drives recurring-schedule matching, kept separate from the offset.
+// direction. pDate(pi) = T + pi days, directly. It used to be "this
+// week's Monday + pi days" (T.getDate()-TI+pi) from when pi WAS a weekday
+// index — that formula only gives the right date when pi happens to equal
+// TI (today's own weekday), i.e. only looked correct on the day this was
+// tested. Found via a real bug report: the "today" pill was landing on
+// Monday's date on any day that wasn't Monday. wIdx(date) — the real
+// weekday — is what still drives recurring-schedule matching, kept
+// separate from the offset.
 var DAILY_RANGE_BACK=7,DAILY_RANGE_FWD=30;
 function buildPills(){
   var c=document.getElementById('wdays');c.innerHTML='';
-  var mon=new Date(T);mon.setDate(T.getDate()-TI);
   for(var pi=-DAILY_RANGE_BACK;pi<=DAILY_RANGE_FWD;pi++){
-    var d=new Date(mon);d.setDate(mon.getDate()+pi);
+    var d=new Date(T);d.setDate(T.getDate()+pi);
     var p=document.createElement('div');
     p.className='dpill'+(pi===0?' today':'')+(pi===Nav.sd?' sel':'');
     p.innerHTML='<span class="dname">'+DN[wIdx(d)]+'</span><span class="dnum">'+d.getDate()+'</span>';
@@ -2430,8 +2451,7 @@ function buildPills(){
   if(sel)sel.scrollIntoView({inline:'center',block:'nearest'});
 }
 function updWL(){
-  var mon=new Date(T);mon.setDate(T.getDate()-TI);
-  var sd=new Date(mon);sd.setDate(mon.getDate()+Nav.sd);
+  var sd=new Date(T);sd.setDate(T.getDate()+Nav.sd);
   document.getElementById('wlbl').textContent=DN[wIdx(sd)]+', '+sd.getDate()+'.'+(sd.getMonth()+1)+'.'+sd.getFullYear();
 }
 
@@ -3050,6 +3070,23 @@ renderGrids();
 renderToday();
 TabBar.updateActive();
 setTimeout(function(){WhatsNew.checkAndShow();},400);
+
+// T is a snapshot taken at load time — if the app stays open across a day
+// boundary (very possible on iOS: backgrounding a home-screen app doesn't
+// reliably force a real reload on resume), "today" silently goes stale —
+// the wrong day keeps showing as highlighted/selected until the page is
+// actually reloaded. Refresh it whenever the app becomes visible again
+// instead of waiting for that.
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState!=='visible')return;
+  var oldDs=pDate(0);
+  recomputeT();
+  if(pDate(0)===oldDs)return; // still the same day — nothing stale to fix
+  var tlbl=document.getElementById('tlbl');
+  if(tlbl)tlbl.textContent=T.toLocaleDateString('de-CH',{weekday:'short',day:'numeric',month:'short'});
+  if(Nav.cur==='today')renderToday();
+  else if(Nav.cur==='habits')renderHabits();
+});
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
     navigator.serviceWorker.register('sw.js').catch(function(){});

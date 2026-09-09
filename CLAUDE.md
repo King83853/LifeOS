@@ -24,9 +24,18 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   ever showed the current week (index doubled as both "which pill" and
   "which weekday, for recurring-schedule matching"). Extending the strip
   to DAILY_RANGE_BACK/DAILY_RANGE_FWD (buildPills/buildPanels) split those
-  two meanings apart: the offset drives `pDate(pi)` (which already
-  generalized fine to any integer), while a separate `wIdx(dateObj)` call
-  gives the real weekday for matching `item.days`. If you touch this area
+  two meanings apart: the offset drives `pDate(pi)` — now literally
+  `T + pi days`, nothing more — while a separate `wIdx(dateObj)` call
+  gives the real weekday for matching `item.days`. `pDate` used to be
+  `T.getDate()-TI+pi` (this week's Monday + pi) from when pi was a
+  weekday index; that formula only gives the right date when pi equals
+  TI, i.e. it silently only looked correct on the exact day it was
+  tested. Shipped this way once, only caught it from a real bug report
+  ("today" pill landing on Monday's date on any non-Monday) — verify
+  `pDate(0)` against the actual wall-clock date directly next time, not
+  just relative differences between two pDate() calls (which stay
+  linear-correct either way and don't catch an anchor-point bug at all).
+  If you touch this area
   again: recurring items are scheduled by weekday and apply every week —
   don't reintroduce a index-is-both-things assumption.
 

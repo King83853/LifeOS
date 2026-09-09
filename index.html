@@ -139,6 +139,18 @@ html[data-theme="light"] .dico{background:#f3f4f6;color:#1a1917}
    — see TabBar.updateActive() / TabPlus.tap()) */
 .proj-page{padding-bottom:calc(env(safe-area-inset-bottom) + 32px)}
 .proj-hdr .back{margin-bottom:0}
+.proj-name-pill{flex:1;min-width:0;background:#fff;border:1.5px solid #e8e5e0;border-radius:999px;padding:9px 16px;cursor:pointer;text-align:center;font-family:inherit}
+@media(prefers-color-scheme:dark){.proj-name-pill{background:#1e1c1a;border-color:#333}}
+html[data-theme="dark"] .proj-name-pill{background:#1e1c1a;border-color:#333}
+html[data-theme="light"] .proj-name-pill{background:#fff;border-color:#e8e5e0}
+.proj-name-pill:active{opacity:.7}
+.proj-name-pill .dtitle,.proj-name-pill .dsub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Higher specificity than html[data-theme] .edit-proj-btn (which would
+   otherwise win regardless of source order and force this back to
+   white/black — same class of bug as the War Room border, see
+   CLAUDE.md) so this stays blue in every theme. */
+.proj-hdr .edit-proj-btn.proj-add-btn{background:#3b82f6;border-color:#3b82f6;color:#fff}
+.proj-add-btn:active{opacity:.7}
 
 .ti,.wri{position:relative;overflow:hidden}
 .ti{display:flex;align-items:center;gap:12px;padding:13px 14px;background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px;transition:opacity .3s}
@@ -759,7 +771,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.17';
+var APP_VERSION='Beta 1.18';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -841,6 +853,10 @@ var CHANGELOG=[
   {v:'Beta 1.17',notes:[
     'Redesigned project headers: back button, name/description and a "+" to add a task now share one row',
     'Projects no longer show the bottom tab bar or floating "+" — the header "+" adds tasks instead',
+  ]},
+  {v:'Beta 1.18',notes:[
+    'Project header now matches the reference layout: name/description is its own pill — tap it to edit the project',
+    'The header "+" is now solid blue instead of black-and-white'
   ]}
 ];
 var COLORS={
@@ -1995,9 +2011,8 @@ function buildProjPages(){
     h+='<div class="page proj-page" id="p-'+pid+'">';
     h+='<div class="dhdr proj-hdr">';
     h+='<button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
-    h+='<div style="flex:1;min-width:0"><div class="dtitle">'+p.name+'</div><div class="dsub">'+(p.sub||p.desc||'')+'</div></div>';
-    h+='<button class="edit-proj-btn" onclick="SheetEditor.open(\''+pid+'\')"><div class="edot"></div><div class="edot"></div><div class="edot"></div></button>';
-    h+='<button class="edit-proj-btn" onclick="TabPlus.tap()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>';
+    h+='<button class="proj-name-pill" onclick="SheetEditor.open(\''+pid+'\')"><div class="dtitle">'+p.name+'</div><div class="dsub">'+(p.sub||p.desc||'')+'</div></button>';
+    h+='<button class="edit-proj-btn proj-add-btn" onclick="TabPlus.tap()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>';
     h+='</div>';
     h+='<div id="sc-'+pid+'"></div>';
     if(p.type!=='tracker'&&p.type!=='daily'){

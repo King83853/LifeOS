@@ -153,12 +153,6 @@ html[data-theme="dark"] .proj-name-pill{background:#1e1c1a;border-color:#e8e6df;
 html[data-theme="light"] .proj-name-pill{background:#fff;border-color:#1a1917;color:#1a1917}
 .proj-name-pill:active{opacity:.7}
 .proj-name-pill .dtitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17px}
-/* Higher specificity than html[data-theme] .edit-proj-btn (which would
-   otherwise win regardless of source order and force this back to
-   white/black — same class of bug as the War Room border, see
-   CLAUDE.md) so this stays blue in every theme. */
-.proj-hdr .edit-proj-btn.proj-add-btn{background:#3b82f6;border-color:#3b82f6;color:#fff}
-.proj-add-btn:active{opacity:.7}
 
 .ti,.wri{position:relative;overflow:hidden}
 .ti{display:flex;align-items:center;gap:12px;padding:13px 14px;background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px;transition:opacity .3s}
@@ -779,7 +773,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.20';
+var APP_VERSION='Beta 1.21';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -876,6 +870,9 @@ var CHANGELOG=[
   {v:'Beta 1.20',notes:[
     'Fixed: the project name pill\'s text rendered in the system default blue instead of black/white',
     'Project name pill is now rounded-square like the rest of the app instead of a fully-rounded capsule'
+  ]},
+  {v:'Beta 1.21',notes:[
+    'Project header\'s "+" button is back to matching the other header buttons (black outline) instead of solid blue'
   ]}
 ];
 var COLORS={
@@ -2031,7 +2028,7 @@ function buildProjPages(){
     h+='<div class="dhdr proj-hdr">';
     h+='<button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
     h+='<button class="proj-name-pill" onclick="SheetEditor.open(\''+pid+'\')"><div class="dtitle">'+p.name+'</div></button>';
-    h+='<button class="edit-proj-btn proj-add-btn" onclick="TabPlus.tap()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>';
+    h+='<button class="edit-proj-btn" onclick="TabPlus.tap()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>';
     h+='</div>';
     h+='<div id="sc-'+pid+'"></div>';
     if(p.type!=='tracker'&&p.type!=='daily'){

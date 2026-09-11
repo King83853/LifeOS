@@ -774,7 +774,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.25';
+var APP_VERSION='Beta 1.26';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -888,6 +888,9 @@ var CHANGELOG=[
   {v:'Beta 1.25',notes:[
     'Overview cards: tracker projects now show their latest entry (e.g. "60 kg") instead of "Empty"',
     'Overview cards: the Daily project now shows how many tasks are left for today instead of a category count'
+  ]},
+  {v:'Beta 1.26',notes:[
+    'Fixed: the Daily card on Overview could still show "Empty" instead of the task count — it was only checking a type field, not the project actually wired up as Daily'
   ]}
 ];
 var COLORS={
@@ -1173,7 +1176,13 @@ function renderGrids(){
       var n=taskCount(pid);
       var col=COLORS[p.color||'c-grey']||'#6b7280';
       var cntLbl;
-      if(p.type==='daily'){
+      // p.type==='daily' alone isn't reliable — Nav.go and everywhere
+      // else in the app treat habitsProjectId as the real source of
+      // truth for "is this the Daily project" (a project can apparently
+      // end up wired as the Daily project without type ever being set to
+      // 'daily', e.g. data created before that field existed), so match
+      // on either.
+      if(p.type==='daily'||pid===d.habitsProjectId){
         // "X categories" told you nothing useful at a glance — show what's
         // actually left to do today instead, same scope as the Today tab's
         // Habits section (scheduled-today items not yet checked, plus any

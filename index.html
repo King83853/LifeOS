@@ -225,11 +225,6 @@ html[data-theme="light"] .rbtn{border-color:#d1cec9;background:#fff;color:#888}
 
 .wnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .wlbl{font-size:14px;font-weight:700}
-.rstbtn{width:44px;height:44px;border-radius:14px;border:1.5px solid #d1cec9;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-@media(prefers-color-scheme:dark){.rstbtn{border-color:#444;background:#1e1c1a}}
-html[data-theme="dark"] .rstbtn{border-color:#444;background:#1e1c1a}
-html[data-theme="light"] .rstbtn{border-color:#d1cec9;background:#fff}
-.rstbtn:active{opacity:.7}
 .wdays{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;-webkit-overflow-scrolling:touch}
 .dpill{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 8px;border-radius:14px;border:1.5px solid #e8e5e0;cursor:pointer;background:#fff;min-width:46px;transition:transform .1s}
 @media(prefers-color-scheme:dark){.dpill{background:#1e1c1a;border-color:#2a2927}}
@@ -558,7 +553,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
   <div class="dhdr"><div class="dico">🏃</div><div style="flex:1"><div class="dtitle">Daily</div><div class="dsub">Recurring &amp; one-time tasks</div></div>
     <button class="edit-proj-btn" onclick="DailyCatSheet.open()"><div class="edot"></div><div class="edot"></div><div class="edot"></div></button>
   </div>
-  <div class="wnav"><span class="wlbl" id="wlbl"></span><button class="rstbtn" onclick="A.resetDay()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.85"/></svg></button></div>
+  <div class="wnav"><span class="wlbl" id="wlbl"></span></div>
   <div class="wdays" id="wdays"></div>
   <div id="dpanels"></div>
 </div>
@@ -773,7 +768,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.21';
+var APP_VERSION='Beta 1.22';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -873,6 +868,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.21',notes:[
     'Project header\'s "+" button is back to matching the other header buttons (black outline) instead of solid blue'
+  ]},
+  {v:'Beta 1.22',notes:[
+    'Removed the Daily tab\'s reset button (it only cleared checkmarks, no real use)',
+    'Removed the small "+" next to each Daily category — adding a habit already works from the main "+" below'
   ]}
 ];
 var COLORS={
@@ -1092,10 +1091,6 @@ var DB={
     this.save();
   },
   isDailyChecked:function(itemId,ds){return !!(this.data.dailyChecks[ds]&&this.data.dailyChecks[ds][itemId]);},
-  resetDailyDay:function(ds){
-    if(this.data.dailyChecks[ds])this.data.dailyChecks[ds]={};
-    this.save();
-  },
   addOnce:function(text,date){
     var id='once'+Date.now()+Math.random().toString(36).slice(2);
     this.data.dailyOnce.push({id:id,text:text,date:date});
@@ -1744,14 +1739,6 @@ var A={
     AddChoice.show('Pick category',cats.map(function(c){
       return{icon:c.icon,label:c.name,fn:function(){DailyItemSheet.open(c.id,null);}};
     }));
-  },
-  resetDay:function(){
-    DB.resetDailyDay(pDate(Nav.sd));
-    var p=document.getElementById('dp-'+Nav.sd);if(!p)return;
-    p.querySelectorAll('input[type=checkbox][data-id]').forEach(function(cb){
-      cb.checked=false;var l=cb.nextElementSibling;
-      if(l){l.style.textDecoration='none';l.style.opacity='1';}
-    });
   }
 };
 
@@ -2302,10 +2289,7 @@ function buildPanels(){
     } else {
       DB.data.dailyCats.forEach(function(cat){
         var items=DB.data.dailyItems.filter(function(it){return it.catId===cat.id&&it.days.indexOf(wi)!==-1;});
-        h+='<div class="calsec"><div class="caltitle" style="display:flex;align-items:center;justify-content:space-between">'
-          +'<span>'+cat.icon+' '+esc(cat.name)+'</span>'
-          +'<button class="el-btn" style="width:28px;height:28px;border-radius:9px" onclick="DailyItemSheet.open(\''+cat.id+'\','+wi+')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>'
-          +'</div>';
+        h+='<div class="calsec"><div class="caltitle">'+cat.icon+' '+esc(cat.name)+'</div>';
         if(!items.length)h+='<div style="font-size:12px;color:#ccc;padding:4px 0 2px">No tasks</div>';
         items.forEach(function(it){h+=ciEdit(it.id,it.text,pi);});
         h+='</div>';
@@ -2889,7 +2873,7 @@ document.addEventListener('focusout',function(e){
 // the tab bar.
 (function(){
   var TAPPABLE='.tab-item,.fab,.hdr-add,.menu-btn,.menu-item,.acard,.opt-row,'
-    +'.back,.edit-proj-btn,.rstbtn,.rbtn,.addbtn,.el-btn,.type-btn,.pri-pill,'
+    +'.back,.edit-proj-btn,.rbtn,.addbtn,.el-btn,.type-btn,.pri-pill,'
     +'.cat-choice,.dpill,.sheet-save,.sheet-cancel,.seg-btn';
   var sx=0,sy=0,moved=false,target=null;
   document.addEventListener('touchstart',function(e){

@@ -597,7 +597,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
   <div class="sheet">
     <div class="sheet-title" id="whatsnew-title">What's new</div>
     <div id="whatsnew-body" style="margin-bottom:20px"></div>
-    <button class="sheet-save" style="width:100%" onclick="WhatsNew.close()">Got it</button>
+    <button class="sheet-save" style="width:100%" onclick="WhatsNew.next()">Got it</button>
   </div>
 </div>
 
@@ -768,7 +768,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.22';
+var APP_VERSION='Beta 1.23';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -872,6 +872,9 @@ var CHANGELOG=[
   {v:'Beta 1.22',notes:[
     'Removed the Daily tab\'s reset button (it only cleared checkmarks, no real use)',
     'Removed the small "+" next to each Daily category — adding a habit already works from the main "+" below'
+  ]},
+  {v:'Beta 1.23',notes:[
+    'Fixed: "What\'s new" only ever showed the single latest update — if you\'d skipped "Check for updates" a few times, everything in between got silently marked as seen. Now it steps through every version you missed, one "Got it" at a time'
   ]}
 ];
 var COLORS={
@@ -2640,14 +2643,50 @@ var UpdateOverlay={
   }
 };
 var WhatsNew={
+  // Skipping "Check for updates" a few times in a row used to mean this
+  // sheet only ever showed the single latest CHANGELOG entry — every
+  // version you missed in between was silently marked as seen the
+  // moment you dismissed it. Now it queues up every entry newer than
+  // your last-seen version and steps through them one screen at a time.
+  _queue:[],
+  _idx:0,
+  _pending:function(){
+    var seen=DB.data.settings.lastSeenVersion;
+    var i=CHANGELOG.findIndex(function(e){return e.v===seen;});
+    // lastSeenVersion not found in CHANGELOG (fresh install, or an old/
+    // renamed version string) — don't replay the whole history, just
+    // show the current version's notes.
+    if(i===-1)return[CHANGELOG[CHANGELOG.length-1]];
+    var pending=CHANGELOG.slice(i+1);
+    return pending.length?pending:[CHANGELOG[CHANGELOG.length-1]];
+  },
   open:function(){
-    var entry=CHANGELOG[CHANGELOG.length-1];
+    this._queue=this._pending();
+    this._idx=0;
+    this._render();
+    _overlayOpen('whatsnew-overlay');
+  },
+  _render:function(){
+    var entry=this._queue[this._idx];
     document.getElementById('whatsnew-title').textContent="What's new in "+entry.v;
     document.getElementById('whatsnew-body').innerHTML=entry.notes.map(function(n){
       return '<div class="wn-item">• '+esc(n)+'</div>';
     }).join('');
-    _overlayOpen('whatsnew-overlay');
   },
+  // "Got it" — advance to the next queued version, or close once the
+  // last one's been acknowledged.
+  next:function(){
+    DB.data.settings.lastSeenVersion=this._queue[this._idx].v;DB.save();
+    if(this._idx<this._queue.length-1){
+      this._idx++;
+      this._render();
+    } else {
+      _overlayClose('whatsnew-overlay');
+    }
+  },
+  // Dismissing via the backdrop skips straight to "fully caught up"
+  // instead of leaving you stuck re-seeing the same first entry next
+  // launch — same as tapping "Got it" through every remaining one.
   close:function(){
     _overlayClose('whatsnew-overlay');
     DB.data.settings.lastSeenVersion=APP_VERSION;DB.save();

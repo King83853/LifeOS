@@ -774,7 +774,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.24';
+var APP_VERSION='Beta 1.25';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -884,6 +884,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.24',notes:[
     'Fixed: the project header\'s "+" icon rendered in the system default blue — the button never set its own text color, so the currentColor-based icon fell through to the browser default'
+  ]},
+  {v:'Beta 1.25',notes:[
+    'Overview cards: tracker projects now show their latest entry (e.g. "60 kg") instead of "Empty"',
+    'Overview cards: the Daily project now shows how many tasks are left for today instead of a category count'
   ]}
 ];
 var COLORS={
@@ -1168,7 +1172,26 @@ function renderGrids(){
       var p=d.projects[pid];if(!p)return;
       var n=taskCount(pid);
       var col=COLORS[p.color||'c-grey']||'#6b7280';
-      var cntLbl=p.type==='daily'?(d.dailyCats.length+' categories'):(n?n+' tasks':'Empty');
+      var cntLbl;
+      if(p.type==='daily'){
+        // "X categories" told you nothing useful at a glance — show what's
+        // actually left to do today instead, same scope as the Today tab's
+        // Habits section (scheduled-today items not yet checked, plus any
+        // due one-time tasks).
+        var dsToday=pDate(0);
+        var remaining=0;
+        d.dailyItems.forEach(function(it){
+          if(it.days.indexOf(TI)===-1)return;
+          if(!DB.isDailyChecked(it.id,dsToday))remaining++;
+        });
+        d.dailyOnce.forEach(function(o){if(o.date<=dsToday)remaining++;});
+        cntLbl=remaining?(remaining+(remaining===1?' task':' tasks')):'All done';
+      } else if(p.type==='tracker'){
+        var trkEntries=((d.trackerEntries||{})[pid]||[]).slice().sort(function(a,b){return a.ts-b.ts;});
+        cntLbl=trkEntries.length?(trkEntries[trkEntries.length-1].val+(p.unit?' '+p.unit:'')):'No entries yet';
+      } else {
+        cntLbl=n?n+' tasks':'Empty';
+      }
       h+='<div class="acard" onclick="Nav.go(\''+pid+'\')">'
         +'<div class="aico" style="'+tintStyle(col)+'">'+p.icon+'</div>'
         +'<div class="albl">'+p.name+'</div>'

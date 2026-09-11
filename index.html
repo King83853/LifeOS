@@ -147,10 +147,10 @@ html[data-theme="light"] .dico{background:#f3f4f6;color:#1a1917}
    row — same height, same border/bg tokens as .back — so nothing in
    this row reads as a different size or a different color family. */
 .proj-hdr .edit-proj-btn{width:52px;height:52px}
-.proj-name-pill{flex:1;min-width:0;height:52px;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #1a1917;border-radius:999px;padding:0 16px;cursor:pointer;font-family:inherit}
-@media(prefers-color-scheme:dark){.proj-name-pill{background:#1e1c1a;border-color:#e8e6df}}
-html[data-theme="dark"] .proj-name-pill{background:#1e1c1a;border-color:#e8e6df}
-html[data-theme="light"] .proj-name-pill{background:#fff;border-color:#1a1917}
+.proj-name-pill{flex:1;min-width:0;height:52px;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #1a1917;border-radius:14px;padding:0 16px;cursor:pointer;font-family:inherit;color:#1a1917}
+@media(prefers-color-scheme:dark){.proj-name-pill{background:#1e1c1a;border-color:#e8e6df;color:#e8e6df}}
+html[data-theme="dark"] .proj-name-pill{background:#1e1c1a;border-color:#e8e6df;color:#e8e6df}
+html[data-theme="light"] .proj-name-pill{background:#fff;border-color:#1a1917;color:#1a1917}
 .proj-name-pill:active{opacity:.7}
 .proj-name-pill .dtitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17px}
 /* Higher specificity than html[data-theme] .edit-proj-btn (which would
@@ -779,7 +779,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.19';
+var APP_VERSION='Beta 1.20';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -872,6 +872,10 @@ var CHANGELOG=[
     'Every page title (Today, Overview, Locked In, Settings, …) now sits at the same height, whether or not that page has a header button',
     'Settings > "Achieved Goals" renamed to "Completed Tasks", and dropped its subtitle',
     'Habit stats: removed the small explainer line under the consistency percentage'
+  ]},
+  {v:'Beta 1.20',notes:[
+    'Fixed: the project name pill\'s text rendered in the system default blue instead of black/white',
+    'Project name pill is now rounded-square like the rest of the app instead of a fully-rounded capsule'
   ]}
 ];
 var COLORS={

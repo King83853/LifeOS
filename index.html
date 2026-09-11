@@ -127,7 +127,11 @@ html[data-theme="light"] .albl{color:#1a1917}
 html[data-theme="dark"] .back{border-color:#e8e6df;background:#1e1c1a;color:#e8e6df}
 html[data-theme="light"] .back{border-color:#1a1917;background:#fff;color:#1a1917}
 .back:active{opacity:.7}
-.dhdr{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+/* min-height keeps the title's vertical position identical whether or
+   not a page has a 44px header button (Overview's "+", a project's
+   "..." edit button, etc.) — without this, a page with no button gets
+   a shorter row and its title sits higher than pages that have one. */
+.dhdr{display:flex;align-items:center;gap:14px;margin-bottom:20px;min-height:44px}
 .dico{display:none} /* page-title icon — hidden everywhere; footer icons are .tab-item svg, untouched */
 @media(prefers-color-scheme:dark){.dico{background:#1f2937;color:#e8e6df}}
 html[data-theme="dark"] .dico{background:#1f2937;color:#e8e6df}
@@ -139,12 +143,16 @@ html[data-theme="light"] .dico{background:#f3f4f6;color:#1a1917}
    — see TabBar.updateActive() / TabPlus.tap()) */
 .proj-page{padding-bottom:calc(env(safe-area-inset-bottom) + 32px)}
 .proj-hdr .back{margin-bottom:0}
-.proj-name-pill{flex:1;min-width:0;background:#fff;border:1.5px solid #e8e5e0;border-radius:999px;padding:9px 16px;cursor:pointer;text-align:center;font-family:inherit}
-@media(prefers-color-scheme:dark){.proj-name-pill{background:#1e1c1a;border-color:#333}}
-html[data-theme="dark"] .proj-name-pill{background:#1e1c1a;border-color:#333}
-html[data-theme="light"] .proj-name-pill{background:#fff;border-color:#e8e5e0}
+/* Back button, name pill and edit/add buttons all share one 52px-tall
+   row — same height, same border/bg tokens as .back — so nothing in
+   this row reads as a different size or a different color family. */
+.proj-hdr .edit-proj-btn{width:52px;height:52px}
+.proj-name-pill{flex:1;min-width:0;height:52px;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #1a1917;border-radius:999px;padding:0 16px;cursor:pointer;font-family:inherit}
+@media(prefers-color-scheme:dark){.proj-name-pill{background:#1e1c1a;border-color:#e8e6df}}
+html[data-theme="dark"] .proj-name-pill{background:#1e1c1a;border-color:#e8e6df}
+html[data-theme="light"] .proj-name-pill{background:#fff;border-color:#1a1917}
 .proj-name-pill:active{opacity:.7}
-.proj-name-pill .dtitle,.proj-name-pill .dsub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.proj-name-pill .dtitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17px}
 /* Higher specificity than html[data-theme] .edit-proj-btn (which would
    otherwise win regardless of source order and force this back to
    white/black — same class of bug as the War Room border, see
@@ -484,7 +492,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 
 <div class="page" id="p-archive">
   <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-  <div class="dhdr"><div class="dico">🏆</div><div style="flex:1"><div class="dtitle">Achieved Goals</div><div class="dsub">Completed tasks</div></div>
+  <div class="dhdr"><div class="dico">🏆</div><div style="flex:1"><div class="dtitle">Completed Tasks</div></div>
     <button class="rbtn" onclick="A.clearArchive()">Clear all</button>
   </div>
   <div id="arch-list"></div>
@@ -522,7 +530,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
   <div class="dhdr"><div class="dico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><div><div class="dtitle">Settings</div></div></div>
   <div class="opt-row" onclick="Nav.go('archive')">
     <div style="font-size:22px">🏆</div>
-    <div class="opt-text"><div class="opt-title">Achieved Goals</div><div class="opt-desc">Completed tasks you can restore</div></div>
+    <div class="opt-text"><div class="opt-title">Completed Tasks</div></div>
     <span class="ab" id="ab2" style="margin-left:auto"></span>
   </div>
   <div class="opt-row" onclick="Nav.go('editlayout')" style="margin-bottom:24px">
@@ -771,7 +779,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.18';
+var APP_VERSION='Beta 1.19';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -857,6 +865,13 @@ var CHANGELOG=[
   {v:'Beta 1.18',notes:[
     'Project header now matches the reference layout: name/description is its own pill — tap it to edit the project',
     'The header "+" is now solid blue instead of black-and-white'
+  ]},
+  {v:'Beta 1.19',notes:[
+    'Fixed: a habit checked off in Today could revert to unchecked after navigating away and back (it was being saved under the wrong date)',
+    'Project header: back button, name pill and edit/add buttons are now the same 52px height, description removed from the pill, and colors are consistent',
+    'Every page title (Today, Overview, Locked In, Settings, …) now sits at the same height, whether or not that page has a header button',
+    'Settings > "Achieved Goals" renamed to "Completed Tasks", and dropped its subtitle',
+    'Habit stats: removed the small explainer line under the consistency percentage'
   ]}
 ];
 var COLORS={
@@ -2011,7 +2026,7 @@ function buildProjPages(){
     h+='<div class="page proj-page" id="p-'+pid+'">';
     h+='<div class="dhdr proj-hdr">';
     h+='<button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
-    h+='<button class="proj-name-pill" onclick="SheetEditor.open(\''+pid+'\')"><div class="dtitle">'+p.name+'</div><div class="dsub">'+(p.sub||p.desc||'')+'</div></button>';
+    h+='<button class="proj-name-pill" onclick="SheetEditor.open(\''+pid+'\')"><div class="dtitle">'+p.name+'</div></button>';
     h+='<button class="edit-proj-btn proj-add-btn" onclick="TabPlus.tap()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>';
     h+='</div>';
     h+='<div id="sc-'+pid+'"></div>';
@@ -2249,7 +2264,7 @@ var HabitDetail={
     var s=habitConsistency(item);
     document.getElementById('hd-pie').innerHTML=renderPieChart(s.pct);
     document.getElementById('hd-streak-text').innerHTML=
-      '<b>'+s.completed+'</b> of <b>'+s.target+'</b> scheduled days completed<br>100% = every scheduled day for a 3-month equivalent — they don\'t need to be back to back';
+      '<b>'+s.completed+'</b> of <b>'+s.target+'</b> scheduled days completed';
   }
 };
 
@@ -2353,7 +2368,7 @@ function renderToday(){
     });
     if(!items.length)return;
     h+='<div class="calsec"><div class="caltitle">'+cat.icon+' '+esc(cat.name)+'</div>';
-    items.forEach(function(it){h+=ci(it.id,it.text,TI);});
+    items.forEach(function(it){h+=ci(it.id,it.text,0);});
     h+='</div>';
   });
   if(!h)h='<div class="empty">Nothing scheduled for today.</div>';

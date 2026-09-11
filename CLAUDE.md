@@ -38,6 +38,17 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   If you touch this area
   again: recurring items are scheduled by weekday and apply every week —
   don't reintroduce a index-is-both-things assumption.
+  There was a SECOND leftover call site of the same bug, found later:
+  Today's own habit checkboxes (`renderToday()`, via `ci(it.id,it.text,TI)`)
+  were still passing the weekday index `TI` as if it were a day-offset
+  into `pDate`/`toggleDailyItemFor`, so ticking a habit in Today wrote the
+  checkmark under `pDate(TI)` (today + TI days — some other date) while
+  the read path correctly used `pDate(0)` (today) — checkbox looked
+  checked until the next re-render, then reverted. Fixed by passing `0`.
+  Lesson: when a function's parameter meaning changes (weekday index →
+  day offset), grep every call site, not just the ones in the feature you
+  were actively changing at the time — this one shipped for a whole
+  session before a bug report caught it.
 
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
@@ -89,6 +100,18 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   other icon of the same site — deleting an icon without exporting first
   loses its data permanently, and Safari "working fine" tells you nothing
   about whether a given icon's storage is broken.
+
+- This app's own service worker is deliberately cache-first (see the
+  navigate-handler gotcha above), which also means the LOCAL PREVIEW used
+  to test changes during a session will keep serving an old cached copy
+  of index.html after an edit — a plain reload is not enough to see the
+  new file. Before checking any edit in the browser preview: unregister
+  the SW and clear caches in that tab (`navigator.serviceWorker
+  .getRegistrations()` → unregister each, `caches.keys()` → delete each),
+  THEN reload. Confirmed once by diffing `document.styleSheets` cssText
+  against the actual file on disk (via curl) — the file was already
+  correct, the page just hadn't picked it up yet. Skipping this step
+  reads as "my fix didn't work" when it actually did.
 
 ## Definition of "done" for a change
 0. If index.html (or any other cached asset) changed, bump `CACHE_NAME` in

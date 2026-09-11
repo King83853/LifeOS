@@ -386,10 +386,16 @@ html[data-theme="light"] .sheet-save{background:#fff;border-color:#1a1917;color:
 @media(prefers-color-scheme:dark){.sheet-cancel{background:#1e1c1a;border-color:#444;color:#777}}
 html[data-theme="dark"] .sheet-cancel{background:#1e1c1a;border-color:#444;color:#777}
 html[data-theme="light"] .sheet-cancel{background:#fff;border-color:#d1cec9;color:#888}
-.edit-proj-btn{background:#fff;border:1.5px solid #1a1917;border-radius:14px;cursor:pointer;width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;gap:3px}
-@media(prefers-color-scheme:dark){.edit-proj-btn{background:#1e1c1a;border-color:#e8e6df}}
-html[data-theme="dark"] .edit-proj-btn{background:#1e1c1a;border-color:#e8e6df}
-html[data-theme="light"] .edit-proj-btn{background:#fff;border-color:#1a1917}
+/* color is needed here even though the "..." dots (.edot, explicit
+   background) and the habit-rename pencil (hardcoded stroke="#888")
+   don't use it — the project header's "+" icon uses
+   stroke="currentColor", and without an explicit color this button
+   fell through to the browser's native (blue, on iOS/WebKit) control
+   text color, same class of bug as the name-pill fix above. */
+.edit-proj-btn{background:#fff;border:1.5px solid #1a1917;border-radius:14px;cursor:pointer;width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;gap:3px;color:#1a1917}
+@media(prefers-color-scheme:dark){.edit-proj-btn{background:#1e1c1a;border-color:#e8e6df;color:#e8e6df}}
+html[data-theme="dark"] .edit-proj-btn{background:#1e1c1a;border-color:#e8e6df;color:#e8e6df}
+html[data-theme="light"] .edit-proj-btn{background:#fff;border-color:#1a1917;color:#1a1917}
 .edit-proj-btn:active{opacity:.7}
 .edot{width:5px;height:5px;border-radius:50%;background:#1a1917;flex-shrink:0}
 @media(prefers-color-scheme:dark){.edot{background:#e8e6df}}
@@ -768,7 +774,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.23';
+var APP_VERSION='Beta 1.24';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -875,6 +881,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.23',notes:[
     'Fixed: "What\'s new" only ever showed the single latest update — if you\'d skipped "Check for updates" a few times, everything in between got silently marked as seen. Now it steps through every version you missed, one "Got it" at a time'
+  ]},
+  {v:'Beta 1.24',notes:[
+    'Fixed: the project header\'s "+" icon rendered in the system default blue — the button never set its own text color, so the currentColor-based icon fell through to the browser default'
   ]}
 ];
 var COLORS={

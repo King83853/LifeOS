@@ -460,7 +460,6 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
       <div><div class="dtitle">Overview</div></div>
     </div>
     <div class="hdr-r">
-      <span class="tlbl" id="tlbl"></span>
       <button class="hdr-add" onclick="TabPlus.tap()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
     </div>
   </div>
@@ -494,7 +493,13 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 </div>
 
 <div class="page active" id="p-today">
-  <div class="dhdr"><div class="dico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div><div class="dtitle">Today</div></div></div>
+  <div class="dhdr" style="justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="dico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div><div class="dtitle">Today</div></div>
+    </div>
+    <span class="tlbl" id="tlbl"></span>
+  </div>
   <div class="shdr">🎯 Tasks</div>
   <div id="today-priorities"></div>
   <div class="shdr" style="margin-top:22px">📆 Habits</div>
@@ -774,7 +779,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.26';
+var APP_VERSION='Beta 1.27';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -891,6 +896,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.26',notes:[
     'Fixed: the Daily card on Overview could still show "Empty" instead of the task count — it was only checking a type field, not the project actually wired up as Daily'
+  ]},
+  {v:'Beta 1.27',notes:[
+    'Moved the date from Overview\'s header to Today\'s'
   ]}
 ];
 var COLORS={

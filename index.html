@@ -559,10 +559,11 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
   <button class="addbtn" style="width:100%;font-size:14px;min-height:44px;margin-top:10px" onclick="WhatsNew.open()">What's new</button>
 </div>
 
-<div class="page" id="p-habits">
-  <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-  <div class="dhdr"><div class="dico">🏃</div><div style="flex:1"><div class="dtitle">Daily</div><div class="dsub">Recurring &amp; one-time tasks</div></div>
-    <button class="edit-proj-btn" onclick="DailyCatSheet.open()"><div class="edot"></div><div class="edot"></div><div class="edot"></div></button>
+<div class="page proj-page" id="p-habits">
+  <div class="dhdr proj-hdr">
+    <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="proj-name-pill" onclick="if(DB.data.habitsProjectId)SheetEditor.open(DB.data.habitsProjectId)"><div class="dtitle" id="habits-dtitle">Daily</div></button>
+    <button class="edit-proj-btn" onclick="TabPlus.tap()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
   </div>
   <div class="wnav"><span class="wlbl" id="wlbl"></span></div>
   <div class="wdays" id="wdays"></div>
@@ -779,7 +780,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.28';
+var APP_VERSION='Beta 1.29';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -902,6 +903,11 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.28',notes:[
     'Switching between Today/Overview/Locked In/Settings is now instant instead of a short fade'
+  ]},
+  {v:'Beta 1.29',notes:[
+    'Daily\'s header now matches the project pages: back button, a name pill, and a "+" — no more bottom tab bar or floating "+" while you\'re there',
+    'Tap Daily\'s name to edit its name, description, emoji and color, same as any other project',
+    'Category management moved into the "+" menu as "Manage categories"'
   ]}
 ];
 var COLORS={
@@ -1541,7 +1547,11 @@ function renderSettings(){
     +'</select></div>';
 }
 
-function renderHabits(){buildPills();buildPanels();var p=document.getElementById('dp-'+Nav.sd);if(p)p.classList.add('on');restoreChecks(Nav.sd);updWL();}
+function renderHabits(){
+  var hp=DB.data.projects[DB.data.habitsProjectId];
+  var t=document.getElementById('habits-dtitle');if(t)t.textContent=hp?hp.name:'Daily';
+  buildPills();buildPanels();var p=document.getElementById('dp-'+Nav.sd);if(p)p.classList.add('on');restoreChecks(Nav.sd);updWL();
+}
 
 // ── ACTIONS ───────────────────────────────────────────────
 var A={
@@ -2899,13 +2909,14 @@ var TabBar={
     var fab=document.getElementById('fab');
     if(fab){
       fab.style.display=''; // clear any "hidden while adding" override from the previous page
-      // Project pages now have their own header "+" (see buildProjPages /
-      // TabPlus.tap) instead of this floating button — only Habits still
-      // uses the floating FAB.
-      fab.classList.toggle('show',Nav.cur==='habits');
+      // Every page that can add something now has its own header "+"
+      // (project pages, and Daily/habits) — this floating button is no
+      // longer used anywhere, kept only so the markup/CSS don't need
+      // ripping out along with it.
+      fab.classList.remove('show');
     }
     var tb=document.querySelector('.tabbar');
-    if(tb)tb.style.display=DB.data.projects[Nav.cur]?'none':'';
+    if(tb)tb.style.display=(DB.data.projects[Nav.cur]||Nav.cur==='habits')?'none':'';
   }
 };
 
@@ -2915,7 +2926,8 @@ var TabPlus={
     if(cur==='habits'){
       AddChoice.show('Add task',[
         {icon:'📅',label:'One-time task',fn:function(){OnceAddSheet.open();}},
-        {icon:'🔁',label:'Repeating task',fn:function(){A.startRepeatingTask();}}
+        {icon:'🔁',label:'Repeating task',fn:function(){A.startRepeatingTask();}},
+        {icon:'📁',label:'Manage categories',fn:function(){DailyCatSheet.open();}}
       ]);
       return;
     }
@@ -3160,6 +3172,12 @@ var SheetEditor={
       if(dico){dico.style.background=isDarkNow()?pcol:pcol+'20';dico.style.color=isDarkNow()?'#fff':pcol;dico.textContent=icon;}
       if(dtitle)dtitle.textContent=name;
       if(dsub)dsub.textContent=desc;
+      // The Daily project's live page is #p-habits, not #p-<pid> (Nav.go
+      // redirects habitsProjectId to the 'habits' page id), so the
+      // selectors above never touch its header — update it directly.
+      if(this.pid===DB.data.habitsProjectId){
+        var ht=document.getElementById('habits-dtitle');if(ht)ht.textContent=name;
+      }
       if(p.type==='tracker')renderTracker(this.pid);
       renderGrids();
       _overlayClose('proj-sheet-overlay');

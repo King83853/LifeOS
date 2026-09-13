@@ -50,6 +50,21 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   were actively changing at the time — this one shipped for a whole
   session before a bug report caught it.
 
+- The Daily project is a real entry in `DB.data.projects` (with its own
+  name/icon/color/desc, editable through the normal SheetEditor sheet)
+  but it never lives at its own page id — `Nav.go` redirects
+  `habitsProjectId` to the static `#p-habits` page, so `#p-<pid>` for
+  the Daily project's id is dead markup that's built but never shown.
+  Two consequences worth remembering if this area changes again: (1)
+  don't check `p.type==='daily'` alone to detect "is this the Daily
+  project" — real data can have that project's `type` left as something
+  else (e.g. `'todo'`) with only `habitsProjectId` actually pointing at
+  it, so check `pid===DB.data.habitsProjectId` too (bit the Overview
+  card count for exactly this reason). (2) Any code that updates a
+  project's header after an edit by querying `#p-<pid> ...` (SheetEditor
+  .save()) silently no-ops for the Daily project — it needs an explicit
+  extra branch to update `#habits-dtitle` instead.
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

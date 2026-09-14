@@ -181,6 +181,43 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   by checking `document.querySelector('.sheet-overlay.on')` instead of
   a maintained list — don't go back to a hardcoded list of ids for this,
   it will silently rot the same way again the next time a sheet is added.
+  That fix alone wasn't the whole bug, though — reported as still
+  happening on a real device afterward. The SAME handler's ancestor walk
+  treated landing on `.sheet-overlay` itself (the dimmed backdrop, not
+  just `.sheet`, the actual scrollable panel) as "inside the overlay,
+  leave it alone" and skipped preventDefault there too. `.sheet` is
+  `max-height:90vh`, so a sheet with enough content to need scrolling
+  (Version history) never reaches the very top of the screen — there's
+  always a sliver of bare, non-scrollable backdrop above it, and a
+  gesture starting there (easy to do reaching for the top of a long
+  list) hit that unblocked path and chained straight to the page
+  underneath. Narrowed the check to `.sheet` only — the backdrop has
+  nothing of its own worth allowing default touch behavior for.
+  Lesson for both parts of this one: a fix that only checks the class
+  it saw fail (`_overlayCount`) instead of re-reading the whole
+  handler's logic can leave a second, adjacent bug in the same function
+  untouched — when a bug report says a fix didn't work, re-derive the
+  mechanism from scratch rather than re-checking only what was already
+  changed.
+
+- checkForUpdate() reliability, continued: even with the grace-period/
+  polling fixes above, a real device still reported "already on the
+  latest version" for an update that (per the user) only landed once
+  the app was fully closed and reopened. That points at a different,
+  more fundamental gap than event timing: `navigator.serviceWorker
+  .register('sw.js')` was called with no `updateViaCache` option, which
+  defaults to `'imports'` — meaning the browser is free to satisfy
+  `reg.update()`'s fetch of sw.js from its own HTTP cache instead of the
+  network, so the manual check can end up byte-comparing a stale cached
+  copy against itself and correctly-but-uselessly conclude "no diff",
+  while the browser's own separate automatic update timing (checked on
+  relaunch, on a different schedule/cache policy) fetches a genuinely
+  fresh copy later and finds the real diff. Registered with
+  `{updateViaCache:'none'}` instead, which forces every update check to
+  skip the HTTP cache for the SW script unconditionally. This is a
+  registration-time option — it takes effect the next time `register()`
+  runs (every page load already calls it), not retroactively on an
+  already-active registration.
 
 - This app's own service worker is deliberately cache-first (see the
   navigate-handler gotcha above), which also means the LOCAL PREVIEW used

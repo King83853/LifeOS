@@ -524,11 +524,14 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 </div>
 
 <div class="page" id="p-lockedin">
-  <div class="dhdr"><div class="dico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div><div><div class="dtitle">Tasks</div></div></div>
-  <div class="seg-row" id="li-seg">
-    <button class="seg-btn active" data-view="tasks" onclick="LockedIn.setView('tasks')">Tasks</button>
-    <button class="seg-btn" data-view="list" onclick="LockedIn.setView('list')">List</button>
-    <button class="seg-btn" data-view="calendar" onclick="LockedIn.setView('calendar')">Calendar</button>
+  <div class="dhdr" style="justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="dico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
+      <div><div class="dtitle">Tasks</div></div>
+    </div>
+    <div class="hdr-r">
+      <button class="hdr-add" onclick="LockedIn.openViewMenu()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
+    </div>
   </div>
   <div id="lockedin-list"></div>
 </div>
@@ -801,7 +804,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.41';
+var APP_VERSION='Beta 1.42';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -976,6 +979,9 @@ var CHANGELOG=[
   {v:'Beta 1.41',notes:[
     'Smoothed out the swipe-to-close animation on Version history — it no longer speeds up oddly on a short drag',
     'Added a Language setting (English only for now)'
+  ]},
+  {v:'Beta 1.42',notes:[
+    'Tasks: replaced the Tasks/List/Calendar buttons with a single menu button in the header, same spot as Overview\'s "+"'
   ]}
 ];
 var COLORS={
@@ -1452,10 +1458,15 @@ var LockedIn={
   view:'tasks',
   setView:function(v){
     this.view=v;
-    document.querySelectorAll('#li-seg .seg-btn').forEach(function(b){
-      b.classList.toggle('active',b.getAttribute('data-view')===v);
-    });
     renderLockedIn();
+  },
+  openViewMenu:function(){
+    var self=this;
+    AddChoice.show('View',[
+      {icon:'✅',label:'Tasks',fn:function(){self.setView('tasks');}},
+      {icon:'📋',label:'List',fn:function(){self.setView('list');}},
+      {icon:'📅',label:'Calendar',fn:function(){self.setView('calendar');}}
+    ]);
   }
 };
 

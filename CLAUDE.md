@@ -138,6 +138,32 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   other icon of the same site — deleting an icon without exporting first
   loses its data permanently, and Safari "working fine" tells you nothing
   about whether a given icon's storage is broken.
+  (3) A real-world report from the user's own device: "check for
+  updates" mostly said "already on the latest version" even though a
+  real update HAD landed (confirmed because the "what's new" sheet for
+  the newer version showed up on the next cold launch) — and separately,
+  the progress overlay sometimes froze partway ("Almost there…") and
+  needed a manual reload to recover. Both traced to the same root cause:
+  this flow trusted two browser-delivered signals — the `updatefound`
+  event firing essentially synchronously with `reg.update()`'s promise
+  resolving, and the `controllerchange` event firing once the new worker
+  actually takes over — and neither is reliable enough to trust alone,
+  particularly on iOS Safari (unconfirmed exactly which part, since this
+  can only be tested in a desktop/Chromium preview here, not on the
+  user's real device — sw.js's own lifecycle, self.skipWaiting() +
+  clients.claim(), is unconditional and was already correct). Fixed
+  defensively rather than chasing the exact engine quirk: (a) after
+  reg.update() resolves, wait ~350ms before concluding "no update" —
+  gives a slightly-late `updatefound` a chance to still arrive; (b) once
+  `updatefound` DOES fire, also poll `navigator.serviceWorker.controller`
+  every 400ms as a fallback for `controllerchange` never arriving; (c)
+  if even the 12s watchdog fires while we know an update was found and
+  started installing, don't report "nothing was changed" (actively
+  false in that case) — reload on our own instead, since the new worker
+  has very likely already activated by then. If this area breaks again,
+  don't add more one-off timers — get a real device to test on, or at
+  minimum get the actual browser/OS version from the report before
+  guessing further.
 
 - This app's own service worker is deliberately cache-first (see the
   navigate-handler gotcha above), which also means the LOCAL PREVIEW used

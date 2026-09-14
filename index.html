@@ -361,11 +361,15 @@ html[data-theme="light"] #whatsnew-body{color:#555}
 
 .sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500}
 .sheet-overlay.on{display:block}
-.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;max-height:90vh;border-radius:24px 24px 0 0;padding:24px 20px 44px;z-index:501;transform:translateY(100%);transition:transform .25s}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;max-height:75vh;border-radius:24px 24px 0 0;padding:24px 20px 44px;z-index:501;transform:translateY(100%);transition:transform .25s}
 @media(prefers-color-scheme:dark){.sheet{background:#1e1c1a}}
 html[data-theme="dark"] .sheet{background:#1e1c1a}
 html[data-theme="light"] .sheet{background:#fff}
 .sheet-overlay.on .sheet{transform:translateY(0)}
+.sheet-drag-handle{width:36px;height:4px;border-radius:2px;background:#d1d1d1;margin:0 auto 16px}
+@media(prefers-color-scheme:dark){.sheet-drag-handle{background:#444}}
+html[data-theme="dark"] .sheet-drag-handle{background:#444}
+html[data-theme="light"] .sheet-drag-handle{background:#d1d1d1}
 .sheet-title{font-size:17px;font-weight:700;margin-bottom:20px}
 .sheet-label{font-size:12px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
 .sheet-inp{width:100%;font-size:16px;padding:13px 14px;border:1.5px solid #e8e5e0;border-radius:14px;background:#fff;color:#1a1917;outline:none;margin-bottom:14px}
@@ -623,9 +627,9 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 
 <div class="sheet-overlay" id="verhist-overlay" onclick="if(event.target===this)VersionHistory.close()">
   <div class="sheet">
+    <div class="sheet-drag-handle"></div>
     <div class="sheet-title">Version history</div>
-    <div id="verhist-body" style="margin-bottom:20px"></div>
-    <button class="sheet-save" style="width:100%" onclick="VersionHistory.close()">Close</button>
+    <div id="verhist-body"></div>
   </div>
 </div>
 
@@ -796,7 +800,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.39';
+var APP_VERSION='Beta 1.40';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -962,6 +966,11 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.39',notes:[
     'Fixed the real cause of the sheet-scrolling bug: fast-scrolling right before opening a sheet like Version history left the page underneath still coasting on its own momentum, which no amount of blocking touches could stop — the page itself is now frozen in place the instant a sheet opens, instead of trying to intercept the gesture'
+  ]},
+  {v:'Beta 1.40',notes:[
+    'Fixed: scrolling up to the top of Version history could break scrolling entirely',
+    'Version history is now 3/4 of the screen height instead of nearly full-screen',
+    'Removed Version history\'s "Close" button — tap the visible background, or pull down from the top of the list, to dismiss it'
   ]}
 ];
 var COLORS={
@@ -2899,6 +2908,55 @@ var VersionHistory={
   },
   close:function(){_overlayClose('verhist-overlay');}
 };
+// No explicit close button on this sheet by design — dismiss by tapping
+// the visible backdrop (already handled by the overlay's own onclick)
+// or by pulling down from the top of the list, same as a native
+// bottom sheet. Only takes over the gesture once the sheet is already
+// scrolled to its own top and the finger is moving down — anywhere
+// else, this does nothing and normal scrolling proceeds untouched.
+(function(){
+  var sheetEl=null,startY=0,curDy=0,dragging=false;
+  document.addEventListener('touchstart',function(e){
+    var overlay=document.getElementById('verhist-overlay');
+    if(!overlay.classList.contains('on')){sheetEl=null;return;}
+    var sheet=overlay.querySelector('.sheet');
+    if(!e.target.closest('.sheet')){sheetEl=null;return;}
+    sheetEl=sheet;startY=e.touches[0].clientY;curDy=0;dragging=false;
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    if(!sheetEl)return;
+    var dy=e.touches[0].clientY-startY;
+    if(dy>0&&sheetEl.scrollTop<=0){
+      dragging=true;curDy=dy;
+      sheetEl.style.transition='none';
+      sheetEl.style.transform='translateY('+dy+'px)';
+      e.preventDefault();
+    } else if(dragging&&dy<=0){
+      // Finger reversed back upward mid-drag — hand control straight
+      // back to normal scrolling instead of fighting it.
+      sheetEl.style.transition='';
+      sheetEl.style.transform='';
+      dragging=false;sheetEl=null;
+    }
+  },{passive:false});
+  document.addEventListener('touchend',function(){
+    if(!sheetEl||!dragging){sheetEl=null;return;}
+    var el=sheetEl;
+    if(curDy>80){
+      el.style.transition='transform .2s ease-out';
+      el.style.transform='translateY(100%)';
+      setTimeout(function(){
+        VersionHistory.close();
+        el.style.transition='';el.style.transform='';
+      },200);
+    } else {
+      el.style.transition='transform .2s ease-out';
+      el.style.transform='translateY(0)';
+      setTimeout(function(){el.style.transition='';el.style.transform='';},200);
+    }
+    sheetEl=null;dragging=false;
+  },{passive:true});
+})();
 var InputSheet={
   _cb:null,
   show:function(title,placeholder,cb){

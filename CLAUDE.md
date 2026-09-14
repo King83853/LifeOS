@@ -227,6 +227,28 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   problem is somewhere else entirely (worth checking: does anything
   else in this app set `document.body.style.position` or `.top`
   directly and clobber this while it's active?).
+  Immediate follow-up once the lock landed: scrolling UP to the very
+  top of a sheet (Version history specifically) could break scrolling
+  entirely. `.sheet` had no `overscroll-behavior`, so hitting the top
+  of its own content triggered iOS's native rubber-band/scroll-chaining
+  into the now-`position:fixed` body — an ancestor that can't scroll at
+  all, which is exactly the kind of edge case that class of interaction
+  breaks on. Added `overscroll-behavior-y:contain` to `.sheet`, which
+  keeps overscroll contained inside it instead of chaining anywhere.
+  While in there, also implemented what was asked instead of the
+  original close-button design: `.sheet` is 75vh (was 90vh), and
+  Version history specifically has no close button at all — dismiss by
+  tapping the visible backdrop (`.sheet-overlay`'s own onclick, already
+  existed) or by pulling down once already scrolled to the top of the
+  list (new gesture, scoped to `#verhist-overlay` only via a dedicated
+  touchstart/touchmove/touchend IIFE — only engages when the drag
+  starts with `sheet.scrollTop<=0` and is moving downward, otherwise it
+  does nothing and normal scrolling proceeds). This pattern (no close
+  button, swipe-to-dismiss, backdrop tap) is scoped to Version history
+  only, not the shared `.sheet` component in general — other sheets
+  (Edit project, category pickers, etc.) still have real Save/Cancel
+  actions and keep their explicit buttons; don't assume this same
+  swipe-dismiss treatment should extend to those without being asked.
 
 - checkForUpdate() reliability, continued: even with the grace-period/
   polling fixes above, a real device still reported "already on the

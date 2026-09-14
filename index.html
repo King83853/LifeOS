@@ -796,7 +796,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.37';
+var APP_VERSION='Beta 1.38';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -956,6 +956,9 @@ var CHANGELOG=[
   {v:'Beta 1.37',notes:[
     'Fixed the actual remaining cause of scroll leaking to the background: a sheet doesn\'t cover the very top of the screen, and touching that sliver was never blocked either',
     'Update check: registered the service worker to never use a cached copy of itself when checking for updates — likely why a real update sometimes still reported "already on the latest version" until the app was fully closed and reopened'
+  ]},
+  {v:'Beta 1.38',notes:[
+    'Update check: force-fetches the update file fresh from the network now instead of possibly reading a 10-minute browser cache of it — confirmed on iPhone that the previous fix wasn\'t enough on its own'
   ]}
 ];
 var COLORS={
@@ -1789,7 +1792,23 @@ var A={
           else if(sw.state==='activating')UpdateOverlay.progress(85,'Almost there…');
         });
       });
-      reg.update().then(function(){
+      // reg.update()'s own internal fetch of sw.js is still subject to
+      // the browser's normal HTTP cache — GitHub Pages serves it with
+      // Cache-Control: max-age=600, so a check run within 10 minutes of
+      // the last one can be satisfied entirely from cache with no
+      // network round-trip at all, byte-comparing a stale copy against
+      // itself and finding no diff. updateViaCache:'none' on the
+      // registration (see below) is supposed to prevent exactly this,
+      // but evidently isn't enough on its own on iOS — confirmed by a
+      // real report: manual check always said "latest", but relaunching
+      // the app (a real navigation, different cache path) picked up the
+      // update every time. Force a genuinely fresh fetch of sw.js first
+      // — this warms the HTTP cache with the real current bytes before
+      // reg.update() reads from that same cache, regardless of whether
+      // updateViaCache is honored.
+      fetch('sw.js',{cache:'no-store'}).catch(function(){}).then(function(){
+        return reg.update();
+      }).then(function(){
         // updatefound usually fires synchronously as part of this call
         // when there's a real diff, but not reliably enough to trust on
         // its own — iOS Safari in particular can deliver it just after

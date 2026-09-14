@@ -218,6 +218,28 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   registration-time option — it takes effect the next time `register()`
   runs (every page load already calls it), not retroactively on an
   already-active registration.
+  `updateViaCache:'none'` alone still wasn't enough — confirmed on the
+  user's actual iPhone (home-screen icon, standalone PWA, not Safari):
+  manual check kept saying "latest", relaunching the app kept quietly
+  picking up the real update anyway (no progress screen, just the
+  What's New sheet on next open — confirming sw.js's own lifecycle was
+  never the problem, only this page's detection of it). GitHub Pages
+  serves sw.js with `Cache-Control: max-age=600` — confirmed via `curl
+  -I`. Two ways to read that: either this WebKit version doesn't honor
+  `updateViaCache`, or it does but `reg.update()`'s internal fetch still
+  isn't guaranteed to ignore a *fresh-enough* cache entry regardless of
+  that flag. Either way, stopped trying to make the SPEC-level API
+  behave and instead forced it directly: `fetch('sw.js',{cache:
+  'no-store'})` right before every `reg.update()` call. This doesn't
+  need reg.update() to do anything differently — it just makes sure the
+  browser's HTTP cache entry for sw.js is genuinely current by the time
+  reg.update() reads it, network-cache policy or engine quirks aside.
+  If a future report says update-checking is STILL wrong after this,
+  the next thing to check is whether `fetch('sw.js',...)` itself is
+  even reaching the network on that device (a browser dev-tools network
+  tab on the actual device/OS in question, not another guess from here)
+  — this file cannot get closer to root-causing an iOS-only bug without
+  one.
 
 - This app's own service worker is deliberately cache-first (see the
   navigate-handler gotcha above), which also means the LOCAL PREVIEW used

@@ -796,7 +796,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.38';
+var APP_VERSION='Beta 1.39';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -959,6 +959,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.38',notes:[
     'Update check: force-fetches the update file fresh from the network now instead of possibly reading a 10-minute browser cache of it — confirmed on iPhone that the previous fix wasn\'t enough on its own'
+  ]},
+  {v:'Beta 1.39',notes:[
+    'Fixed the real cause of the sheet-scrolling bug: fast-scrolling right before opening a sheet like Version history left the page underneath still coasting on its own momentum, which no amount of blocking touches could stop — the page itself is now frozen in place the instant a sheet opens, instead of trying to intercept the gesture'
   ]}
 ];
 var COLORS={
@@ -2757,45 +2760,54 @@ window.addEventListener('scroll',function(){
 
 var _overlayCount=0;
 // Safety: reset count if no overlays actually visible. This used to
-// check a hardcoded list of overlay ids — every .sheet-overlay added
-// since then (whatsnew, verhist, daily-cat, daily-item, add-choice,
-// once-add, task, color) wasn't on it, so with any of THOSE open this
-// always saw "nothing open" and zeroed the count on every touch. That
-// disabled the touchmove blocker below, which is why scrolling inside
-// one of those sheets scrolled the page underneath instead — and with
-// body scroll wrong, a tall sheet's own Close button could end up
-// permanently out of reach. Query the actual class instead of a list
-// that has to be remembered every time a new sheet is added.
-document.addEventListener('touchstart',function(){
-  if(!document.querySelector('.sheet-overlay.on'))_overlayCount=0;
-},{passive:true});
+// check a hardcoded list of overlay ids, then a class query instead —
+// neither actually fixed the real bug (see below), both attempts kept
+// around here as history since the next thing broken in this area
+// should not retry either.
+//
+// The real problem: this used to block body scroll by preventDefault()
+// on touchmove outside the sheet — which can only stop a NEW scroll
+// gesture from starting. It can't stop one that's already committed:
+// if the user was scrolling Settings (or anything) with any real
+// velocity right as a sheet opened, iOS's own momentum/inertial scroll
+// keeps animating the background on its own, with no more touch events
+// for any handler to intercept — reported exactly this way ("there's a
+// scrollbar from the background scrolling... only after that one
+// disappears can I scroll in versions"). No amount of touchmove
+// handling fixes that, because by the time it's happening there's no
+// touch left to call preventDefault on.
+// Fixed properly: freeze the body itself out of the scrollable flow via
+// position:fixed while any overlay is open, instead of trying to
+// intercept gestures aimed at it. A position:fixed element can't be
+// mid-momentum-scroll — this stops an already-in-flight one dead, not
+// just future attempts, and needs no per-touch decision logic at all.
+var _bodyLockY=0;
+function _lockBodyScroll(){
+  _bodyLockY=window.scrollY||document.documentElement.scrollTop||0;
+  document.body.style.position='fixed';
+  document.body.style.top=(-_bodyLockY)+'px';
+  document.body.style.left='0';
+  document.body.style.right='0';
+  document.body.style.width='100%';
+}
+function _unlockBodyScroll(){
+  document.body.style.position='';
+  document.body.style.top='';
+  document.body.style.left='';
+  document.body.style.right='';
+  document.body.style.width='';
+  window.scrollTo(0,_bodyLockY);
+}
 function _overlayOpen(id){
   document.getElementById(id).classList.add('on');
   _overlayCount++;
+  if(_overlayCount===1)_lockBodyScroll();
 }
 function _overlayClose(id){
   document.getElementById(id).classList.remove('on');
   _overlayCount=Math.max(0,_overlayCount-1);
+  if(_overlayCount===0)_unlockBodyScroll();
 }
-// Block body scroll when any overlay is open. Only actually inside the
-// scrollable .sheet panel counts — the .sheet-overlay backdrop behind
-// it is NOT scrollable itself (no overflow of its own), and a .sheet
-// with a lot of content (Version history) doesn't reach the very top
-// of the screen, leaving a sliver of bare backdrop visible above it.
-// This used to also early-return (i.e. allow default, no preventDefault)
-// for touches landing on that bare backdrop — nothing there scrolls,
-// but the browser was still free to chain the gesture to whatever's
-// underneath, which is exactly how it ended up scrolling the page
-// behind the sheet instead of the sheet itself.
-document.addEventListener('touchmove',function(e){
-  if(_overlayCount===0)return;
-  var el=e.target;
-  while(el&&el!==document.body){
-    if(el.classList&&el.classList.contains('sheet'))return;
-    el=el.parentNode;
-  }
-  e.preventDefault();
-},{passive:false});
 
 
 var UpdateOverlay={

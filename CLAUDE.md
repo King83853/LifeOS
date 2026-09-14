@@ -199,6 +199,34 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   untouched — when a bug report says a fix didn't work, re-derive the
   mechanism from scratch rather than re-checking only what was already
   changed.
+  Even THAT fix wasn't enough — reported as still intermittent ("it
+  worked... wait now it doesn't"), and the detail that actually
+  explained it: "there's a scrollbar from the background scrolling...
+  only after that one disappears can I scroll in versions". That's iOS
+  momentum/inertial scrolling — if the user was scrolling with any real
+  velocity right as a sheet opened, the background keeps coasting
+  entirely as a browser-internal animation, with no more touch events
+  left for ANY handler to call preventDefault on. No touchmove-based
+  approach can stop a scroll that's already committed, no matter how
+  correct its touch-target logic is — that's the ceiling this whole
+  approach (both attempts above) was built against without realizing
+  it. Replaced the entire touchmove-interception strategy with
+  `_lockBodyScroll()`/`_unlockBodyScroll()`: set `document.body`'s
+  `position` to `fixed` (saving/restoring `scrollY` via `top`) for as
+  long as `_overlayCount` is above 0, in `_overlayOpen`/`_overlayClose`
+  themselves rather than a separate listener. A position:fixed element
+  can't be mid-scroll at all, so this stops an already-in-flight
+  momentum scroll dead, not just future gesture attempts — verified via
+  `window.scrollTo()` while locked having no effect at all, and the
+  original scroll position being restored correctly on unlock, including
+  through nested opens (two overlays open at once only unlocks when the
+  second one — the one that incremented the count off zero — closes).
+  If background scroll during a sheet is ever reported broken again,
+  don't add a fourth touchmove special case — this class of bug is why
+  the fixed-position lock exists now, and if it's not enough the
+  problem is somewhere else entirely (worth checking: does anything
+  else in this app set `document.body.style.position` or `.top`
+  directly and clobber this while it's active?).
 
 - checkForUpdate() reliability, continued: even with the grace-period/
   polling fixes above, a real device still reported "already on the

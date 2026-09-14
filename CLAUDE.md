@@ -249,6 +249,17 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   (Edit project, category pickers, etc.) still have real Save/Cancel
   actions and keep their explicit buttons; don't assume this same
   swipe-dismiss treatment should extend to those without being asked.
+  Follow-up: the release animation felt off ("not that smooth") on a
+  short drag. Cause: the drag itself tracks the finger 1:1 in px, but
+  the release animated to a flat `translateY(100%)` over a flat 200ms
+  regardless of how much px distance that actually was — a drag that
+  barely crossed the 80px threshold still had to cover the sheet's
+  full remaining height in the same 200ms as a drag that was most of
+  the way there already, so it visibly sped up right as the finger
+  lifted. Fixed by computing the close/snap-back duration from the
+  actual remaining distance in px (clamped between ~120-280ms) instead
+  of a flat number, so the release reads as a continuation of the same
+  motion instead of a different, faster one taking over.
 
 - checkForUpdate() reliability, continued: even with the grace-period/
   polling fixes above, a real device still reported "already on the

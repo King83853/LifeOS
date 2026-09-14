@@ -552,6 +552,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
   </div>
   <div id="settings-complete"></div>
   <div id="settings-theme"></div>
+  <div id="settings-language"></div>
   <div class="opt-row" onclick="Nav.go('archive')">
     <div style="font-size:22px">🏆</div>
     <div class="opt-text"><div class="opt-title">Completed Tasks</div></div>
@@ -800,7 +801,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.40';
+var APP_VERSION='Beta 1.41';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -971,6 +972,10 @@ var CHANGELOG=[
     'Fixed: scrolling up to the top of Version history could break scrolling entirely',
     'Version history is now 3/4 of the screen height instead of nearly full-screen',
     'Removed Version history\'s "Close" button — tap the visible background, or pull down from the top of the list, to dismiss it'
+  ]},
+  {v:'Beta 1.41',notes:[
+    'Smoothed out the swipe-to-close animation on Version history — it no longer speeds up oddly on a short drag',
+    'Added a Language setting (English only for now)'
   ]}
 ];
 var COLORS={
@@ -1014,7 +1019,7 @@ var DB={
       categories:{}, // {id:{name,icon}}
       categoryOrder:[],      // [catId,...]
       projectOrder:{},       // {catId:[projId,...]}
-      settings:{holdToComplete:false,todayHabitsDisappear:false,dayStartHour:0,lastSeenVersion:APP_VERSION,theme:'system',todayTaskCount:3,todayRefill:false}};
+      settings:{holdToComplete:false,todayHabitsDisappear:false,dayStartHour:0,lastSeenVersion:APP_VERSION,theme:'system',language:'en',todayTaskCount:3,todayRefill:false}};
   },
   load:function(){
     try{var r=localStorage.getItem(this.KEY);if(r)this.data=JSON.parse(r);}catch(e){}
@@ -1028,6 +1033,7 @@ var DB={
     if(d.settings.todayHabitsDisappear===undefined)d.settings.todayHabitsDisappear=false;
     if(d.settings.dayStartHour===undefined)d.settings.dayStartHour=0;
     if(!d.settings.theme)d.settings.theme='system';
+    if(!d.settings.language)d.settings.language='en';
     if(!d.settings.todayTaskCount)d.settings.todayTaskCount=3;
     if(d.settings.todayRefill===undefined)d.settings.todayRefill=false;
     // Missing entirely = a pre-existing install from before this system
@@ -1572,6 +1578,17 @@ function renderSettings(){
       +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
       +'<div class="opt-text"><div class="opt-title">'+o.icon+' '+o.title+'</div></div></div>';
   }).join('');
+  var lang=DB.data.settings.language||'en';
+  // Only English exists so far — this just gives the setting a home to
+  // live in ahead of time. Add more <option>s here once real
+  // translations exist; nothing else needs to change to support that.
+  document.getElementById('settings-language').innerHTML=
+    '<div class="opt-row" style="cursor:default">'
+    +'<div style="font-size:22px">🌐</div>'
+    +'<div class="opt-text"><div class="opt-title">Language</div></div>'
+    +'<select class="addinp daystart-sel" onchange="A.setLanguage(this.value)" style="flex:none;width:auto;min-height:48px;padding:10px 14px;font-size:15px;font-weight:600;margin-left:auto">'
+    +'<option value="en"'+(lang==='en'?' selected':'')+'>English</option>'
+    +'</select></div>';
   var hold=DB.data.settings.holdToComplete;
   document.getElementById('settings-complete').innerHTML=
     '<div class="opt-row" style="cursor:default">'
@@ -1865,6 +1882,10 @@ var A={
   setTheme:function(val){
     DB.data.settings.theme=val;DB.save();
     applyTheme();renderSettings();
+  },
+  setLanguage:function(val){
+    DB.data.settings.language=val;DB.save();
+    renderSettings();
   },
   toggleDailyItemFor:function(cb,dayIdx){
     var id=cb.getAttribute('data-id');
@@ -2942,17 +2963,30 @@ var VersionHistory={
   document.addEventListener('touchend',function(){
     if(!sheetEl||!dragging){sheetEl=null;return;}
     var el=sheetEl;
+    // Duration is scaled to how far is actually left to travel, not a
+    // flat number — the drag itself moves 1:1 with the finger in px, so
+    // finishing the last bit at a flat .2s regardless of how much of
+    // that px distance remains felt like a sudden yank on a short drag
+    // (barely past the 80px threshold, but still animating the full
+    // remaining height in the same window as a long one). Matching a
+    // roughly constant speed to how the drag already felt keeps the
+    // release feeling like a continuation of the same motion instead
+    // of a different, faster one taking over.
+    var h=el.getBoundingClientRect().height||300;
+    var PX_PER_MS=1.8;
     if(curDy>80){
-      el.style.transition='transform .2s ease-out';
-      el.style.transform='translateY(100%)';
+      var dur=Math.max(120,Math.min(280,(h-curDy)/PX_PER_MS));
+      el.style.transition='transform '+dur+'ms cubic-bezier(.25,.46,.45,.94)';
+      el.style.transform='translateY('+h+'px)';
       setTimeout(function(){
         VersionHistory.close();
         el.style.transition='';el.style.transform='';
-      },200);
+      },dur);
     } else {
-      el.style.transition='transform .2s ease-out';
+      var dur2=Math.max(120,Math.min(220,curDy/PX_PER_MS));
+      el.style.transition='transform '+dur2+'ms cubic-bezier(.25,.46,.45,.94)';
       el.style.transform='translateY(0)';
-      setTimeout(function(){el.style.transition='';el.style.transform='';},200);
+      setTimeout(function(){el.style.transition='';el.style.transform='';},dur2);
     }
     sheetEl=null;dragging=false;
   },{passive:true});

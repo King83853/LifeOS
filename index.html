@@ -310,6 +310,19 @@ html[data-theme="light"] .opt-radio-dot{background:#1a1917}
 .opt-title{font-size:14px;font-weight:600}
 .opt-desc{font-size:12px;color:#999;margin-top:2px}
 
+/* On/off toggle for settings that are just one thing to enable, rather
+   than a choice between two named options (those still use the
+   .opt-row radio pairs above). */
+.switch{position:relative;display:inline-block;width:48px;height:28px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.switch-slider{position:absolute;inset:0;background:#d1d1d1;border-radius:999px;transition:background .15s;cursor:pointer}
+@media(prefers-color-scheme:dark){.switch-slider{background:#3a3a3a}}
+html[data-theme="dark"] .switch-slider{background:#3a3a3a}
+html[data-theme="light"] .switch-slider{background:#d1d1d1}
+.switch-slider::before{content:'';position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.switch input:checked+.switch-slider{background:#3b82f6}
+.switch input:checked+.switch-slider::before{transform:translateX(20px)}
+
 .sl{font-size:11px;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px}
 
 .color-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
@@ -780,7 +793,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.30';
+var APP_VERSION='Beta 1.31';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -911,6 +924,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.30',notes:[
     'Renamed "Locked In" to "Tasks", with a simple list icon instead of the padlock'
+  ]},
+  {v:'Beta 1.31',notes:[
+    'Removed the "stay checked off" option — habits in Today always disappear once checked off now',
+    '"Hold to complete" is now a single on/off switch instead of two options to pick between'
   ]}
 ];
 var COLORS={
@@ -954,7 +971,7 @@ var DB={
       categories:{}, // {id:{name,icon}}
       categoryOrder:[],      // [catId,...]
       projectOrder:{},       // {catId:[projId,...]}
-      settings:{holdToComplete:false,todayHabitsDisappear:false,dayStartHour:0,lastSeenVersion:APP_VERSION,theme:'system',todayTaskCount:3,todayRefill:false}};
+      settings:{holdToComplete:false,dayStartHour:0,lastSeenVersion:APP_VERSION,theme:'system',todayTaskCount:3,todayRefill:false}};
   },
   load:function(){
     try{var r=localStorage.getItem(this.KEY);if(r)this.data=JSON.parse(r);}catch(e){}
@@ -964,8 +981,7 @@ var DB={
     if(!d.categories)d.categories={};
     if(!d.categoryOrder)d.categoryOrder=[];
     if(!d.projectOrder)d.projectOrder={};
-    if(!d.settings)d.settings={holdToComplete:false,todayHabitsDisappear:false};
-    if(d.settings.todayHabitsDisappear===undefined)d.settings.todayHabitsDisappear=false;
+    if(!d.settings)d.settings={holdToComplete:false};
     if(d.settings.dayStartHour===undefined)d.settings.dayStartHour=0;
     if(!d.settings.theme)d.settings.theme='system';
     if(!d.settings.todayTaskCount)d.settings.todayTaskCount=3;
@@ -1514,23 +1530,14 @@ function renderSettings(){
   }).join('');
   var hold=DB.data.settings.holdToComplete;
   document.getElementById('settings-complete').innerHTML=
-    '<div class="opt-row'+(!hold?' active':'')+'" onclick="A.setHoldMode(false)">'
-    +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
-    +'<div class="opt-text"><div class="opt-title">Tap to complete</div><div class="opt-desc">Single tap checks off a task</div></div></div>'
-    +'<div class="opt-row'+(hold?' active':'')+'" onclick="A.setHoldMode(true)">'
-    +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
-    +'<div class="opt-text"><div class="opt-title">Hold to complete</div><div class="opt-desc">Press and hold to check off — prevents accidental taps</div></div></div>';
+    '<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-text"><div class="opt-title">Hold to complete</div><div class="opt-desc">Press and hold to check off instead of a single tap — prevents accidental taps</div></div>'
+    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(hold?'checked':'')+' onchange="A.setHoldMode(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div>';
 
-  var vanish=DB.data.settings.todayHabitsDisappear;
   var refill=DB.data.settings.todayRefill;
   document.getElementById('settings-today').innerHTML=
-    '<div class="opt-row'+(vanish?' active':'')+'" onclick="A.setTodayHabitsDisappear(true)">'
-    +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
-    +'<div class="opt-text"><div class="opt-title">Disappear when checked off</div><div class="opt-desc">Start with the full list, it shrinks as you go</div></div></div>'
-    +'<div class="opt-row'+(!vanish?' active':'')+'" onclick="A.setTodayHabitsDisappear(false)">'
-    +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
-    +'<div class="opt-text"><div class="opt-title">Stay checked off</div><div class="opt-desc">Completed items stay in the list, marked green</div></div></div>'
-    +'<div class="opt-row" style="cursor:default">'
+    '<div class="opt-row" style="cursor:default">'
     +'<div style="font-size:22px">🎯</div>'
     +'<div class="opt-text"><div class="opt-title">Tasks shown</div><div class="opt-desc">How many top-priority tasks pulled into Today</div></div>'
     +'<select class="addinp daystart-sel" onchange="A.setTodayTaskCount(this.value)" style="flex:none;width:auto;min-height:48px;padding:10px 14px;font-size:15px;font-weight:600;margin-left:auto">'
@@ -1729,10 +1736,6 @@ var A={
     DB.data.settings.holdToComplete=val;DB.save();
     applyHoldMode();renderSettings();
   },
-  setTodayHabitsDisappear:function(val){
-    DB.data.settings.todayHabitsDisappear=val;DB.save();
-    renderSettings();renderToday();
-  },
   setDayStartHour:function(val){
     DB.data.settings.dayStartHour=parseInt(val,10)||0;DB.save();
     recomputeT();
@@ -1760,7 +1763,7 @@ var A={
     var ds=pDate(dayIdx);
     DB.toggleDailyCheck(id,ds,cb.checked);
     var l=cb.nextElementSibling;if(l){l.style.textDecoration=cb.checked?'line-through':'none';l.style.opacity=cb.checked?'0.35':'1';}
-    if(Nav.cur==='today'&&DB.data.settings.todayHabitsDisappear&&cb.checked){
+    if(Nav.cur==='today'&&cb.checked){
       var item=cb.closest('.cali');
       if(item){
         var sec=item.closest('.calsec');
@@ -1769,6 +1772,8 @@ var A={
         setTimeout(function(){
           item.remove();
           if(sec&&!sec.querySelector('.cali'))sec.remove();
+          var host=document.getElementById('today-daily');
+          if(host&&!host.querySelector('.cali'))host.innerHTML='<div class="empty">Nothing scheduled for today.</div>';
         },300);
       }
     }
@@ -2406,11 +2411,12 @@ function renderToday(){
     onceToday.forEach(function(o){h+=onceRow(o);});
     h+='</div>';
   }
-  var vanish=DB.data.settings.todayHabitsDisappear;
+  // Today's habits always disappear once checked off — there used to be
+  // a "stay checked off" alternative setting, removed as unnecessary.
   DB.data.dailyCats.forEach(function(cat){
     var items=DB.data.dailyItems.filter(function(it){
       if(it.catId!==cat.id||it.days.indexOf(TI)===-1)return false;
-      if(vanish&&DB.isDailyChecked(it.id,ds))return false;
+      if(DB.isDailyChecked(it.id,ds))return false;
       return true;
     });
     if(!items.length)return;

@@ -793,7 +793,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.31';
+var APP_VERSION='Beta 1.32';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -928,6 +928,10 @@ var CHANGELOG=[
   {v:'Beta 1.31',notes:[
     'Removed the "stay checked off" option — habits in Today always disappear once checked off now',
     '"Hold to complete" is now a single on/off switch instead of two options to pick between'
+  ]},
+  {v:'Beta 1.32',notes:[
+    'Fixed: none of the new on/off switches responded to a tap on a real phone — they went completely unresponsive',
+    'Brought back "habits disappear when checked off" as a switch (it shouldn\'t have been removed outright — sorry) and turned "refill automatically" into a switch too, so all three of these settings now work the same way'
   ]}
 ];
 var COLORS={
@@ -971,7 +975,7 @@ var DB={
       categories:{}, // {id:{name,icon}}
       categoryOrder:[],      // [catId,...]
       projectOrder:{},       // {catId:[projId,...]}
-      settings:{holdToComplete:false,dayStartHour:0,lastSeenVersion:APP_VERSION,theme:'system',todayTaskCount:3,todayRefill:false}};
+      settings:{holdToComplete:false,todayHabitsDisappear:false,dayStartHour:0,lastSeenVersion:APP_VERSION,theme:'system',todayTaskCount:3,todayRefill:false}};
   },
   load:function(){
     try{var r=localStorage.getItem(this.KEY);if(r)this.data=JSON.parse(r);}catch(e){}
@@ -981,7 +985,8 @@ var DB={
     if(!d.categories)d.categories={};
     if(!d.categoryOrder)d.categoryOrder=[];
     if(!d.projectOrder)d.projectOrder={};
-    if(!d.settings)d.settings={holdToComplete:false};
+    if(!d.settings)d.settings={holdToComplete:false,todayHabitsDisappear:false};
+    if(d.settings.todayHabitsDisappear===undefined)d.settings.todayHabitsDisappear=false;
     if(d.settings.dayStartHour===undefined)d.settings.dayStartHour=0;
     if(!d.settings.theme)d.settings.theme='system';
     if(!d.settings.todayTaskCount)d.settings.todayTaskCount=3;
@@ -1536,6 +1541,7 @@ function renderSettings(){
     +'</div>';
 
   var refill=DB.data.settings.todayRefill;
+  var vanish=DB.data.settings.todayHabitsDisappear;
   document.getElementById('settings-today').innerHTML=
     '<div class="opt-row" style="cursor:default">'
     +'<div style="font-size:22px">🎯</div>'
@@ -1543,12 +1549,14 @@ function renderSettings(){
     +'<select class="addinp daystart-sel" onchange="A.setTodayTaskCount(this.value)" style="flex:none;width:auto;min-height:48px;padding:10px 14px;font-size:15px;font-weight:600;margin-left:auto">'
     +[1,2,3,4,5,6,7,8,9,10].map(function(n){return '<option value="'+n+'"'+(n===DB.data.settings.todayTaskCount?' selected':'')+'>'+n+'</option>';}).join('')
     +'</select></div>'
-    +'<div class="opt-row'+(refill?' active':'')+'" onclick="A.setTodayRefill(true)">'
-    +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
-    +'<div class="opt-text"><div class="opt-title">Refill automatically</div><div class="opt-desc">Complete one and the next task takes its place</div></div></div>'
-    +'<div class="opt-row'+(!refill?' active':'')+'" onclick="A.setTodayRefill(false)">'
-    +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
-    +'<div class="opt-text"><div class="opt-title">Just remove it</div><div class="opt-desc">List shrinks — empty once you\'ve done them all</div></div></div>'
+    +'<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-text"><div class="opt-title">Refill automatically</div><div class="opt-desc">On: complete one and the next task takes its place. Off: the list just shrinks</div></div>'
+    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(refill?'checked':'')+' onchange="A.setTodayRefill(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div>'
+    +'<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-text"><div class="opt-title">Habits disappear when checked off</div><div class="opt-desc">On: a habit vanishes from Today once checked. Off: it stays, marked done</div></div>'
+    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(vanish?'checked':'')+' onchange="A.setTodayHabitsDisappear(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div>'
     +'<div class="opt-row" style="cursor:default">'
     +'<div style="font-size:22px">🌙</div>'
     +'<div class="opt-text"><div class="opt-title">Day starts at</div><div class="opt-desc">Late nights before this time still count as the day before</div></div>'
@@ -1736,6 +1744,10 @@ var A={
     DB.data.settings.holdToComplete=val;DB.save();
     applyHoldMode();renderSettings();
   },
+  setTodayHabitsDisappear:function(val){
+    DB.data.settings.todayHabitsDisappear=val;DB.save();
+    renderSettings();renderToday();
+  },
   setDayStartHour:function(val){
     DB.data.settings.dayStartHour=parseInt(val,10)||0;DB.save();
     recomputeT();
@@ -1763,7 +1775,7 @@ var A={
     var ds=pDate(dayIdx);
     DB.toggleDailyCheck(id,ds,cb.checked);
     var l=cb.nextElementSibling;if(l){l.style.textDecoration=cb.checked?'line-through':'none';l.style.opacity=cb.checked?'0.35':'1';}
-    if(Nav.cur==='today'&&cb.checked){
+    if(Nav.cur==='today'&&DB.data.settings.todayHabitsDisappear&&cb.checked){
       var item=cb.closest('.cali');
       if(item){
         var sec=item.closest('.calsec');
@@ -2411,12 +2423,11 @@ function renderToday(){
     onceToday.forEach(function(o){h+=onceRow(o);});
     h+='</div>';
   }
-  // Today's habits always disappear once checked off — there used to be
-  // a "stay checked off" alternative setting, removed as unnecessary.
+  var vanish=DB.data.settings.todayHabitsDisappear;
   DB.data.dailyCats.forEach(function(cat){
     var items=DB.data.dailyItems.filter(function(it){
       if(it.catId!==cat.id||it.days.indexOf(TI)===-1)return false;
-      if(DB.isDailyChecked(it.id,ds))return false;
+      if(vanish&&DB.isDailyChecked(it.id,ds))return false;
       return true;
     });
     if(!items.length)return;
@@ -2983,6 +2994,13 @@ document.addEventListener('focusout',function(e){
     +'.cat-choice,.dpill,.sheet-save,.sheet-cancel,.seg-btn';
   var sx=0,sy=0,moved=false,target=null;
   document.addEventListener('touchstart',function(e){
+    // A toggle switch inside a TAPPABLE row (e.g. an .opt-row that's just
+    // a label, not itself clickable) would otherwise get its ancestor
+    // .opt-row's closest() match hijacked into this system's synthetic
+    // click — which preventDefault()s the real tap and fires .click() on
+    // the NON-interactive wrapping row instead of the checkbox/label,
+    // so the switch silently does nothing. Let it handle its own tap.
+    if(e.target.closest('.switch')){target=null;return;}
     target=e.target.closest(TAPPABLE);
     if(!target)return;
     moved=false;

@@ -97,6 +97,29 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   for navigation — same class of bug, just with a different broken URL
   next time.
 
+- The global touch-feedback IIFE near the bottom of index.html (the one
+  with the `TAPPABLE` selector list) fires a synthetic `.click()` on
+  `touchend` for any element matching that selector, and calls
+  `e.preventDefault()` first — meaning it suppresses whatever native
+  touch-to-click the browser would otherwise have produced. `.opt-row`
+  is in that list. A real `<input type=checkbox>`/`<label>` toggle
+  switch placed INSIDE an `.opt-row` that has no `onclick` of its own
+  (the row is just a label, not a button) gets its tap hijacked anyway,
+  because `closest(TAPPABLE)` walks up to the row — so the synthetic
+  click lands on the non-interactive row instead of the actual control,
+  and the switch does nothing. This shipped once (the "hold to
+  complete" switch was completely untappable on a real phone) and
+  wasn't caught by testing with mouse clicks in the browser preview,
+  which don't go through this touchstart/touchmove/touchend path at
+  all — only mobile-viewport-emulated taps (or a real device) exercise
+  it. Fixed generically: the touchstart handler now bails out (and
+  resets `target` to null, not just returns early) whenever the touch
+  started inside `.switch`, letting that control handle its own tap
+  natively. Any future custom interactive control nested inside a
+  TAPPABLE container needs the same explicit bail-out, and needs to be
+  tested with the mobile viewport preset (or real touch events), not
+  just mouse clicks, or this exact bug reappears silently.
+
 - `checkForUpdate` (index.html, `A.checkForUpdate`) went through several
   broken iterations worth knowing about: (1) originally deleted all
   caches unconditionally before confirming a fresh copy was fetchable —

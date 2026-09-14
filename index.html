@@ -542,11 +542,10 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 <div class="page" id="p-settings">
   <div class="dhdr"><div class="dico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><div><div class="dtitle">Settings</div></div></div>
   <div class="sl">General</div>
-  <div style="display:flex;gap:10px;margin-bottom:10px">
+  <div style="display:flex;gap:10px;margin-bottom:16px">
     <button class="addbtn" id="version-btn" style="flex:1;font-size:14px;min-height:48px;font-weight:700" onclick="VersionHistory.open()"></button>
     <button class="addbtn" id="update-btn" style="width:48px;min-height:48px;font-size:20px;flex:none;padding:0" onclick="A.checkForUpdate()">🔄</button>
   </div>
-  <button class="addbtn" style="width:100%;font-size:14px;min-height:44px;margin-bottom:16px" onclick="WhatsNew.open()">What's new</button>
   <div id="settings-complete"></div>
   <div id="settings-theme"></div>
   <div class="opt-row" onclick="Nav.go('archive')">
@@ -797,7 +796,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.35';
+var APP_VERSION='Beta 1.36';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -949,6 +948,10 @@ var CHANGELOG=[
     'Renamed "Hold to complete" to "Hold to complete tasks"',
     'Evened out the Tasks tab icon\'s line weight to match the other footer icons',
     'Update check reliability: it could report "already on the latest version" when a real update had actually landed in the background (fixed a timing race), and a stuck progress screen now recovers and reloads on its own instead of requiring a manual reload'
+  ]},
+  {v:'Beta 1.36',notes:[
+    'Removed the "What\'s new" button (Version history now covers it)',
+    'Fixed: scrolling inside a sheet like Version history could scroll the page underneath instead, sometimes making the sheet impossible to close without reopening the app'
   ]}
 ];
 var COLORS={
@@ -2730,11 +2733,18 @@ window.addEventListener('scroll',function(){
 },{passive:true});
 
 var _overlayCount=0;
-// Safety: reset count if no overlays actually visible
+// Safety: reset count if no overlays actually visible. This used to
+// check a hardcoded list of overlay ids — every .sheet-overlay added
+// since then (whatsnew, verhist, daily-cat, daily-item, add-choice,
+// once-add, task, color) wasn't on it, so with any of THOSE open this
+// always saw "nothing open" and zeroed the count on every touch. That
+// disabled the touchmove blocker below, which is why scrolling inside
+// one of those sheets scrolled the page underneath instead — and with
+// body scroll wrong, a tall sheet's own Close button could end up
+// permanently out of reach. Query the actual class instead of a list
+// that has to be remembered every time a new sheet is added.
 document.addEventListener('touchstart',function(){
-  var anyOpen=['proj-sheet-overlay','cat-sheet-overlay','confirm-overlay','input-sheet-overlay']
-    .some(function(id){var el=document.getElementById(id);return el&&el.classList.contains('on');});
-  if(!anyOpen)_overlayCount=0;
+  if(!document.querySelector('.sheet-overlay.on'))_overlayCount=0;
 },{passive:true});
 function _overlayOpen(id){
   document.getElementById(id).classList.add('on');

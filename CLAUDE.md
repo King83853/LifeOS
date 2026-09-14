@@ -165,6 +165,23 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   minimum get the actual browser/OS version from the report before
   guessing further.
 
+- The global touchmove handler that blocks background/body scroll while
+  a sheet is open (search "Block body scroll when any overlay is open")
+  reads a counter, `_overlayCount`, that's also defensively reset to 0
+  on every touchstart if a "safety check" thinks nothing is actually
+  open — and that check used to be a hardcoded array of specific overlay
+  ids. Every `.sheet-overlay` added after that array was written (this
+  has happened repeatedly — whatsnew, verhist, daily-cat, daily-item,
+  add-choice, once-add, task, color) wasn't on it, so opening any of
+  those always looked like "nothing open" to the safety check, zeroed
+  the counter on first touch, and silently disabled the scroll-blocker —
+  which is what let scrolling inside that sheet scroll the page
+  underneath instead, and could make a tall sheet's own close button
+  drift out of reach with no way back except reopening the app. Fixed
+  by checking `document.querySelector('.sheet-overlay.on')` instead of
+  a maintained list — don't go back to a hardcoded list of ids for this,
+  it will silently rot the same way again the next time a sheet is added.
+
 - This app's own service worker is deliberately cache-first (see the
   navigate-handler gotcha above), which also means the LOCAL PREVIEW used
   to test changes during a session will keep serving an old cached copy

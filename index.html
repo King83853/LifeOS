@@ -465,6 +465,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
   <button class="tab-item" data-tab="today" onclick="TabBar.go('today')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Today</span></button>
   <button class="tab-item" data-tab="overview" onclick="TabBar.go('overview')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Overview</span></button>
   <button class="tab-item" data-tab="lockedin" onclick="TabBar.go('lockedin')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg><span>Tasks</span></button>
+  <button class="tab-item" data-tab="stats" onclick="TabBar.go('stats')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg><span>Stats</span></button>
   <button class="tab-item" data-tab="settings" onclick="TabBar.go('settings')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
 </div>
 
@@ -534,6 +535,40 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
     </div>
   </div>
   <div id="lockedin-list"></div>
+</div>
+
+<div class="page" id="p-stats">
+  <div class="dhdr" style="justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="dico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg></div>
+      <div><div class="dtitle">Statistics</div></div>
+    </div>
+  </div>
+
+  <div class="shdr">📊 All habits combined</div>
+  <div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:22px 14px;gap:10px">
+    <div id="stats-pie"></div>
+    <div id="stats-pie-text" style="font-size:13px;color:#999;text-align:center;line-height:1.5"></div>
+  </div>
+
+  <div class="seg-row" id="stats-seg">
+    <button class="seg-btn active" data-view="day" onclick="Stats.setView('day')">Day</button>
+    <button class="seg-btn" data-view="week" onclick="Stats.setView('week')">Week</button>
+    <button class="seg-btn" data-view="month" onclick="Stats.setView('month')">Month</button>
+  </div>
+  <div class="calsec" style="padding:16px 14px 10px">
+    <div id="stats-chart-readout" style="font-size:12px;font-weight:700;color:#999;margin-bottom:10px;min-height:16px">&nbsp;</div>
+    <div id="stats-chart"></div>
+  </div>
+
+  <div class="shdr" style="margin-top:22px">🏅 Best score</div>
+  <div class="calsec" id="stats-best" style="padding:16px;font-size:14px;text-align:center"></div>
+
+  <div class="shdr" style="margin-top:22px">✅ One-time tasks</div>
+  <div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:22px 14px;gap:6px">
+    <div id="stats-avg-num" style="font-size:32px;font-weight:800"></div>
+    <div id="stats-avg-text" style="font-size:13px;color:#999;text-align:center;line-height:1.5"></div>
+  </div>
 </div>
 
 <div class="page" id="p-editlayout">
@@ -804,7 +839,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.42';
+var APP_VERSION='Beta 1.43';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -982,6 +1017,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.42',notes:[
     'Tasks: replaced the Tasks/List/Calendar buttons with a single menu button in the header, same spot as Overview\'s "+"'
+  ]},
+  {v:'Beta 1.43',notes:[
+    'New Statistics tab: a combined ring showing all habits\' consistency together, daily/weekly/monthly bars, your best-performing habit, and your average one-time tasks completed per day'
   ]}
 ];
 var COLORS={
@@ -1134,7 +1172,8 @@ var DB={
   completeTask:function(key,text,projName){
     if(!this.data.doneKeys.includes(key))this.data.doneKeys.push(key);
     this.data.archived.push({key:key,text:text,section:projName,
-      date:new Date().toLocaleDateString('de-CH',{day:'numeric',month:'short',year:'numeric'})});
+      date:new Date().toLocaleDateString('de-CH',{day:'numeric',month:'short',year:'numeric'}),
+      dateISO:dStr(new Date())});
     for(var pid in this.data.extraTasks)
       this.data.extraTasks[pid]=this.data.extraTasks[pid].filter(function(t){return t.key!==key;});
     this.save();
@@ -1998,6 +2037,7 @@ function _renderPage(id){
   if(id==='overview'){renderWar();renderGrids();}
   if(id==='archive')renderArchive();
   if(id==='lockedin')renderLockedIn();
+  if(id==='stats')Stats.render();
   if(id==='editlayout')renderEditLayout();
   if(id==='settings')renderSettings();
   if(id==='habits')renderHabits();
@@ -2076,7 +2116,7 @@ function navBack(targetId){
     sx=e.touches[0].clientX;sy=e.touches[0].clientY;
     if(sx>35)return;
     var c=document.querySelector('.page.active');
-    if(!c||c.id==='p-overview'||c.id==='p-today'||c.id==='p-lockedin'||c.id==='p-settings')return;
+    if(!c||c.id==='p-overview'||c.id==='p-today'||c.id==='p-lockedin'||c.id==='p-stats'||c.id==='p-settings')return;
     tracking=true;ready=false;cur=c;curDx=0;W=window.innerWidth;
     backTarget=_backTarget();
     ov=document.getElementById('p-'+backTarget);
@@ -2374,8 +2414,9 @@ function habitPeriods(item,granularity,count){
   return out;
 }
 
-function renderBarChart(periods){
+function renderBarChart(periods,svgId){
   if(!periods.length)return '<div class="empty" style="padding:20px 0">No schedule set for this habit.</div>';
+  svgId=svgId||'hd-svg';
   var w=300,h=110,padBottom=18,padTop=6;
   var n=periods.length,gap=n>20?2:6;
   var barW=Math.max(2,(w-gap*(n-1))/n);
@@ -2391,7 +2432,7 @@ function renderBarChart(periods){
       labels+='<text class="hd-bar-label" x="'+(x+barW/2).toFixed(1)+'" y="'+(h-4)+'" font-size="7.5" text-anchor="middle">'+esc(p.label)+'</text>';
     }
   });
-  return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:120px;display:block" id="hd-svg">'+bars+labels+'</svg>';
+  return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:120px;display:block" id="'+svgId+'">'+bars+labels+'</svg>';
 }
 
 function renderPieChart(pct){
@@ -2403,6 +2444,156 @@ function renderPieChart(pct){
     +'<text class="hd-pie-pct" x="50" y="57" text-anchor="middle" font-size="24" font-weight="800">'+pct+'%</text>'
     +'</svg>';
 }
+
+// ── COMBINED STATS (Statistics tab) ─────────────────────────
+// Same 3-month-target consistency math as habitConsistency(), just
+// summed across every scheduled habit instead of one.
+function aggHabitConsistency(){
+  var totalCompleted=0,totalTarget=0;
+  DB.data.dailyItems.forEach(function(it){
+    if(!it.days||!it.days.length)return;
+    var s=habitConsistency(it);
+    totalCompleted+=s.completed;totalTarget+=s.target;
+  });
+  return{completed:totalCompleted,target:totalTarget,
+    pct:totalTarget?Math.min(100,Math.round(totalCompleted/totalTarget*100)):0};
+}
+
+// The single habit with the highest 3-month consistency %, not an
+// aggregate — "best score" means best-performing habit, per the human.
+function bestHabitConsistency(){
+  var best=null;
+  DB.data.dailyItems.forEach(function(it){
+    if(!it.days||!it.days.length)return;
+    var s=habitConsistency(it);
+    if(!best||s.pct>best.pct)best={item:it,pct:s.pct};
+  });
+  return best;
+}
+
+// Same shape as habitPeriods(), but a raw calendar walk (no skipping
+// unscheduled days) since with multiple habits combined almost every
+// day has *something* scheduled — completed/scheduled summed across
+// every habit with a schedule.
+function aggHabitPeriods(granularity,count){
+  var items=DB.data.dailyItems.filter(function(it){return it.days&&it.days.length;});
+  var out=[];
+  if(granularity==='day'){
+    var cursor=new Date(T);
+    for(var i=0;i<count;i++){
+      var ds=dStr(cursor),wi=wIdx(cursor),completed=0,scheduled=0;
+      items.forEach(function(it){
+        if(it.days.indexOf(wi)!==-1){
+          scheduled++;
+          if(DB.data.dailyChecks[ds]&&DB.data.dailyChecks[ds][it.id])completed++;
+        }
+      });
+      out.unshift({label:cursor.getDate()+'.'+(cursor.getMonth()+1)+'.',completed:completed,scheduled:scheduled});
+      cursor.setDate(cursor.getDate()-1);
+    }
+  } else if(granularity==='week'){
+    var wkStart=new Date(T);wkStart.setDate(wkStart.getDate()-wIdx(T));
+    for(var w=count-1;w>=0;w--){
+      var start=new Date(wkStart);start.setDate(start.getDate()-7*w);
+      var completed2=0,scheduled2=0;
+      for(var d=0;d<7;d++){
+        var day=new Date(start);day.setDate(day.getDate()+d);
+        if(day>T)continue;
+        var ds2=dStr(day);
+        items.forEach(function(it){
+          if(it.days.indexOf(d)!==-1){
+            scheduled2++;
+            if(DB.data.dailyChecks[ds2]&&DB.data.dailyChecks[ds2][it.id])completed2++;
+          }
+        });
+      }
+      out.push({label:start.getDate()+'.'+(start.getMonth()+1)+'.',completed:completed2,scheduled:scheduled2});
+    }
+  } else {
+    var base=new Date(T.getFullYear(),T.getMonth(),1);
+    for(var m=count-1;m>=0;m--){
+      var mstart=new Date(base.getFullYear(),base.getMonth()-m,1);
+      var mend=new Date(base.getFullYear(),base.getMonth()-m+1,0);
+      var completed3=0,scheduled3=0,cur=new Date(mstart);
+      while(cur<=mend){
+        if(cur<=T){
+          var wi3=wIdx(cur),ds3=dStr(cur);
+          items.forEach(function(it){
+            if(it.days.indexOf(wi3)!==-1){
+              scheduled3++;
+              if(DB.data.dailyChecks[ds3]&&DB.data.dailyChecks[ds3][it.id])completed3++;
+            }
+          });
+        }
+        cur.setDate(cur.getDate()+1);
+      }
+      out.push({label:mstart.toLocaleDateString('de-CH',{month:'short'}),completed:completed3,scheduled:scheduled3});
+    }
+  }
+  return out;
+}
+
+// Average one-time (project) tasks completed per calendar day, over the
+// span from the earliest recorded completion to today — includes zero-
+// task days in the average, not just active ones. Only archived entries
+// carrying dateISO count; entries completed before that field existed
+// are silently excluded rather than migrated (no reliable way to parse
+// the old locale-formatted display date back into a real one).
+function oneTimeTaskStats(){
+  var arr=(DB.data.archived||[]).filter(function(a){return a.dateISO;});
+  if(!arr.length)return{avg:0,total:0};
+  var minDs=arr[0].dateISO;
+  arr.forEach(function(a){if(a.dateISO<minDs)minDs=a.dateISO;});
+  var days=Math.floor((new Date(dStr(T)+'T00:00:00')-new Date(minDs+'T00:00:00'))/86400000)+1;
+  days=Math.max(1,days);
+  return{avg:arr.length/days,total:arr.length};
+}
+
+var Stats={
+  view:'day',
+  render:function(){
+    var agg=aggHabitConsistency();
+    document.getElementById('stats-pie').innerHTML=renderPieChart(agg.pct);
+    document.getElementById('stats-pie-text').innerHTML=agg.target
+      ?'<b>'+agg.completed+'</b> of <b>'+agg.target+'</b> scheduled days completed, across all habits'
+      :'No scheduled habits yet.';
+    document.querySelectorAll('#stats-seg .seg-btn').forEach(function(b){
+      b.classList.toggle('active',b.getAttribute('data-view')==='day');
+    });
+    this.view='day';
+    this.renderChart();
+    var best=bestHabitConsistency();
+    document.getElementById('stats-best').innerHTML=best
+      ?'<b>'+esc(best.item.text)+'</b> — <b>'+best.pct+'%</b> 3-month consistency'
+      :'No scheduled habits yet.';
+    var ts=oneTimeTaskStats();
+    document.getElementById('stats-avg-num').textContent=ts.total?ts.avg.toFixed(1):'0';
+    document.getElementById('stats-avg-text').innerHTML=ts.total
+      ?'average one-time tasks completed per day (<b>'+ts.total+'</b> total)'
+      :'No completed one-time tasks yet.';
+  },
+  setView:function(v){
+    this.view=v;
+    document.querySelectorAll('#stats-seg .seg-btn').forEach(function(b){
+      b.classList.toggle('active',b.getAttribute('data-view')===v);
+    });
+    this.renderChart();
+  },
+  renderChart:function(){
+    var counts={day:14,week:8,month:6};
+    var periods=aggHabitPeriods(this.view,counts[this.view]);
+    document.getElementById('stats-chart').innerHTML=renderBarChart(periods,'stats-svg');
+    document.getElementById('stats-chart-readout').innerHTML='&nbsp;';
+    var svg=document.getElementById('stats-svg');
+    if(svg){
+      svg.addEventListener('click',function(e){
+        var r=e.target.closest('rect');if(!r)return;
+        var p=periods[+r.getAttribute('data-i')];if(!p)return;
+        document.getElementById('stats-chart-readout').textContent=p.completed+' / '+p.scheduled+' — '+p.label;
+      });
+    }
+  }
+};
 
 var HabitDetail={
   itemId:null,view:'day',origin:'today',

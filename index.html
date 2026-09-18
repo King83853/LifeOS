@@ -202,6 +202,8 @@ html[data-theme="dark"] .addinp:focus{border-color:#e8e6df}
 html[data-theme="light"] .addinp:focus{border-color:#1a1917}
 .addinp::placeholder{color:#ccc}
 .addbtn{width:52px;height:52px;border-radius:14px;border:1.5px solid #1a1917;background:#fff;color:#1a1917;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+#update-btn.spinning svg{animation:spin .8s linear infinite}
 @media(prefers-color-scheme:dark){.addbtn{border-color:#e8e6df;background:#1e1c1a;color:#e8e6df}}
 html[data-theme="dark"] .addbtn{border-color:#e8e6df;background:#1e1c1a;color:#e8e6df}
 html[data-theme="light"] .addbtn{border-color:#1a1917;background:#fff;color:#1a1917}
@@ -322,6 +324,7 @@ html[data-theme="light"] .opt-radio-dot{background:#1a1917}
 .opt-row.active .opt-radio-dot{display:block}
 .opt-text{flex:1}
 .opt-title{font-size:14px;font-weight:600}
+.opt-ico{width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#888}
 .opt-desc{font-size:12px;color:#999;margin-top:2px}
 
 /* On/off toggle for settings that are just one thing to enable, rather
@@ -600,13 +603,13 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
   <div class="sl">General</div>
   <div style="display:flex;gap:10px;margin-bottom:16px">
     <button class="addbtn" id="version-btn" style="flex:1;font-size:14px;min-height:48px;font-weight:700" onclick="VersionHistory.open()"></button>
-    <button class="addbtn" id="update-btn" style="width:48px;min-height:48px;font-size:20px;flex:none;padding:0" onclick="A.checkForUpdate()">🔄</button>
+    <button class="addbtn" id="update-btn" style="width:48px;min-height:48px;flex:none;padding:0" onclick="A.checkForUpdate()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
   </div>
   <div id="settings-complete"></div>
   <div id="settings-theme"></div>
   <div id="settings-language"></div>
   <div class="opt-row" onclick="Nav.go('archive')">
-    <div style="font-size:22px">🏆</div>
+    <div class="opt-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></div>
     <div class="opt-text"><div class="opt-title">Completed Tasks</div></div>
     <span class="ab" id="ab2" style="margin-left:auto"></span>
   </div>
@@ -614,7 +617,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
   <div id="settings-today"></div>
   <div class="sl" style="margin-top:28px">Overview</div>
   <div class="opt-row" onclick="Nav.go('editlayout')">
-    <div style="font-size:22px">✏️</div>
+    <div class="opt-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
     <div class="opt-text"><div class="opt-title">Edit layout</div></div>
   </div>
   <div class="sl" style="margin-top:28px">Data</div>
@@ -853,7 +856,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.44';
+var APP_VERSION='Beta 1.45';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1037,6 +1040,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.44',notes:[
     'Settings: grouped related rows into single cards (Appearance; Day starts at + Habits disappear; Tasks shown + Refill automatically), matching iOS\'s grouped list style'
+  ]},
+  {v:'Beta 1.45',notes:[
+    'Settings: replaced every emoji icon with a custom line icon, so they render consistently instead of depending on the device\'s own emoji font'
   ]}
 ];
 var COLORS={
@@ -1633,17 +1639,28 @@ function renderEditLayout(){
   document.getElementById('el-content').innerHTML=h;
 }
 
+// Custom line-icons for Settings rows, swapped in for plain-text emoji so
+// they render consistently (weight, size, color) across every platform
+// instead of relying on each OS's own emoji font. Kept as small inline
+// SVG strings, same stroke style as the rest of the app's icons.
+var ICON_SYSTEM='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg>';
+var ICON_SUN='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+var ICON_MOON='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+var ICON_GLOBE='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
+var ICON_TARGET='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
+
 function renderSettings(){
   var vl=document.getElementById('version-btn');if(vl)vl.textContent=APP_VERSION;
   var theme=DB.data.settings.theme||'system';
   document.getElementById('settings-theme').innerHTML='<div class="opt-group">'+[
-    {v:'system',icon:'🌗',title:'System'},
-    {v:'light',icon:'☀️',title:'Light'},
-    {v:'dark',icon:'🌙',title:'Dark'}
+    {v:'system',icon:ICON_SYSTEM,title:'System'},
+    {v:'light',icon:ICON_SUN,title:'Light'},
+    {v:'dark',icon:ICON_MOON,title:'Dark'}
   ].map(function(o){
     return '<div class="opt-row'+(theme===o.v?' active':'')+'" onclick="A.setTheme(\''+o.v+'\')">'
       +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
-      +'<div class="opt-text"><div class="opt-title">'+o.icon+' '+o.title+'</div></div></div>';
+      +'<div class="opt-ico">'+o.icon+'</div>'
+      +'<div class="opt-text"><div class="opt-title">'+o.title+'</div></div></div>';
   }).join('')+'</div>';
   var lang=DB.data.settings.language||'en';
   // Only English exists so far — this just gives the setting a home to
@@ -1651,7 +1668,7 @@ function renderSettings(){
   // translations exist; nothing else needs to change to support that.
   document.getElementById('settings-language').innerHTML=
     '<div class="opt-row" style="cursor:default">'
-    +'<div style="font-size:22px">🌐</div>'
+    +'<div class="opt-ico">'+ICON_GLOBE+'</div>'
     +'<div class="opt-text"><div class="opt-title">Language</div></div>'
     +'<select class="addinp daystart-sel" onchange="A.setLanguage(this.value)" style="flex:none;width:auto;min-height:48px;padding:10px 14px;font-size:15px;font-weight:600;margin-left:auto">'
     +'<option value="en"'+(lang==='en'?' selected':'')+'>English</option>'
@@ -1668,7 +1685,7 @@ function renderSettings(){
   document.getElementById('settings-today').innerHTML=
     '<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
-    +'<div style="font-size:22px">🌙</div>'
+    +'<div class="opt-ico">'+ICON_MOON+'</div>'
     +'<div class="opt-text"><div class="opt-title">Day starts at</div></div>'
     +'<select class="addinp daystart-sel" onchange="A.setDayStartHour(this.value)" style="flex:none;width:auto;min-height:48px;padding:10px 14px;font-size:15px;font-weight:600;margin-left:auto">'
     +HOUR_OPTS.map(function(h){return '<option value="'+h+'"'+(h===DB.data.settings.dayStartHour?' selected':'')+'>'+hourLabel(h)+'</option>';}).join('')
@@ -1680,7 +1697,7 @@ function renderSettings(){
     +'</div>'
     +'<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
-    +'<div style="font-size:22px">🎯</div>'
+    +'<div class="opt-ico">'+ICON_TARGET+'</div>'
     +'<div class="opt-text"><div class="opt-title">Tasks shown</div></div>'
     +'<select class="addinp daystart-sel" onchange="A.setTodayTaskCount(this.value)" style="flex:none;width:auto;min-height:48px;padding:10px 14px;font-size:15px;font-weight:600;margin-left:auto">'
     +[1,2,3,4,5,6,7,8,9,10].map(function(n){return '<option value="'+n+'"'+(n===DB.data.settings.todayTaskCount?' selected':'')+'>'+n+'</option>';}).join('')
@@ -1809,7 +1826,7 @@ var A={
   },
   checkForUpdate:function(){
     var btn=document.getElementById('update-btn');
-    if(btn){btn.textContent='⏳';btn.disabled=true;}
+    if(btn){btn.classList.add('spinning');btn.disabled=true;}
     var settled=false,found=false,pollTimer=null;
     var watchdog=setTimeout(function(){
       // If we already know an update was found and started installing,
@@ -1840,7 +1857,7 @@ var A={
       if(settled)return;settled=true;
       clearTimeout(watchdog);
       if(pollTimer)clearInterval(pollTimer);
-      if(btn){btn.textContent='🔄';btn.disabled=false;}
+      if(btn){btn.classList.remove('spinning');btn.disabled=false;}
       UpdateOverlay.hide();
       if(msg)alert(msg);
     }

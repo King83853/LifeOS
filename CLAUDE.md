@@ -428,6 +428,39 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   new type is handled in BOTH branches (`.cali` and the `.ti`/`.wri`
   one), not just wherever its own `onchange` lives.
 
+- Version history's 75vh cap (see the sheet-open/close entries above)
+  turned out to have a second problem beyond "feels like dead space":
+  since only the small dimmed sliver of the page behind was ever
+  visible while the sheet was open, the REST of that page snapping
+  fully into view the instant the sheet finished closing read as it
+  "popping up" oversized relative to what had been peeking through.
+  Went to near-full-height instead (`#verhist-overlay .sheet`, scoped
+  the same way its no-close-button/swipe-dismiss treatment already
+  is — not the shared `.sheet` default), with `env(safe-area-inset-top)`
+  in both the max-height calc and the top padding so the drag handle
+  clears a notch/status bar instead of just assuming 0.
+  Separately reported in the same breath: the footer tab bar visibly
+  jumping position for one frame right as a sheet finishes closing,
+  before settling. **Unverified** — sampling the tab bar's
+  `getBoundingClientRect()` every `requestAnimationFrame` around a
+  close in this desktop preview never catches anything but the already-
+  settled final state, because JS here only ever gets to observe
+  the world after `_unlockBodyScroll()`'s synchronous style writes have
+  ALL completed — there's no way to see a transient mid-task paint from
+  in here even if iOS is doing one where Chrome doesn't (matches
+  basically every other iOS-only rendering report in this file). Made
+  the fix defensive instead of guessing at a specific mechanism:
+  `_unlockBodyScroll()` now calls `window.scrollTo(0,_bodyLockY)` once
+  BEFORE clearing `body`'s `position`/`top`/etc (a no-op while still
+  fixed, but gives the engine the real scroll position to settle on
+  the instant normal flow resumes) in addition to the existing call
+  after. If this specific report comes back, the next concrete thing
+  to check — on the real device, not another guess from here — is
+  whether a `position:fixed` descendant (the tab bar) inside a
+  `position:fixed` `body` (this lock) is being positioned relative to
+  the body instead of the viewport on that WebKit version, against
+  spec; that would explain a jump exactly when the lock is released.
+
 ## Definition of "done" for a change
 0. If index.html (or any other cached asset) changed, bump `CACHE_NAME` in
    sw.js — EVERY time, even for changes that have nothing to do with the

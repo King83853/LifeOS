@@ -877,7 +877,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.51';
+var APP_VERSION='Beta 1.52';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1085,6 +1085,10 @@ var CHANGELOG=[
   {v:'Beta 1.51',notes:[
     'Fixed: the dimmed background behind a sheet now fades in/out together with the sheet\'s own slide, instead of popping on and off instantly',
     'Fixed: Language, Day starts at and Tasks shown dropdowns in Settings couldn\'t be tapped at all — a side effect of enlarging their tap target last time'
+  ]},
+  {v:'Beta 1.52',notes:[
+    'Version history: swiping down to dismiss now fades the dimmed background live as you drag, instead of only reacting once you let go',
+    'Version history: swipe-to-dismiss now closes in the same amount of time as tapping the background does'
   ]}
 ];
 var COLORS={
@@ -3300,13 +3304,14 @@ var VersionHistory={
 // scrolled to its own top and the finger is moving down — anywhere
 // else, this does nothing and normal scrolling proceeds untouched.
 (function(){
-  var sheetEl=null,startY=0,curDy=0,dragging=false;
+  var sheetEl=null,ovEl=null,startY=0,curDy=0,dragging=false,sheetH=300;
   document.addEventListener('touchstart',function(e){
     var overlay=document.getElementById('verhist-overlay');
     if(!overlay.classList.contains('on')){sheetEl=null;return;}
     var sheet=overlay.querySelector('.sheet');
     if(!e.target.closest('.sheet')){sheetEl=null;return;}
-    sheetEl=sheet;startY=e.touches[0].clientY;curDy=0;dragging=false;
+    sheetEl=sheet;ovEl=overlay;startY=e.touches[0].clientY;curDy=0;dragging=false;
+    sheetH=sheet.getBoundingClientRect().height||300;
   },{passive:true});
   document.addEventListener('touchmove',function(e){
     if(!sheetEl)return;
@@ -3315,47 +3320,67 @@ var VersionHistory={
       dragging=true;curDy=dy;
       sheetEl.style.transition='none';
       sheetEl.style.transform='translateY('+dy+'px)';
+      // Backdrop darkness now tracks the drag live, instead of staying
+      // fully opaque the whole time and only reacting once the gesture
+      // ends — the smaller the visible sheet gets as it's pulled away,
+      // the more the dimming fades with it, in the same motion.
+      ovEl.style.transition='none';
+      ovEl.style.opacity=Math.max(0,Math.min(1,1-dy/sheetH));
       e.preventDefault();
     } else if(dragging&&dy<=0){
       // Finger reversed back upward mid-drag — hand control straight
       // back to normal scrolling instead of fighting it.
       sheetEl.style.transition='';
       sheetEl.style.transform='';
+      ovEl.style.transition='';
+      ovEl.style.opacity='';
       dragging=false;sheetEl=null;
     }
   },{passive:false});
   document.addEventListener('touchend',function(){
     if(!sheetEl||!dragging){sheetEl=null;return;}
-    var el=sheetEl;
-    // Duration is scaled to how far is actually left to travel, not a
-    // flat number — the drag itself moves 1:1 with the finger in px, so
-    // finishing the last bit at a flat .2s regardless of how much of
-    // that px distance remains felt like a sudden yank on a short drag
-    // (barely past the 80px threshold, but still animating the full
-    // remaining height in the same window as a long one). Matching a
-    // roughly constant speed to how the drag already felt keeps the
-    // release feeling like a continuation of the same motion instead
-    // of a different, faster one taking over.
-    var h=el.getBoundingClientRect().height||300;
-    var PX_PER_MS=1.8;
+    var el=sheetEl,ov=ovEl;
     if(curDy>80){
-      var dur=Math.max(120,Math.min(280,(h-curDy)/PX_PER_MS));
-      el.style.transition='transform '+dur+'ms cubic-bezier(.25,.46,.45,.94)';
-      el.style.transform='translateY('+h+'px)';
+      // Flat SHEET_ANIM_MS here (not a distance-scaled duration) so a
+      // swipe-dismiss finishes in exactly the same amount of time as
+      // tapping the backdrop to close does, on request — previously
+      // this scaled with remaining distance instead (see the dur2
+      // branch below, which still does, for the snap-back case).
+      el.style.transition='transform '+SHEET_ANIM_MS+'ms cubic-bezier(.25,.46,.45,.94)';
+      el.style.transform='translateY('+sheetH+'px)';
+      ov.style.transition='opacity '+SHEET_ANIM_MS+'ms cubic-bezier(.25,.46,.45,.94)';
+      ov.style.opacity='0';
       setTimeout(function(){
-        // instant: this gesture already slid the sheet fully off-screen
-        // itself over `dur`ms — _overlayClose() shouldn't wait out its
-        // own separate animation duration on top of that before hiding
-        // the backdrop, or the dimmed background lingers for a beat
-        // after the sheet's already gone.
+        // instant: this gesture already slid the sheet (and faded the
+        // backdrop) fully away itself — _overlayClose() shouldn't wait
+        // out its own separate animation duration on top of that
+        // before hiding things, or the dimmed background lingers for a
+        // beat after the sheet's already gone.
         VersionHistory.close(true);
         el.style.transition='';el.style.transform='';
-      },dur);
+        ov.style.transition='';ov.style.opacity='';
+      },SHEET_ANIM_MS);
     } else {
-      var dur2=Math.max(120,Math.min(220,curDy/PX_PER_MS));
+      // Duration here still scales to how far is actually left to
+      // travel, not a flat number — the drag itself moves 1:1 with the
+      // finger in px, so finishing the last bit at a flat duration
+      // regardless of how much of that px distance remains felt like a
+      // sudden yank on a short drag (barely past the 80px threshold,
+      // but still animating the full remaining height in the same
+      // window as a long one). Matching a roughly constant speed to how
+      // the drag already felt keeps the release feeling like a
+      // continuation of the same motion instead of a different, faster
+      // one taking over. This is the snap-BACK-to-open case, not a
+      // close, so it's not part of the "match the close duration" ask.
+      var dur2=Math.max(120,Math.min(220,curDy/1.8));
       el.style.transition='transform '+dur2+'ms cubic-bezier(.25,.46,.45,.94)';
       el.style.transform='translateY(0)';
-      setTimeout(function(){el.style.transition='';el.style.transform='';},dur2);
+      ov.style.transition='opacity '+dur2+'ms cubic-bezier(.25,.46,.45,.94)';
+      ov.style.opacity='1';
+      setTimeout(function(){
+        el.style.transition='';el.style.transform='';
+        ov.style.transition='';ov.style.opacity='';
+      },dur2);
     }
     sheetEl=null;dragging=false;
   },{passive:true});

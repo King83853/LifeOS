@@ -314,6 +314,41 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   correct, the page just hadn't picked it up yet. Skipping this step
   reads as "my fix didn't work" when it actually did.
 
+- Every bottom sheet's opening slide-up (`.sheet-overlay` → `.sheet`,
+  shared by all ~12 sheets) used to key the transform transition off the
+  SAME class the overlay's own `display:none → block` flip used
+  (`.sheet-overlay.on`). Reported as "slides smoothly to one level, then
+  makes a small jump" on a real iPhone. Root cause: a CSS transition
+  needs a real rendered "before" frame to interpolate from, and
+  `display:none → block` landing in the same style recalc as the
+  transform change means there IS no such frame — different browsers
+  resolve that ambiguity differently. Confirmed in this desktop preview
+  by sampling the sheet's `getBoundingClientRect().top` every
+  `requestAnimationFrame` right after triggering open: the very first
+  sample was already at the final resting value — no interpolation ran
+  at all here, the browser just skipped straight to the end state. iOS
+  Safari apparently resolves the same ambiguity differently (a partial
+  interpolation that then snaps the remainder) — same bug, two
+  different-looking symptoms; neither is reproducible as "correct"
+  behavior on any engine. Fixed by splitting the two changes across two
+  guaranteed-separate paint frames: `.on` alone only flips visibility
+  now (sheet stays at its resting off-screen transform); a second class,
+  `.show`, is what the CSS actually keys the open transform off of
+  (`.sheet-overlay.on.show .sheet`), added via a NESTED
+  `requestAnimationFrame` (a single one wasn't reliably enough — its
+  callback can still land before the `.on` frame has committed).
+  `_overlayClose()` clears both classes together, not just `.on` — if
+  `.show` were left behind, the next `_overlayOpen()` would add `.on`
+  while `.show` is already present and both would flip together again,
+  silently reintroducing the exact bug this works around. Verified via
+  the same frame-sampling technique post-fix: one continuous monotonic
+  ease from fully off-screen to rest, no stall, no jump, and repeat
+  opens behave identically. If a similar "mostly smooth, then a snap"
+  report ever comes up for some OTHER `display:none`-based
+  show/hide-with-transition element in this app, check for this exact
+  pattern first (a single class simultaneously toggling `display` and
+  the transitioned property) before assuming it's a new bug.
+
 ## Definition of "done" for a change
 0. If index.html (or any other cached asset) changed, bump `CACHE_NAME` in
    sw.js — EVERY time, even for changes that have nothing to do with the

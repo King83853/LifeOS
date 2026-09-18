@@ -119,6 +119,17 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   TAPPABLE container needs the same explicit bail-out, and needs to be
   tested with the mobile viewport preset (or real touch events), not
   just mouse clicks, or this exact bug reappears silently.
+  It reappeared anyway: `.dsel-real` (the invisible, enlarged `<select>`
+  behind the Language/Day starts at/Tasks shown dropdowns, added later
+  to give them a bigger tap target) sits inside a TAPPABLE `.opt-row`
+  with no `onclick` of its own — same shape as the switch, same bug.
+  Reported as "the dropdowns don't work at all, I can't click them."
+  Added `.dsel-real` to the same bail-out list (now
+  `closest('.switch,.dsel-real')`). The lesson above about testing new
+  controls with real/emulated touch, not mouse clicks, is exactly what
+  would have caught this before shipping — didn't happen. When adding
+  ANY new interactive element inside an `.opt-row`, `.acard`, or other
+  TAPPABLE container, check this bail-out list first.
 
 - `checkForUpdate` (index.html, `A.checkForUpdate`) went through several
   broken iterations worth knowing about: (1) originally deleted all

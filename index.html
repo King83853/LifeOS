@@ -391,7 +391,7 @@ html[data-theme="light"] #whatsnew-body{color:#555}
 
 .sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500}
 .sheet-overlay.on{display:block}
-.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;max-height:75vh;border-radius:24px 24px 0 0;padding:24px 20px 44px;z-index:501;transform:translateY(100%);transition:transform .18s ease-out}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;max-height:75vh;border-radius:24px 24px 0 0;padding:24px 20px 44px;z-index:501;transform:translateY(100%);transition:transform .13s ease-out}
 @media(prefers-color-scheme:dark){.sheet{background:#1e1c1a}}
 html[data-theme="dark"] .sheet{background:#1e1c1a}
 html[data-theme="light"] .sheet{background:#fff}
@@ -872,7 +872,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.49';
+var APP_VERSION='Beta 1.50';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1072,6 +1072,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.49',notes:[
     'Fixed: with Hold to complete tasks on, holding a one-time task\'s checkbox in Tasks > Calendar looked like it completed but silently came back later — it never actually got deleted'
+  ]},
+  {v:'Beta 1.50',notes:[
+    'Sheets open and close even quicker now',
+    'Fixed: swiping down to dismiss Version history left a dead pause with the background still dimmed for a moment after the sheet had already slid away'
   ]}
 ];
 var COLORS={
@@ -3119,10 +3123,10 @@ function _unlockBodyScroll(){
   document.body.style.width='';
   window.scrollTo(0,_bodyLockY);
 }
-// Kept in sync with .sheet's "transition:transform .18s" above — the
+// Kept in sync with .sheet's "transition:transform .13s" above — the
 // close path needs to know how long that animation takes so it can wait
 // for it to finish before actually hiding the sheet (see _overlayClose).
-var SHEET_ANIM_MS=180;
+var SHEET_ANIM_MS=130;
 function _overlayOpen(id){
   var ov=document.getElementById(id);
   // A same-overlay close, still mid-close-animation, was scheduled to
@@ -3152,16 +3156,35 @@ function _overlayOpen(id){
     });
   });
 }
-function _overlayClose(id){
+// `instant`: skip the wait-then-hide below entirely. For the normal
+// close paths (backdrop tap, Cancel/Save buttons) .show is still active
+// right up until this runs, so the CSS transition needs its full
+// duration to visibly slide the sheet away before it's actually hidden.
+// But #verhist-overlay's own swipe-to-dismiss gesture (see its IIFE
+// below) already animates the sheet off-screen ITSELF, with its own
+// duration, and only calls close() once that's fully finished — so by
+// the time we get here the sheet is already gone. Waiting SHEET_ANIM_MS
+// *again* before hiding the backdrop on top of that added a dead pause
+// after the sheet had visually already left (reported as "closing,
+// window's gone, then ~0.5s where nothing happens before you're back to
+// the screen behind it"). Any future custom pre-close animation should
+// pass `instant` too, for the same reason.
+function _overlayClose(id,instant){
   var ov=document.getElementById(id);
+  if(ov._closeTimer){clearTimeout(ov._closeTimer);ov._closeTimer=null;}
+  ov.classList.remove('show');
+  _overlayCount=Math.max(0,_overlayCount-1);
+  if(instant){
+    ov.classList.remove('on');
+    if(_overlayCount===0)_unlockBodyScroll();
+    return;
+  }
   // Mirror of the open animation: dropping .show (while .on/display:block
   // is still in effect) slides the sheet back down first. Only once that
   // finishes do we actually hide it (display:none) and, if nothing else
   // is still open, unlock body scroll — doing either of those right away
   // would cut the closing slide off after zero frames, same as removing
   // .on used to do before this existed.
-  ov.classList.remove('show');
-  _overlayCount=Math.max(0,_overlayCount-1);
   ov._closeTimer=setTimeout(function(){
     ov.classList.remove('on');
     ov._closeTimer=null;
@@ -3259,7 +3282,7 @@ var VersionHistory={
     }).join('');
     _overlayOpen('verhist-overlay');
   },
-  close:function(){_overlayClose('verhist-overlay');}
+  close:function(instant){_overlayClose('verhist-overlay',instant);}
 };
 // No explicit close button on this sheet by design — dismiss by tapping
 // the visible backdrop (already handled by the overlay's own onclick)
@@ -3311,7 +3334,12 @@ var VersionHistory={
       el.style.transition='transform '+dur+'ms cubic-bezier(.25,.46,.45,.94)';
       el.style.transform='translateY('+h+'px)';
       setTimeout(function(){
-        VersionHistory.close();
+        // instant: this gesture already slid the sheet fully off-screen
+        // itself over `dur`ms — _overlayClose() shouldn't wait out its
+        // own separate animation duration on top of that before hiding
+        // the backdrop, or the dimmed background lingers for a beat
+        // after the sheet's already gone.
+        VersionHistory.close(true);
         el.style.transition='';el.style.transform='';
       },dur);
     } else {

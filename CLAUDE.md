@@ -65,6 +65,35 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   .save()) silently no-ops for the Daily project — it needs an explicit
   extra branch to update `#habits-dtitle` instead.
 
+- A `dailyItems` entry now has two distinct shapes, both handled through
+  the same array/schedule machinery (`days`, category, buildPanels' day
+  panels, Today's list) but rendered and "is it done" differently: a
+  normal habit has its own `text` and is a boolean check-off
+  (`dailyChecks`), rendered via `ci()`/`ciEdit()`; a tracker-linked item
+  (`addTrackerDailyItem`) has `trackerPid` instead of `text` and no
+  boolean state of its own at all — "done today" is whatever
+  `trackerEntryForDate(trackerPid, ds)` finds in that project's OWN
+  `trackerEntries`, rendered via `ciTracker()` (a status dot, not a
+  checkbox — nothing to toggle inline, the row navigates to the
+  tracker's own project page to actually log a value). Its name/icon
+  are read from `DB.data.projects[trackerPid]` live on every render,
+  never copied into the dailyItems entry, so renaming the tracker can't
+  leave a stale label sitting in Daily.
+  Anywhere that loops over `dailyItems` and asks "is this one done
+  today" needs to branch on `it.trackerPid` — grepping for
+  `isDailyChecked` finds the checkbox-only call sites, but doesn't catch
+  places that need the tracker branch ADDED, which is exactly what got
+  missed on the first pass here: Overview's Daily-card remaining count
+  (`renderGrids`) silently always counted a tracker habit as pending
+  because it only ever checked `isDailyChecked`, which a tracker item
+  never sets. The Statistics tab's aggregate consistency/best-score/bars
+  went the other way — rather than teaching that boolean-consistency
+  math a second "done" definition, tracker-linked items are just
+  excluded from it entirely (`aggHabitConsistency`/`bestHabitConsistency`
+  /`aggHabitPeriods` all skip `it.trackerPid`), since a logged number
+  isn't a check-off streak and forcing it into that shape would only
+  produce a meaningless score.
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

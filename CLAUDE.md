@@ -428,6 +428,29 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   new type is handled in BOTH branches (`.cali` and the `.ti`/`.wri`
   one), not just wherever its own `onchange` lives.
 
+- Two reports about an open sheet — something visible below/behind it,
+  and the footer tab bar visibly jumping into its correct position
+  right as the sheet finished closing — turned out to be the same root
+  cause: the tab bar (`z-index:150`) showing through an open sheet-
+  overlay (`z-index:500+`) despite that stacking order, on whatever
+  WebKit version this was reported from. Not reproducible in this
+  desktop preview (same ceiling as every other iOS-only rendering
+  report in this file — nothing here shows the actual paint order on
+  that device). First guess was WRONG and got reverted after explicit
+  correction: misread which part of a marked-up screenshot the user had
+  circled and "fixed" Version History's height/padding instead, which
+  wasn't the actual problem — if a screenshot has an annotation on it,
+  read it as literally as given rather than picking the interpretation
+  that's easiest to act on. The real fix didn't need to know the exact
+  stacking mechanism: `_lockBodyScroll`/`_unlockBodyScroll` (which
+  already run exactly once per 0-to-1 and 1-to-0 `_overlayCount`
+  transition) now also set the tab bar to `display:none` for as long as
+  any sheet is open, and restore it via `TabBar.updateActive()` (not a
+  blind clear-to-visible — a project/Habits page wants it hidden
+  regardless) once the last one closes. If it's not fully hidden, it
+  can't show through and it can't visibly snap into place — sidesteps
+  the stacking question instead of needing to answer it.
+
 ## Definition of "done" for a change
 0. If index.html (or any other cached asset) changed, bump `CACHE_NAME` in
    sw.js — EVERY time, even for changes that have nothing to do with the

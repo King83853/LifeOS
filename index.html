@@ -889,7 +889,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.53';
+var APP_VERSION='Beta 1.54';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1104,6 +1104,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.53',notes:[
     'Daily: added "Track a project" to the + menu, so an existing Tracker project (e.g. Weight) can be scheduled as a habit — it shows up in your daily categories, and tapping it opens that tracker\'s own page to log today\'s value'
+  ]},
+  {v:'Beta 1.54',notes:[
+    'Fixed: the footer tab bar could show through behind an open sheet and visibly jump into place right as one closed — it\'s now fully hidden for as long as any sheet is open, instead of relying on stacking order alone'
   ]}
 ];
 var COLORS={
@@ -3264,6 +3267,21 @@ function _lockBodyScroll(){
   document.body.style.left='0';
   document.body.style.right='0';
   document.body.style.width='100%';
+  // The tab bar is z-index 150, well under any sheet-overlay (500+), so
+  // it should never be visible while one's open — but two things were
+  // reported that both point at it showing through anyway: a strip of
+  // "something else" visible below/behind the sheet, and the tab bar
+  // itself visibly jumping to its correct spot right as a sheet finishes
+  // closing. Both are explained if this specific WebKit version isn't
+  // actually respecting that z-index ordering here (a fixed-position
+  // child, body.style.position also being fixed for the lock above, and
+  // 500-vs-150 stacking not resolving the way it does on desktop Chrome
+  // wouldn't be the first iOS-only stacking surprise in this app). Rather
+  // than fight the exact mechanism blind, just take the tab bar out of
+  // rendering entirely for as long as any sheet is open — it can't show
+  // through, and it can't visibly snap into its final position on close,
+  // if it was never there to begin with.
+  var tb=document.querySelector('.tabbar');if(tb)tb.style.display='none';
 }
 function _unlockBodyScroll(){
   document.body.style.position='';
@@ -3272,6 +3290,11 @@ function _unlockBodyScroll(){
   document.body.style.right='';
   document.body.style.width='';
   window.scrollTo(0,_bodyLockY);
+  // Don't just clear our own override back to '' — TabBar.updateActive()
+  // already knows whether THIS page wants the tab bar hidden regardless
+  // (project/habits pages hide it deliberately), so ask it instead of
+  // assuming "unlocked" means "visible."
+  if(typeof TabBar!=='undefined')TabBar.updateActive();
 }
 // Kept in sync with .sheet's "transition:transform .13s" above — the
 // close path needs to know how long that animation takes so it can wait

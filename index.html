@@ -271,6 +271,17 @@ html[data-theme="light"] .cali{border-color:#f5f3ef}
 .cali:last-child{border-bottom:none}
 .cali label{font-size:14px;flex:1;cursor:pointer}
 .cali input[type=checkbox]{accent-color:#22c55e;width:28px;height:28px;cursor:pointer;flex-shrink:0}
+/* Status dot for a tracker linked into Daily (see ciTracker()) — not a
+   checkbox, since a tracker's "done today" isn't a toggle a tap can
+   flip, it's whatever value (if any) was logged today on the tracker's
+   own project page. Same footprint as the real checkbox next to it in
+   other rows, just not interactive itself — the whole row is. */
+.trk-daily-dot{width:16px;height:16px;border-radius:50%;border:2px solid #ddd;flex-shrink:0;box-sizing:border-box;margin:0 6px}
+@media(prefers-color-scheme:dark){.trk-daily-dot{border-color:#3a3a3a}}
+html[data-theme="dark"] .trk-daily-dot{border-color:#3a3a3a}
+html[data-theme="light"] .trk-daily-dot{border-color:#ddd}
+.trk-daily-dot.done{background:#22c55e;border-color:#22c55e}
+.trk-daily-val{font-size:13px;color:#999;font-weight:600;flex-shrink:0}
 
 .el-row{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px}
 @media(prefers-color-scheme:dark){.el-row{background:#1e1c1a;border-color:#2a2927}}
@@ -806,8 +817,9 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 
 <div class="sheet-overlay" id="daily-item-sheet-overlay" onclick="if(event.target===this)DailyItemSheet.close()">
   <div class="sheet">
-    <div class="sheet-title">Add task</div>
+    <div class="sheet-title" id="daily-item-sheet-title">Add task</div>
     <input class="sheet-inp" id="daily-item-inp" placeholder="Task name">
+    <div class="sheet-label" id="daily-item-tracker-lbl" style="display:none"></div>
     <div class="sheet-label">Days</div>
     <div style="display:flex;gap:6px;margin-bottom:10px" id="daily-item-days"></div>
     <div style="display:flex;gap:8px;margin-bottom:18px">
@@ -877,7 +889,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.52';
+var APP_VERSION='Beta 1.53';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1089,6 +1101,9 @@ var CHANGELOG=[
   {v:'Beta 1.52',notes:[
     'Version history: swiping down to dismiss now fades the dimmed background live as you drag, instead of only reacting once you let go',
     'Version history: swipe-to-dismiss now closes in the same amount of time as tapping the background does'
+  ]},
+  {v:'Beta 1.53',notes:[
+    'Daily: added "Track a project" to the + menu, so an existing Tracker project (e.g. Weight) can be scheduled as a habit — it shows up in your daily categories, and tapping it opens that tracker\'s own page to log today\'s value'
   ]}
 ];
 var COLORS={
@@ -1190,6 +1205,13 @@ var DB={
   deleteProject:function(catId,projId){
     delete this.data.projects[projId];
     delete this.data.extraTasks[projId];
+    if(this.data.trackerEntries)delete this.data.trackerEntries[projId];
+    // A tracker linked into Daily (see addTrackerDailyItem) only makes
+    // sense pointing at a project that still exists — ciTracker() already
+    // hides the row gracefully if it doesn't, but there's no reason to
+    // leave the dead link sitting in dailyItems once the project is
+    // actually gone.
+    this.data.dailyItems=this.data.dailyItems.filter(function(it){return it.trackerPid!==projId;});
     if(this.data.projectOrder[catId])
       this.data.projectOrder[catId]=this.data.projectOrder[catId].filter(function(x){return x!==projId;});
     this.save();
@@ -1296,6 +1318,16 @@ var DB={
     this.data.dailyItems.push({id:id,catId:catId,text:text,days:days});
     this.save();return id;
   },
+  // A tracker "habit" is a dailyItems entry with no text of its own —
+  // it's a scheduled reminder pointing at an existing Tracker project
+  // (trackerPid), rendered via ciTracker() instead of ci()/ciEdit(), and
+  // its name/icon are always read live from that project so a rename
+  // there doesn't leave a stale copy sitting in the daily item.
+  addTrackerDailyItem:function(catId,trackerPid,days){
+    var id='di'+Date.now()+Math.random().toString(36).slice(2);
+    this.data.dailyItems.push({id:id,catId:catId,trackerPid:trackerPid,days:days});
+    this.save();return id;
+  },
   deleteDailyItem:function(id){
     this.data.dailyItems=this.data.dailyItems.filter(function(x){return x.id!==id;});
     this.save();
@@ -1391,7 +1423,8 @@ function renderGrids(){
         var remaining=0;
         d.dailyItems.forEach(function(it){
           if(it.days.indexOf(TI)===-1)return;
-          if(!DB.isDailyChecked(it.id,dsToday))remaining++;
+          var done=it.trackerPid?(trackerEntryForDate(it.trackerPid,dsToday)!=null):DB.isDailyChecked(it.id,dsToday);
+          if(!done)remaining++;
         });
         d.dailyOnce.forEach(function(o){if(o.date<=dsToday)remaining++;});
         cntLbl=remaining?(remaining+(remaining===1?' task':' tasks')):'All done';
@@ -1401,7 +1434,7 @@ function renderGrids(){
       } else {
         cntLbl=n?n+' tasks':'Empty';
       }
-      h+='<div class="acard" onclick="Nav.go(\''+pid+'\')">'
+      h+='<div class="acard" onclick="_projFromDaily=null;Nav.go(\''+pid+'\')">'
         +'<div class="aico" style="'+tintStyle(col)+'">'+p.icon+'</div>'
         +'<div class="albl">'+p.name+'</div>'
         +'<div class="acnt">'+cntLbl+'</div></div>';
@@ -1838,6 +1871,7 @@ var A={
     var n=DB.data.projects[pid]?DB.data.projects[pid].name:pid;
     if(!confirm('Delete project "'+n+'" and all its tasks?'))return;
     DB.deleteProject(catId,pid);buildProjPages();renderEditLayout();renderGrids();renderWar();
+    buildPanels();restoreChecks(Nav.sd);
   },
   addTrackerEntry:function(pid){
     var inp=document.getElementById('trk-inp-'+pid);
@@ -2088,6 +2122,38 @@ var A={
     AddChoice.show('Pick category',cats.map(function(c){
       return{icon:c.icon,label:c.name,fn:function(){DailyItemSheet.open(c.id,null);}};
     }));
+  },
+  // Links an EXISTING Tracker project into Daily as a scheduled reminder
+  // — this never creates a new tracker inline, only picks one that's
+  // already been made from Overview (New Project > Tracker), since the
+  // whole point is reusing that project's own values/chart, not
+  // duplicating them into a second place.
+  startTrackerHabit:function(){
+    var trackers=Object.keys(DB.data.projects).filter(function(pid){return DB.data.projects[pid].type==='tracker';});
+    if(!trackers.length){
+      alert('No tracker projects yet — create one first from Overview (+ > Project > Tracker), then come back here to add it to Daily.');
+      return;
+    }
+    function pickCategory(pid){
+      var cats=DB.data.dailyCats;
+      if(!cats.length){
+        InputSheet.show('New category name','e.g. Health',function(name){
+          var catId=DB.addDailyCat(name,'📌');
+          DailyCatSheet.render();
+          DailyItemSheet.open(catId,null,pid);
+        });
+        return;
+      }
+      if(cats.length===1){DailyItemSheet.open(cats[0].id,null,pid);return;}
+      AddChoice.show('Pick category',cats.map(function(c){
+        return{icon:c.icon,label:c.name,fn:function(){DailyItemSheet.open(c.id,null,pid);}};
+      }));
+    }
+    if(trackers.length===1){pickCategory(trackers[0]);return;}
+    AddChoice.show('Pick tracker',trackers.map(function(pid){
+      var p=DB.data.projects[pid];
+      return{icon:p.icon||'📈',label:p.name,fn:function(){pickCategory(pid);}};
+    }));
   }
 };
 
@@ -2182,6 +2248,11 @@ function _backTarget(){
   // (their opt-rows there), never from Overview — back should return
   // where they were actually opened from.
   if(cur&&(cur.id==='p-editlayout'||cur.id==='p-archive'))return 'settings';
+  // A tracker project opened by tapping its row in Daily (see ciTracker())
+  // should return to Habits, not the usual Overview default — _projFromDaily
+  // is set right before that specific navigation and cleared by the normal
+  // Overview-card path, so it only matches the page it was actually set for.
+  if(cur&&_projFromDaily&&cur.id==='p-'+_projFromDaily)return 'habits';
   return 'overview';
 }
 function navBack(targetId){
@@ -2430,6 +2501,41 @@ function ciEdit(itemId,text,dayIdx){
     +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label>'
     +'<button class="trk-del" onclick="A.deleteDailyItem(event,\''+itemId+'\')">×</button></div>';
 }
+// The most recent tracker entry actually logged on calendar date `ds`
+// (local time, matching dStr/pDate everywhere else) — null if none.
+// Entries are timestamped, not bucketed by day at write time, so this
+// buckets them by day only when asked.
+function trackerEntryForDate(pid,ds){
+  var entries=((DB.data.trackerEntries||{})[pid])||[];
+  var match=null;
+  entries.forEach(function(e){if(dStr(new Date(e.ts))===ds)match=e.val;});
+  return match;
+}
+// Remembers which tracker project a Daily row was opened from, so
+// _backTarget() can send the back button/swipe to Habits instead of the
+// usual Overview default — set right before navigating there (see
+// ciTracker() below) and cleared by the normal Overview-card path
+// (renderGrids()) so reopening the same tracker from there afterward
+// doesn't stay stuck pointing back at Habits.
+var _projFromDaily=null;
+// A tracker linked into Daily (dailyItems entry with trackerPid instead
+// of its own text) — no checkbox, since "done today" isn't something a
+// tap can toggle, only whatever value (if any) got logged on the
+// tracker's own project page. The whole row navigates there instead;
+// `editable` adds the same delete-this-link button ciEdit() has, for
+// the Daily page's own item list (not shown on Today's).
+function ciTracker(it,dayIdx,editable){
+  var p=DB.data.projects[it.trackerPid];
+  if(!p)return ''; // its tracker project was deleted — orphaned link, nothing sane to show
+  var val=trackerEntryForDate(it.trackerPid,pDate(dayIdx));
+  var unit=p.unit||'';
+  return '<div class="cali" style="cursor:pointer" onclick="_projFromDaily=\''+it.trackerPid+'\';Nav.go(\''+it.trackerPid+'\')">'
+    +'<div class="trk-daily-dot'+(val!=null?' done':'')+'"></div>'
+    +'<label style="cursor:pointer">'+(p.icon||'📈')+' '+esc(p.name)+'</label>'
+    +(val!=null?'<span class="trk-daily-val">'+esc(val+(unit?' '+unit:''))+'</span>':'')
+    +(editable?'<button class="trk-del" onclick="A.deleteDailyItem(event,\''+it.id+'\')">×</button>':'')
+    +'</div>';
+}
 // ── HABIT STATS ───────────────────────────────────────────
 // Mo=0..So=6, matching TI/DN's convention throughout this file.
 function wIdx(d){return (d.getDay()+6)%7;}
@@ -2548,7 +2654,11 @@ function renderPieChart(pct){
 function aggHabitConsistency(){
   var totalCompleted=0,totalTarget=0;
   DB.data.dailyItems.forEach(function(it){
-    if(!it.days||!it.days.length)return;
+    // Tracker-linked items aren't boolean check-offs (see ciTracker()) —
+    // habitConsistency()'s completed/target math only means something
+    // for dailyChecks-based habits, so they're left out of this entirely
+    // rather than always scoring 0% and dragging the real number down.
+    if(!it.days||!it.days.length||it.trackerPid)return;
     var s=habitConsistency(it);
     totalCompleted+=s.completed;totalTarget+=s.target;
   });
@@ -2561,7 +2671,7 @@ function aggHabitConsistency(){
 function bestHabitConsistency(){
   var best=null;
   DB.data.dailyItems.forEach(function(it){
-    if(!it.days||!it.days.length)return;
+    if(!it.days||!it.days.length||it.trackerPid)return;
     var s=habitConsistency(it);
     if(!best||s.pct>best.pct)best={item:it,pct:s.pct};
   });
@@ -2573,7 +2683,7 @@ function bestHabitConsistency(){
 // day has *something* scheduled — completed/scheduled summed across
 // every habit with a schedule.
 function aggHabitPeriods(granularity,count){
-  var items=DB.data.dailyItems.filter(function(it){return it.days&&it.days.length;});
+  var items=DB.data.dailyItems.filter(function(it){return it.days&&it.days.length&&!it.trackerPid;});
   var out=[];
   if(granularity==='day'){
     var cursor=new Date(T);
@@ -2790,7 +2900,7 @@ function buildPanels(){
         var items=DB.data.dailyItems.filter(function(it){return it.catId===cat.id&&it.days.indexOf(wi)!==-1;});
         h+='<div class="calsec"><div class="caltitle">'+cat.icon+' '+esc(cat.name)+'</div>';
         if(!items.length)h+='<div style="font-size:12px;color:#ccc;padding:4px 0 2px">No tasks</div>';
-        items.forEach(function(it){h+=ciEdit(it.id,it.text,pi);});
+        items.forEach(function(it){h+=it.trackerPid?ciTracker(it,pi,true):ciEdit(it.id,it.text,pi);});
         h+='</div>';
       });
     }
@@ -2847,12 +2957,13 @@ function renderToday(){
   DB.data.dailyCats.forEach(function(cat){
     var items=DB.data.dailyItems.filter(function(it){
       if(it.catId!==cat.id||it.days.indexOf(TI)===-1)return false;
-      if(vanish&&DB.isDailyChecked(it.id,ds))return false;
-      return true;
+      if(!vanish)return true;
+      var done=it.trackerPid?(trackerEntryForDate(it.trackerPid,ds)!=null):DB.isDailyChecked(it.id,ds);
+      return !done;
     });
     if(!items.length)return;
     h+='<div class="calsec"><div class="caltitle">'+cat.icon+' '+esc(cat.name)+'</div>';
-    items.forEach(function(it){h+=ci(it.id,it.text,0);});
+    items.forEach(function(it){h+=it.trackerPid?ciTracker(it,0,false):ci(it.id,it.text,0);});
     h+='</div>';
   });
   if(!h)h='<div class="empty">Nothing scheduled for today.</div>';
@@ -2906,14 +3017,35 @@ var DailyCatSheet={
 };
 
 var DailyItemSheet={
-  catId:null,selectedDays:[],
-  open:function(catId,defaultDay){
+  catId:null,selectedDays:[],trackerPid:null,
+  // trackerPid, when passed, switches this same sheet into "schedule an
+  // existing tracker" mode: the free-text name input (there's nothing to
+  // type — the tracker already has a name) is swapped for a plain label
+  // naming which one, and Save links it instead of creating a new
+  // standalone habit. Everything else (days picker, quick buttons) is
+  // shared as-is.
+  open:function(catId,defaultDay,trackerPid){
     this.catId=catId;
+    this.trackerPid=trackerPid||null;
     this.selectedDays=(defaultDay===undefined||defaultDay===null)?[]:[defaultDay];
-    document.getElementById('daily-item-inp').value='';
+    var inp=document.getElementById('daily-item-inp');
+    var lbl=document.getElementById('daily-item-tracker-lbl');
+    var title=document.getElementById('daily-item-sheet-title');
+    if(this.trackerPid){
+      var p=DB.data.projects[this.trackerPid];
+      title.textContent='Track in Daily';
+      inp.style.display='none';
+      lbl.style.display='';
+      lbl.textContent='Tracking: '+(p?(p.icon||'📈')+' '+p.name:'');
+    } else {
+      title.textContent='Add task';
+      inp.style.display='';
+      lbl.style.display='none';
+      inp.value='';
+    }
     this.renderDays();
     _overlayOpen('daily-item-sheet-overlay');
-    setTimeout(function(){document.getElementById('daily-item-inp').focus();},300);
+    if(!this.trackerPid)setTimeout(function(){document.getElementById('daily-item-inp').focus();},300);
   },
   renderDays:function(){
     var c=document.getElementById('daily-item-days');
@@ -2932,9 +3064,14 @@ var DailyItemSheet={
     this.renderDays();
   },
   save:function(){
-    var text=document.getElementById('daily-item-inp').value.trim();
-    if(!text||!this.selectedDays.length||!this.catId)return;
-    DB.addDailyItem(this.catId,text,this.selectedDays.slice());
+    if(!this.selectedDays.length||!this.catId)return;
+    if(this.trackerPid){
+      DB.addTrackerDailyItem(this.catId,this.trackerPid,this.selectedDays.slice());
+    } else {
+      var text=document.getElementById('daily-item-inp').value.trim();
+      if(!text)return;
+      DB.addDailyItem(this.catId,text,this.selectedDays.slice());
+    }
     _overlayClose('daily-item-sheet-overlay');
     buildPanels();restoreChecks(Nav.sd);
   },
@@ -3560,6 +3697,7 @@ var TabPlus={
       AddChoice.show('Add task',[
         {icon:'📅',label:'One-time task',fn:function(){OnceAddSheet.open();}},
         {icon:'🔁',label:'Repeating task',fn:function(){A.startRepeatingTask();}},
+        {icon:'📈',label:'Track a project',fn:function(){A.startTrackerHabit();}},
         {icon:'📁',label:'Manage categories',fn:function(){DailyCatSheet.open();}}
       ]);
       return;

@@ -296,6 +296,20 @@ html[data-theme="light"] .opt-row{background:#fff;border-color:#e8e5e0}
 @media(prefers-color-scheme:dark){.opt-row.active{border-color:#e8e6df}}
 html[data-theme="dark"] .opt-row.active{border-color:#e8e6df}
 html[data-theme="light"] .opt-row.active{border-color:#1a1917}
+
+/* Groups a run of related .opt-rows into one iOS-style card: the group
+   carries the card border/radius/background, rows inside it lose their
+   own border/radius/margin and get a hairline divider instead — only
+   the outer edge is rounded, not every row. */
+.opt-group{border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px;overflow:hidden;background:#fff}
+@media(prefers-color-scheme:dark){.opt-group{background:#1e1c1a;border-color:#2a2927}}
+html[data-theme="dark"] .opt-group{background:#1e1c1a;border-color:#2a2927}
+html[data-theme="light"] .opt-group{background:#fff;border-color:#e8e5e0}
+.opt-group .opt-row{border:none;border-radius:0;margin-bottom:0;background:transparent;border-bottom:1.5px solid #e8e5e0}
+@media(prefers-color-scheme:dark){.opt-group .opt-row{border-bottom-color:#2a2927}}
+html[data-theme="dark"] .opt-group .opt-row{border-bottom-color:#2a2927}
+html[data-theme="light"] .opt-group .opt-row{border-bottom-color:#e8e5e0}
+.opt-group .opt-row:last-child{border-bottom:none}
 .opt-radio{width:22px;height:22px;border-radius:50%;border:1.5px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .opt-row.active .opt-radio{border-color:#1a1917}
 @media(prefers-color-scheme:dark){.opt-row.active .opt-radio{border-color:#e8e6df}}
@@ -839,7 +853,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.43';
+var APP_VERSION='Beta 1.44';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1020,6 +1034,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.43',notes:[
     'New Statistics tab: a combined ring showing all habits\' consistency together, daily/weekly/monthly bars, your best-performing habit, and your average one-time tasks completed per day'
+  ]},
+  {v:'Beta 1.44',notes:[
+    'Settings: grouped related rows into single cards (Appearance; Day starts at + Habits disappear; Tasks shown + Refill automatically), matching iOS\'s grouped list style'
   ]}
 ];
 var COLORS={
@@ -1619,7 +1636,7 @@ function renderEditLayout(){
 function renderSettings(){
   var vl=document.getElementById('version-btn');if(vl)vl.textContent=APP_VERSION;
   var theme=DB.data.settings.theme||'system';
-  document.getElementById('settings-theme').innerHTML=[
+  document.getElementById('settings-theme').innerHTML='<div class="opt-group">'+[
     {v:'system',icon:'🌗',title:'System'},
     {v:'light',icon:'☀️',title:'Light'},
     {v:'dark',icon:'🌙',title:'Dark'}
@@ -1627,7 +1644,7 @@ function renderSettings(){
     return '<div class="opt-row'+(theme===o.v?' active':'')+'" onclick="A.setTheme(\''+o.v+'\')">'
       +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
       +'<div class="opt-text"><div class="opt-title">'+o.icon+' '+o.title+'</div></div></div>';
-  }).join('');
+  }).join('')+'</div>';
   var lang=DB.data.settings.language||'en';
   // Only English exists so far — this just gives the setting a home to
   // live in ahead of time. Add more <option>s here once real
@@ -1649,7 +1666,8 @@ function renderSettings(){
   var refill=DB.data.settings.todayRefill;
   var vanish=DB.data.settings.todayHabitsDisappear;
   document.getElementById('settings-today').innerHTML=
-    '<div class="opt-row" style="cursor:default">'
+    '<div class="opt-group">'
+    +'<div class="opt-row" style="cursor:default">'
     +'<div style="font-size:22px">🌙</div>'
     +'<div class="opt-text"><div class="opt-title">Day starts at</div></div>'
     +'<select class="addinp daystart-sel" onchange="A.setDayStartHour(this.value)" style="flex:none;width:auto;min-height:48px;padding:10px 14px;font-size:15px;font-weight:600;margin-left:auto">'
@@ -1659,6 +1677,8 @@ function renderSettings(){
     +'<div class="opt-text"><div class="opt-title">Habits disappear when checked off</div></div>'
     +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(vanish?'checked':'')+' onchange="A.setTodayHabitsDisappear(this.checked)"><span class="switch-slider"></span></label>'
     +'</div>'
+    +'</div>'
+    +'<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
     +'<div style="font-size:22px">🎯</div>'
     +'<div class="opt-text"><div class="opt-title">Tasks shown</div></div>'
@@ -1668,6 +1688,7 @@ function renderSettings(){
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Refill automatically</div></div>'
     +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(refill?'checked':'')+' onchange="A.setTodayRefill(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div>'
     +'</div>';
 }
 

@@ -348,6 +348,21 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   show/hide-with-transition element in this app, check for this exact
   pattern first (a single class simultaneously toggling `display` and
   the transitioned property) before assuming it's a new bug.
+  Follow-up once close got its own animation (see `_overlayClose`'s
+  `SHEET_ANIM_MS` wait, added right after the above): `#verhist-overlay`'s
+  swipe-to-dismiss gesture already animates the sheet off-screen itself
+  before calling `close()`, so waiting out a SECOND, separate
+  `SHEET_ANIM_MS` on top of that (the generic wait meant for the normal
+  backdrop-tap/button close, where the sheet hasn't moved yet) left the
+  dimmed backdrop sitting there for an extra beat after the sheet had
+  already visually left — reported as "the window's gone, then a dead
+  pause before you're back to the screen behind it." Fixed with an
+  `instant` flag on `_overlayClose`/`VersionHistory.close` that skips
+  straight to hiding when the caller already finished its own close
+  animation. Any FUTURE sheet that gets its own custom pre-close
+  animation (rather than just relying on `.show` removal) needs to pass
+  `instant` too, for the same reason — the generic close always assumes
+  it's starting the slide from scratch unless told otherwise.
 
 - The "Hold to complete tasks" gesture (global `touchstart` handler,
   search "HOLD TO COMPLETE") has its own separate completion dispatch

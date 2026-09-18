@@ -395,7 +395,10 @@ html[data-theme="light"] #whatsnew-body{color:#555}
 @media(prefers-color-scheme:dark){.sheet{background:#1e1c1a}}
 html[data-theme="dark"] .sheet{background:#1e1c1a}
 html[data-theme="light"] .sheet{background:#fff}
-.sheet-overlay.on .sheet{transform:translateY(0)}
+/* Split from the overlay's own .on: see _overlayOpen()'s comment for why
+   the transform-to-open and the display:none->block flip can't be the
+   same class change. */
+.sheet-overlay.on.show .sheet{transform:translateY(0)}
 .sheet-drag-handle{width:36px;height:4px;border-radius:2px;background:#d1d1d1;margin:0 auto 16px}
 @media(prefers-color-scheme:dark){.sheet-drag-handle{background:#444}}
 html[data-theme="dark"] .sheet-drag-handle{background:#444}
@@ -869,7 +872,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.46';
+var APP_VERSION='Beta 1.47';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1060,6 +1063,9 @@ var CHANGELOG=[
   {v:'Beta 1.46',notes:[
     'Settings: icons now sit on a colored badge instead of flat gray, for more contrast; Completed Tasks now uses a trash-can icon',
     'Settings: the Day starts at / Tasks shown / Language dropdowns now have a much bigger tap target — same small pill visually, but tapping around it now works too'
+  ]},
+  {v:'Beta 1.47',notes:[
+    'Fixed: sheets sliding up (Version history, the + menu, etc.) could slide most of the way smoothly and then snap/jump the last bit instead of one continuous motion'
   ]}
 ];
 var COLORS={
@@ -3099,12 +3105,35 @@ function _unlockBodyScroll(){
   window.scrollTo(0,_bodyLockY);
 }
 function _overlayOpen(id){
-  document.getElementById(id).classList.add('on');
+  var ov=document.getElementById(id);
+  ov.classList.add('on'); // display:none -> block; .sheet is still at its
+  // resting off-screen transform here, .show isn't added yet.
   _overlayCount++;
   if(_overlayCount===1)_lockBodyScroll();
+  // .show (which triggers the actual slide-up, see the CSS above) has to
+  // land in a LATER paint than the display:none->block flip above, or
+  // there's no real "before" frame for the transform transition to
+  // interpolate from — both changes hit the same recalc and different
+  // browsers resolve that ambiguity differently. Measured here: Chrome
+  // just skips the animation outright (jumps straight to open); the
+  // report from a real iPhone was a partial slide that then snaps the
+  // rest of the way — same underlying cause, two different-looking
+  // symptoms. A single requestAnimationFrame isn't reliably enough (the
+  // first callback can still land before the .on paint has committed);
+  // nesting a second one guarantees a full frame has already rendered
+  // the closed state first.
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      ov.classList.add('show');
+    });
+  });
 }
 function _overlayClose(id){
-  document.getElementById(id).classList.remove('on');
+  var ov=document.getElementById(id);
+  ov.classList.remove('on');
+  ov.classList.remove('show'); // reset now, not just on next open — otherwise
+  // the next _overlayOpen's .on would land with .show already present and
+  // both flip together again, reintroducing the exact bug this works around.
   _overlayCount=Math.max(0,_overlayCount-1);
   if(_overlayCount===0)_unlockBodyScroll();
 }

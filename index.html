@@ -415,19 +415,6 @@ html[data-theme="light"] .sheet{background:#fff}
    the transform-to-open and the display:none->block flip can't be the
    same class change. */
 .sheet-overlay.on.show .sheet{transform:translateY(0)}
-/* Version history specifically (not the shared .sheet default): the
-   75vh cap left a large gap at the top showing a slice of Settings,
-   dimmed, underneath — reported as looking like dead space, and worse,
-   made dismissing it look broken: as the small dimmed sliver above the
-   sheet was all that was ever visible of the page behind, the rest of
-   Settings snapping fully into view the instant the sheet finished
-   closing read as that page "popping up" much larger than the sliver
-   that had been peeking through. Going nearly full height removes the
-   gap there is to notice in the first place. Bottom padding is trimmed
-   too — 44px was sized for a sheet with Save/Cancel buttons anchored
-   at the bottom; this one has neither, so it just read as more unused
-   space under the last list item. */
-#verhist-overlay .sheet{max-height:calc(100vh - env(safe-area-inset-top) - 10px);padding-top:calc(env(safe-area-inset-top) + 16px);padding-bottom:24px}
 .sheet-drag-handle{width:36px;height:4px;border-radius:2px;background:#d1d1d1;margin:0 auto 16px}
 @media(prefers-color-scheme:dark){.sheet-drag-handle{background:#444}}
 html[data-theme="dark"] .sheet-drag-handle{background:#444}
@@ -902,7 +889,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.54';
+var APP_VERSION='Beta 1.53';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1117,10 +1104,6 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.53',notes:[
     'Daily: added "Track a project" to the + menu, so an existing Tracker project (e.g. Weight) can be scheduled as a habit — it shows up in your daily categories, and tapping it opens that tracker\'s own page to log today\'s value'
-  ]},
-  {v:'Beta 1.54',notes:[
-    'Version history now fills nearly the whole screen instead of leaving a big dimmed gap at the top — that gap read as dead space, and made the page behind look like it "popped up" oversized the moment the sheet finished closing',
-    'Attempted fix: the footer tab bar briefly jumping position right as a sheet finishes closing'
   ]}
 ];
 var COLORS={
@@ -3283,23 +3266,6 @@ function _lockBodyScroll(){
   document.body.style.width='100%';
 }
 function _unlockBodyScroll(){
-  // Reported on a real device: right as a sheet finishes closing, the tab
-  // bar (position:fixed, so its own position shouldn't depend on the
-  // page's scroll at all) visibly jumps — appears too high for one frame,
-  // then drops to its correct spot. Not reproducible here in preview
-  // (this only ever gets to inspect the state AFTER a synchronous task
-  // finishes, never a transient mid-task frame — if iOS is repainting
-  // between individual style writes below where desktop Chrome doesn't,
-  // there's no way to see that from here). Calling scrollTo before
-  // clearing position et al gives the engine the real scrollY to settle
-  // on the instant normal flow resumes, instead of defaulting to 0 first
-  // and correcting a frame later — if this doesn't fully fix it, the
-  // next thing to check is whether a fixed-position descendant (the tab
-  // bar) inside a fixed-position body (this lock) is something this
-  // WebKit version positions relative to the body instead of the
-  // viewport while locked, against spec — not something to guess further
-  // at without seeing it happen on the actual device.
-  window.scrollTo(0,_bodyLockY);
   document.body.style.position='';
   document.body.style.top='';
   document.body.style.left='';

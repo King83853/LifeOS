@@ -349,6 +349,30 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   pattern first (a single class simultaneously toggling `display` and
   the transitioned property) before assuming it's a new bug.
 
+- The "Hold to complete tasks" gesture (global `touchstart` handler,
+  search "HOLD TO COMPLETE") has its own separate completion dispatch
+  from the normal tap path (a checkbox's native `onchange`) — the two
+  are NOT the same code path, and it's easy to update one without
+  realizing the other needs the same fix. Bit exactly this way once
+  already (`.switch` inside a TAPPABLE row) and again here: a one-time
+  task's row (`data-once`, in Tasks > Calendar) completes correctly via
+  its checkbox's `onchange="A.completeOnce(...)"` on a normal tap, but
+  the hold-gesture branch for non-`.cali` rows only checked
+  `data-li` vs "anything else" and fell through to `A.done(cb)` for a
+  one-time row — which reads `data-key`/`data-text`/`data-sec`, none of
+  which a `data-once` row has, so it silently called
+  `DB.completeTask(null,null,null)` (touches nothing in `dailyOnce`,
+  just adds a bogus null-key archived entry) while still fading out and
+  removing the DOM row on its own timer. Looked completed right up
+  until that view next re-rendered from data that still had the item —
+  reported as "ticked it off, it just reappeared again." Fixed by
+  giving that branch the same three-way `data-once`/`data-li`/else
+  check the `.cali` branch above it already had. If a *different*
+  completable row type gets added later, grep for
+  `hasAttribute('data-` in that touchstart handler and make sure the
+  new type is handled in BOTH branches (`.cali` and the `.ti`/`.wri`
+  one), not just wherever its own `onchange` lives.
+
 ## Definition of "done" for a change
 0. If index.html (or any other cached asset) changed, bump `CACHE_NAME` in
    sw.js — EVERY time, even for changes that have nothing to do with the

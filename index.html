@@ -324,7 +324,20 @@ html[data-theme="light"] .opt-radio-dot{background:#1a1917}
 .opt-row.active .opt-radio-dot{display:block}
 .opt-text{flex:1}
 .opt-title{font-size:14px;font-weight:600}
-.opt-ico{width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#888}
+/* Colored badge behind each settings icon (background set per-instance
+   inline) instead of a flat gray glyph — flat currentColor read as low
+   contrast/washed out against the card background. */
+.opt-ico{width:30px;height:30px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff}
+
+/* Custom-sized tap target for a settings dropdown: the visible ".dsel-visual"
+   pill keeps the exact look/size of a normal .addinp select, while the real
+   <select> is invisible and stretched well beyond it (via negative inset)
+   so the actual hit area is much bigger than what's drawn — the row's own
+   padding still contains that overhang so it can't steal taps from a
+   neighboring row above/below. */
+.dsel-wrap{position:relative;display:inline-flex;flex:none;margin-left:auto}
+.dsel-visual{display:flex;align-items:center;gap:6px;pointer-events:none}
+.dsel-real{position:absolute;inset:-12px -16px;opacity:0;-webkit-tap-highlight-color:transparent}
 .opt-desc{font-size:12px;color:#999;margin-top:2px}
 
 /* On/off toggle for settings that are just one thing to enable, rather
@@ -609,7 +622,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
   <div id="settings-theme"></div>
   <div id="settings-language"></div>
   <div class="opt-row" onclick="Nav.go('archive')">
-    <div class="opt-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></div>
+    <div class="opt-ico" style="background:#71717a"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></div>
     <div class="opt-text"><div class="opt-title">Completed Tasks</div></div>
     <span class="ab" id="ab2" style="margin-left:auto"></span>
   </div>
@@ -617,7 +630,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
   <div id="settings-today"></div>
   <div class="sl" style="margin-top:28px">Overview</div>
   <div class="opt-row" onclick="Nav.go('editlayout')">
-    <div class="opt-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+    <div class="opt-ico" style="background:#06b6d4"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
     <div class="opt-text"><div class="opt-title">Edit layout</div></div>
   </div>
   <div class="sl" style="margin-top:28px">Data</div>
@@ -856,7 +869,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.45';
+var APP_VERSION='Beta 1.46';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1043,6 +1056,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.45',notes:[
     'Settings: replaced every emoji icon with a custom line icon, so they render consistently instead of depending on the device\'s own emoji font'
+  ]},
+  {v:'Beta 1.46',notes:[
+    'Settings: icons now sit on a colored badge instead of flat gray, for more contrast; Completed Tasks now uses a trash-can icon',
+    'Settings: the Day starts at / Tasks shown / Language dropdowns now have a much bigger tap target — same small pill visually, but tapping around it now works too'
   ]}
 ];
 var COLORS={
@@ -1648,18 +1665,34 @@ var ICON_SUN='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke
 var ICON_MOON='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 var ICON_GLOBE='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
 var ICON_TARGET='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
+var ICON_CHEVRON='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>';
+
+// Renders a dropdown whose visible pill stays the normal small size while
+// the real, invisible <select> underneath (see .dsel-real) is stretched
+// well past it, so the actual tap target is a lot bigger without changing
+// how it looks. The visible text is just read off the selected option —
+// no separate state to keep in sync, since this whole block is rebuilt
+// every renderSettings() anyway.
+function customSelect(opts,current,onchange){
+  var sel=opts.filter(function(o){return String(o.value)===String(current);})[0]||opts[0]||{label:''};
+  return '<div class="dsel-wrap">'
+    +'<div class="dsel-visual addinp" style="min-height:48px;padding:10px 14px;font-size:15px;font-weight:600">'+esc(sel.label)+ICON_CHEVRON+'</div>'
+    +'<select class="dsel-real" onchange="'+onchange+'">'
+    +opts.map(function(o){return '<option value="'+o.value+'"'+(String(o.value)===String(current)?' selected':'')+'>'+esc(o.label)+'</option>';}).join('')
+    +'</select></div>';
+}
 
 function renderSettings(){
   var vl=document.getElementById('version-btn');if(vl)vl.textContent=APP_VERSION;
   var theme=DB.data.settings.theme||'system';
   document.getElementById('settings-theme').innerHTML='<div class="opt-group">'+[
-    {v:'system',icon:ICON_SYSTEM,title:'System'},
-    {v:'light',icon:ICON_SUN,title:'Light'},
-    {v:'dark',icon:ICON_MOON,title:'Dark'}
+    {v:'system',icon:ICON_SYSTEM,title:'System',bg:'#6b7280'},
+    {v:'light',icon:ICON_SUN,title:'Light',bg:'#f59e0b'},
+    {v:'dark',icon:ICON_MOON,title:'Dark',bg:'#6366f1'}
   ].map(function(o){
     return '<div class="opt-row'+(theme===o.v?' active':'')+'" onclick="A.setTheme(\''+o.v+'\')">'
       +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
-      +'<div class="opt-ico">'+o.icon+'</div>'
+      +'<div class="opt-ico" style="background:'+o.bg+'">'+o.icon+'</div>'
       +'<div class="opt-text"><div class="opt-title">'+o.title+'</div></div></div>';
   }).join('')+'</div>';
   var lang=DB.data.settings.language||'en';
@@ -1668,11 +1701,10 @@ function renderSettings(){
   // translations exist; nothing else needs to change to support that.
   document.getElementById('settings-language').innerHTML=
     '<div class="opt-row" style="cursor:default">'
-    +'<div class="opt-ico">'+ICON_GLOBE+'</div>'
+    +'<div class="opt-ico" style="background:#3b82f6">'+ICON_GLOBE+'</div>'
     +'<div class="opt-text"><div class="opt-title">Language</div></div>'
-    +'<select class="addinp daystart-sel" onchange="A.setLanguage(this.value)" style="flex:none;width:auto;min-height:48px;padding:10px 14px;font-size:15px;font-weight:600;margin-left:auto">'
-    +'<option value="en"'+(lang==='en'?' selected':'')+'>English</option>'
-    +'</select></div>';
+    +customSelect([{value:'en',label:'English'}],lang,'A.setLanguage(this.value)')
+    +'</div>';
   var hold=DB.data.settings.holdToComplete;
   document.getElementById('settings-complete').innerHTML=
     '<div class="opt-row" style="cursor:default">'
@@ -1685,11 +1717,10 @@ function renderSettings(){
   document.getElementById('settings-today').innerHTML=
     '<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
-    +'<div class="opt-ico">'+ICON_MOON+'</div>'
+    +'<div class="opt-ico" style="background:#6366f1">'+ICON_MOON+'</div>'
     +'<div class="opt-text"><div class="opt-title">Day starts at</div></div>'
-    +'<select class="addinp daystart-sel" onchange="A.setDayStartHour(this.value)" style="flex:none;width:auto;min-height:48px;padding:10px 14px;font-size:15px;font-weight:600;margin-left:auto">'
-    +HOUR_OPTS.map(function(h){return '<option value="'+h+'"'+(h===DB.data.settings.dayStartHour?' selected':'')+'>'+hourLabel(h)+'</option>';}).join('')
-    +'</select></div>'
+    +customSelect(HOUR_OPTS.map(function(h){return{value:h,label:hourLabel(h)};}),DB.data.settings.dayStartHour,'A.setDayStartHour(this.value)')
+    +'</div>'
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Habits disappear when checked off</div></div>'
     +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(vanish?'checked':'')+' onchange="A.setTodayHabitsDisappear(this.checked)"><span class="switch-slider"></span></label>'
@@ -1697,11 +1728,10 @@ function renderSettings(){
     +'</div>'
     +'<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
-    +'<div class="opt-ico">'+ICON_TARGET+'</div>'
+    +'<div class="opt-ico" style="background:#22c55e">'+ICON_TARGET+'</div>'
     +'<div class="opt-text"><div class="opt-title">Tasks shown</div></div>'
-    +'<select class="addinp daystart-sel" onchange="A.setTodayTaskCount(this.value)" style="flex:none;width:auto;min-height:48px;padding:10px 14px;font-size:15px;font-weight:600;margin-left:auto">'
-    +[1,2,3,4,5,6,7,8,9,10].map(function(n){return '<option value="'+n+'"'+(n===DB.data.settings.todayTaskCount?' selected':'')+'>'+n+'</option>';}).join('')
-    +'</select></div>'
+    +customSelect([1,2,3,4,5,6,7,8,9,10].map(function(n){return{value:n,label:String(n)};}),DB.data.settings.todayTaskCount,'A.setTodayTaskCount(this.value)')
+    +'</div>'
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Refill automatically</div></div>'
     +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(refill?'checked':'')+' onchange="A.setTodayRefill(this.checked)"><span class="switch-slider"></span></label>'

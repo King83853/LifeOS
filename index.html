@@ -389,8 +389,13 @@ html[data-theme="light"] #whatsnew-body{color:#555}
 .wn-ver{font-size:11px;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px}
 .wn-ver:first-child{margin-top:0}
 
-.sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500}
+.sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;opacity:0;transition:opacity .13s ease-out}
 .sheet-overlay.on{display:block}
+/* Keyed off the same .show class the sheet's own slide uses (see
+   _overlayOpen/_overlayClose) so the backdrop fades in/out in sync
+   with the sheet moving, instead of popping fully on/off the instant
+   display flips — it used to have no transition at all. */
+.sheet-overlay.on.show{opacity:1}
 .sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;max-height:75vh;border-radius:24px 24px 0 0;padding:24px 20px 44px;z-index:501;transform:translateY(100%);transition:transform .13s ease-out}
 @media(prefers-color-scheme:dark){.sheet{background:#1e1c1a}}
 html[data-theme="dark"] .sheet{background:#1e1c1a}
@@ -872,7 +877,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.50';
+var APP_VERSION='Beta 1.51';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1076,6 +1081,10 @@ var CHANGELOG=[
   {v:'Beta 1.50',notes:[
     'Sheets open and close even quicker now',
     'Fixed: swiping down to dismiss Version history left a dead pause with the background still dimmed for a moment after the sheet had already slid away'
+  ]},
+  {v:'Beta 1.51',notes:[
+    'Fixed: the dimmed background behind a sheet now fades in/out together with the sheet\'s own slide, instead of popping on and off instantly',
+    'Fixed: Language, Day starts at and Tasks shown dropdowns in Settings couldn\'t be tapped at all — a side effect of enlarging their tap target last time'
   ]}
 ];
 var COLORS={
@@ -3579,7 +3588,11 @@ document.addEventListener('focusout',function(e){
     // click — which preventDefault()s the real tap and fires .click() on
     // the NON-interactive wrapping row instead of the checkbox/label,
     // so the switch silently does nothing. Let it handle its own tap.
-    if(e.target.closest('.switch')){target=null;return;}
+    // .dsel-real (the invisible, enlarged <select> behind Language/Day
+    // starts at/Tasks shown) hit the exact same bug: it too sits inside
+    // a TAPPABLE .opt-row with no onclick, so the row swallowed every
+    // tap meant for it and the dropdown never opened at all.
+    if(e.target.closest('.switch,.dsel-real')){target=null;return;}
     target=e.target.closest(TAPPABLE);
     if(!target)return;
     moved=false;

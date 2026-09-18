@@ -872,7 +872,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.48';
+var APP_VERSION='Beta 1.49';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1069,6 +1069,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.48',notes:[
     'Sheets now slide down smoothly when closing too, instead of just vanishing — and both the open and close slide are quicker than before'
+  ]},
+  {v:'Beta 1.49',notes:[
+    'Fixed: with Hold to complete tasks on, holding a one-time task\'s checkbox in Tasks > Calendar looked like it completed but silently came back later — it never actually got deleted'
   ]}
 ];
 var COLORS={
@@ -3033,7 +3036,16 @@ document.addEventListener('touchstart',function(e){
     item.classList.add('snap');item.classList.remove('holding');
     setTimeout(function(){item.classList.remove('snap');},50);
     cb.checked=true;playClick();
-    if(item.hasAttribute('data-li'))A.doneLockedIn(cb);
+    // A one-time task's row (Tasks tab > Calendar) carries data-once, not
+    // data-key/data-text/data-sec — falling through to A.done() here read
+    // those as null and called DB.completeTask(null,null,null), which
+    // silently did nothing to dailyOnce (just logged a bogus archived
+    // entry). The row still faded out and got removed from the DOM, so it
+    // LOOKED completed, but the underlying item was never deleted — it
+    // came back the next time this view re-rendered. Matches the .cali
+    // branch above, which already had this same three-way check.
+    if(item.hasAttribute('data-once'))A.completeOnce(cb,item.getAttribute('data-once'));
+    else if(item.hasAttribute('data-li'))A.doneLockedIn(cb);
     else A.done(cb);
   },700);
 },{passive:true});

@@ -896,7 +896,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.70';
+var APP_VERSION='Beta 1.71';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1164,6 +1164,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.70',notes:[
     'Behind-the-scenes cleanup: removed unused code and styles left over from earlier fixes; nothing should look or behave differently'
+  ]},
+  {v:'Beta 1.71',notes:[
+    'Settings > Appearance: the icons now line up with the other settings, and the selected-option dot moved to the right end of the row'
   ]}
 ];
 var COLORS={
@@ -1819,9 +1822,9 @@ function renderSettings(){
     {v:'dark',icon:ICON_MOON,title:'Dark',bg:'#6366f1'}
   ].map(function(o){
     return '<div class="opt-row'+(theme===o.v?' active':'')+'" onclick="A.setTheme(\''+o.v+'\')">'
-      +'<div class="opt-radio"><div class="opt-radio-dot"></div></div>'
       +'<div class="opt-ico" style="background:'+o.bg+'">'+o.icon+'</div>'
-      +'<div class="opt-text"><div class="opt-title">'+o.title+'</div></div></div>';
+      +'<div class="opt-text"><div class="opt-title">'+o.title+'</div></div>'
+      +'<div class="opt-radio" style="margin-left:auto"><div class="opt-radio-dot"></div></div></div>';
   }).join('')+'</div>';
   var lang=DB.data.settings.language||'en';
   // Only English exists so far — this just gives the setting a home to

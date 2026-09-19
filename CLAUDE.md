@@ -135,6 +135,19 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   slide animation — leaving Today mid-animation re-rendered from
   unsaved data and the task "reappeared".
 
+- "Refill automatically" OFF on Today means the day gets N task slots
+  (`DB.data.todaySet = {ds,n,keys}`), filled once; a task that's completed
+  or skipped keeps its slot used, so nothing replaces it — not even after
+  leaving Today and coming back (renderToday re-runs on every visit and
+  used to re-pick the top N each time, which looked like "the skipped/done
+  task came back" — it was a NEW task filling the gap; it took a
+  screenshot from the user's phone and their plain-words description to
+  see that, after I'd chased a persistence bug that didn't exist). Refill
+  ON clears the set and always shows the top N. The set resets on a new
+  day or when the Tasks-shown count changes. When a "reappears" report
+  can't be reproduced, first ask what the reappearing thing actually IS
+  (same item vs a different one) before instrumenting anything.
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

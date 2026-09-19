@@ -148,6 +148,15 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   can't be reproduced, first ask what the reappearing thing actually IS
   (same item vs a different one) before instrumenting anything.
 
+- Keep failed-attempt history in this file, not in code comments: the
+  sheet scroll-lock / overlay code had accumulated paragraphs about
+  approaches that no longer existed (and a stale "safety reset" comment
+  for code that was gone). Comments in index.html should describe what
+  the code does now and why; the story of how we got there belongs here.
+  When a fix is superseded, delete the old code AND its comment in the
+  same change, and don't leave "Temporary:" entries in CHANGELOG (keep the
+  version entry, reword it — WhatsNew's queue looks versions up by name).
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

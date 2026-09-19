@@ -55,8 +55,6 @@ html[data-theme="dark"] .hdr-add{border-color:#e8e6df;background:#1f2937;color:#
 html[data-theme="light"] .hdr-add{border-color:#1a1917;background:#f3f4f6;color:#1a1917}
 .hdr-add:active{opacity:.7}
 
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 0 8px}
-.logo{font-size:14px;font-weight:700;color:#aaa}
 .hdr-r{display:flex;align-items:center;gap:8px}
 .tlbl{font-size:12px;color:#aaa}
 .menu-btn{width:44px;height:44px;border-radius:14px;border:1.5px solid #1a1917;background:#f3f4f6;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -71,8 +69,6 @@ html[data-theme="light"] .menu-btn{border-color:#1a1917;background:#f3f4f6}
 html[data-theme="dark"] .menu-panel{background:#1f2937}
 html[data-theme="light"] .menu-panel{background:#f3f4f6}
 .menu-overlay.on .menu-panel{transform:translateX(0)}
-.menu-title{font-size:12px;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:.1em;margin:24px 0 10px 4px}
-.menu-title:first-child{margin-top:8px}
 .menu-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;cursor:pointer;font-size:14px;font-weight:500;margin-bottom:4px}
 .menu-item svg{flex-shrink:0}
 .menu-item:active{background:#f0ede8}
@@ -374,7 +370,6 @@ html[data-theme="light"] .opt-radio-dot{background:#1a1917}
 .dsel-wrap{position:relative;display:inline-flex;flex:none;margin-left:auto}
 .dsel-visual{display:flex;align-items:center;gap:6px;pointer-events:none}
 .dsel-real{position:absolute;inset:-12px -16px;opacity:0;-webkit-tap-highlight-color:transparent}
-.opt-desc{font-size:12px;color:#999;margin-top:2px}
 
 /* On/off toggle for settings that are just one thing to enable, rather
    than a choice between two named options (those still use the
@@ -391,14 +386,6 @@ html[data-theme="light"] .switch-slider{background:#d1d1d1}
 
 .sl-count{display:inline-block;margin-left:8px;min-width:18px;padding:1px 6px;border-radius:99px;background:rgba(127,127,127,.18);color:#888;font-size:10px;font-weight:800;letter-spacing:0;text-align:center;vertical-align:1px}
 .sl{font-size:11px;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px}
-
-.color-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.color-opt{width:36px;height:36px;border-radius:10px;cursor:pointer;border:3px solid transparent;transition:transform .1s}
-.color-opt:active{transform:scale(0.9)}
-.color-opt.sel{border-color:#1a1917}
-@media(prefers-color-scheme:dark){.color-opt.sel{border-color:#e8e6df}}
-html[data-theme="dark"] .color-opt.sel{border-color:#e8e6df}
-html[data-theme="light"] .color-opt.sel{border-color:#1a1917}
 
 .update-overlay{display:none;position:fixed;inset:0;background:rgba(243,244,246,.97);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:16px}
 @media(prefers-color-scheme:dark){.update-overlay{background:rgba(26,25,23,.97)}}
@@ -423,15 +410,10 @@ html[data-theme="light"] .update-bar-fill{background:#1a1917}
 html[data-theme="dark"] #whatsnew-body{color:#aaa}
 html[data-theme="light"] #whatsnew-body{color:#555}
 .wn-item{margin-bottom:10px}
-.wn-ver{font-size:11px;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px}
-.wn-ver:first-child{margin-top:0}
 
 .sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;opacity:0;transition:opacity .13s ease-out}
 .sheet-overlay.on{display:block}
-/* Keyed off the same .show class the sheet's own slide uses (see
-   _overlayOpen/_overlayClose) so the backdrop fades in/out in sync
-   with the sheet moving, instead of popping fully on/off the instant
-   display flips — it used to have no transition at all. */
+/* Keyed off .show (like the sheet's slide) so the backdrop fades in sync. */
 .sheet-overlay.on.show{opacity:1}
 .sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;max-height:75vh;border-radius:24px 24px 0 0;padding:24px 20px 44px;z-index:501;transform:translateY(100%);transition:transform .13s ease-out}
 @media(prefers-color-scheme:dark){.sheet{background:#1e1c1a}}
@@ -488,21 +470,13 @@ html[data-theme="light"] .sheet-save{background:#fff;border-color:#1a1917;color:
 @media(prefers-color-scheme:dark){.sheet-cancel{background:#1e1c1a;border-color:#444;color:#777}}
 html[data-theme="dark"] .sheet-cancel{background:#1e1c1a;border-color:#444;color:#777}
 html[data-theme="light"] .sheet-cancel{background:#fff;border-color:#d1cec9;color:#888}
-/* color is needed here even though the "..." dots (.edot, explicit
-   background) and the habit-rename pencil (hardcoded stroke="#888")
-   don't use it — the project header's "+" icon uses
-   stroke="currentColor", and without an explicit color this button
-   fell through to the browser's native (blue, on iOS/WebKit) control
-   text color, same class of bug as the name-pill fix above. */
+/* Explicit color: the header icon uses stroke="currentColor", and without
+   it a <button> falls back to the native (blue on iOS) control text color. */
 .edit-proj-btn{background:#fff;border:1.5px solid #1a1917;border-radius:14px;cursor:pointer;width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;gap:3px;color:#1a1917}
 @media(prefers-color-scheme:dark){.edit-proj-btn{background:#1e1c1a;border-color:#e8e6df;color:#e8e6df}}
 html[data-theme="dark"] .edit-proj-btn{background:#1e1c1a;border-color:#e8e6df;color:#e8e6df}
 html[data-theme="light"] .edit-proj-btn{background:#fff;border-color:#1a1917;color:#1a1917}
 .edit-proj-btn:active{opacity:.7}
-.edot{width:5px;height:5px;border-radius:50%;background:#1a1917;flex-shrink:0}
-@media(prefers-color-scheme:dark){.edot{background:#e8e6df}}
-html[data-theme="dark"] .edot{background:#e8e6df}
-html[data-theme="light"] .edot{background:#1a1917}
 .cat-choice{display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px;cursor:pointer;font-size:15px;font-weight:600}
 @media(prefers-color-scheme:dark){.cat-choice{border-color:#2a2927}}
 html[data-theme="dark"] .cat-choice{border-color:#2a2927}
@@ -739,9 +713,6 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
   </div>
 </div>
 
-
-
-
 <div class="update-overlay" id="update-overlay">
   <div class="update-check" id="update-check" style="display:none">✓</div>
   <div class="update-bar-track" id="update-bar-track"><div class="update-bar-fill" id="update-bar-fill"></div></div>
@@ -776,11 +747,11 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 </div>
 
 <div class="sheet-overlay" id="confirm-overlay" onclick="if(event.target===this)ConfirmSheet.cancel()">
-  <div class="sheet" id="confirm-sheet" style="padding:24px 20px 40px">
+  <div class="sheet" style="padding:24px 20px 40px">
     <div id="confirm-msg" style="font-size:16px;font-weight:600;margin-bottom:20px;text-align:center"></div>
     <div style="display:flex;gap:10px">
       <button class="sheet-cancel" style="flex:1" onclick="ConfirmSheet.cancel()">Cancel</button>
-      <button id="confirm-ok" class="sheet-save" style="flex:1;background:#dc2626;border-color:#dc2626;color:#fff" onclick="ConfirmSheet.confirm()">Delete</button>
+      <button class="sheet-save" style="flex:1;background:#dc2626;border-color:#dc2626;color:#fff" onclick="ConfirmSheet.confirm()">Delete</button>
     </div>
   </div>
 </div>
@@ -921,12 +892,11 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 <script>
 'use strict';
 
-
 // Bump APP_VERSION on every user-visible change (alongside CACHE_NAME in
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.69';
+var APP_VERSION='Beta 1.70';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1146,16 +1116,16 @@ var CHANGELOG=[
     'Fixed: the footer tab bar could show through behind an open sheet and visibly jump into place right as one closed — it\'s now fully hidden for as long as any sheet is open, instead of relying on stacking order alone'
   ]},
   {v:'Beta 1.55',notes:[
-    'Sheets: the dimmed background and the sheet itself now extend past the bottom edge of the screen, to cover the strip of dead space that was showing below them'
+    'Internal changes while tracking down the empty strip under sheets (fixed in Beta 1.58)'
   ]},
   {v:'Beta 1.56',notes:[
-    'Sheets: the strip at the very bottom of the screen (where the home indicator sits) now takes the sheet\'s color while a sheet is open, instead of showing the page\'s dark-blue background'
+    'Internal changes while tracking down the empty strip under sheets (fixed in Beta 1.58)'
   ]},
   {v:'Beta 1.57',notes:[
-    'Temporary: Version history now shows a small readout of screen/viewport numbers at the top, to track down the empty strip at the bottom of sheets on your phone'
+    'Internal changes while tracking down the empty strip under sheets (fixed in Beta 1.58)'
   ]},
   {v:'Beta 1.58',notes:[
-    'Fixed: the empty strip at the bottom of every sheet on iPhone — sheets now run all the way to the bottom edge. The cause was the scroll lock shrinking the screen by the status-bar height while a sheet was open; the readout is gone again'
+    'Fixed: the empty strip at the bottom of every sheet on iPhone — sheets now run all the way to the bottom edge. The cause was the scroll lock shrinking the screen by the status-bar height while a sheet was open'
   ]},
   {v:'Beta 1.59',notes:[
     'Task window redesigned: cleaner and more compact — name as a plain title, importance and project on slim rows, and a much bigger notes box. "Mark complete" is gone from it (tick the task off in the list instead)',
@@ -1187,11 +1157,13 @@ var CHANGELOG=[
     'Fixed: a task you skipped could come back if you left Today right after swiping it'
   ]},
   {v:'Beta 1.68',notes:[
-    'Temporary: a small black readout appears when you skip a task, to help track down skipped tasks coming back'
+    'Internal changes while tracking down skipped tasks coming back (fixed in Beta 1.69)'
   ]},
   {v:'Beta 1.69',notes:[
-    'Today: with "Refill automatically" off, finishing or skipping a task no longer brings a new one in when you come back to Today - the slot stays empty until the next day',
-    'Removed the temporary black skip readout'
+    'Today: with "Refill automatically" off, finishing or skipping a task no longer brings a new one in when you come back to Today - the slot stays empty until the next day'
+  ]},
+  {v:'Beta 1.70',notes:[
+    'Behind-the-scenes cleanup: removed unused code and styles left over from earlier fixes; nothing should look or behave differently'
   ]}
 ];
 var COLORS={
@@ -1222,7 +1194,6 @@ var COLOR_NAMES={
   'c-cyan':'Cyan','c-sky':'Sky','c-blue':'Blue','c-indigo':'Indigo','c-violet':'Violet',
   'c-purple':'Purple','c-fuchsia':'Fuchsia','c-pink':'Pink','c-slate':'Slate','c-black':'Black'
 };
-
 
 // ── DB ────────────────────────────────────────────────────
 var DB={
@@ -1372,11 +1343,6 @@ var DB={
     }
     this.save();
   },
-  setPriority:function(projId,key,pri){
-    var tasks=this.data.extraTasks[projId]||[];
-    var t=tasks.find(function(x){return x.key===key;});
-    if(t){t.pri=pri;this._sortTasks(projId);this.save();}
-  },
   _sortTasks:function(pid){
     if(!this.data.extraTasks[pid])return;
     var o={bu:0,bs:1,bp:2,bl:3};
@@ -1385,7 +1351,6 @@ var DB={
       av=av===undefined?1:av;bv=bv===undefined?1:bv;return av-bv;
     });
   },
-  isDone:function(key){return this.data.doneKeys.includes(key);},
 
   addDailyCat:function(name,icon){
     var id='dc'+Date.now();
@@ -1549,7 +1514,6 @@ function renderGrids(){
 
 }
 
-
 function renderTracker(pid){
   var p=DB.data.projects[pid];
   var c=document.getElementById('sc-'+pid);if(!c)return;
@@ -1657,7 +1621,6 @@ function renderTracker(pid){
     +'<button class="addbtn" onclick="A.addTrackerEntry(\''+pid+'\')" >'+addSvg+'</button></div>'
     +(listH||'<div style="color:#ccc;font-size:14px;text-align:center;padding:20px">No entries yet</div>');
 }
-
 
 function renderProj(pid){
   var p=DB.data.projects[pid];if(!p)return;
@@ -2260,7 +2223,6 @@ var A={
   }
 };
 
-
 // ── PAGE TRANSITIONS ──────────────────────────────────────
 var _scrollPos={};
 function _saveScroll(p){if(p)_scrollPos[p.id]=window.scrollY||0;}
@@ -2465,9 +2427,7 @@ var Nav={cur:'today',sd:0,
     navForward(id);
     this.cur=id;
     TabBar.updateActive(190);
-  },
-  back:function(){navBack();},
-  goHome:function(){if(this.cur!=='overview')navBack();}
+  }
 };
 
 function _menuAnimate(open){
@@ -3162,7 +3122,6 @@ function renderToday(){
   });
 }
 
-
 // ── SWIPE RIGHT TO SKIP (Today's tasks + habits) ─────────────
 // Drag a row right like archiving a chat in WhatsApp: an amber "Skip"
 // action is revealed behind it. Past ~150px it fires; between ~48 and 150
@@ -3350,15 +3309,9 @@ var DailyItemSheet={
   close:function(){_overlayClose('daily-item-sheet-overlay');}
 };
 // Nav.sd is an absolute day OFFSET from today (0 = today), not a weekday
-// index — lets the strip range well past a single week in either
-// direction. pDate(pi) = T + pi days, directly. It used to be "this
-// week's Monday + pi days" (T.getDate()-TI+pi) from when pi WAS a weekday
-// index — that formula only gives the right date when pi happens to equal
-// TI (today's own weekday), i.e. only looked correct on the day this was
-// tested. Found via a real bug report: the "today" pill was landing on
-// Monday's date on any day that wasn't Monday. wIdx(date) — the real
-// weekday — is what still drives recurring-schedule matching, kept
-// separate from the offset.
+// index, so the strip can range past one week. pDate(pi) = T + pi days;
+// wIdx(date), the real weekday, drives recurring-schedule matching
+// separately. See CLAUDE.md.
 var DAILY_RANGE_BACK=7,DAILY_RANGE_FWD=30;
 function buildPills(){
   var c=document.getElementById('wdays');c.innerHTML='';
@@ -3492,11 +3445,6 @@ document.addEventListener('touchmove',function(e){
   if(Math.sqrt(dx*dx+dy*dy)>40)_cancelHold();
 },{passive:true});
 
-
-
-
-
-
 // Status bar blur only appears once content has actually scrolled up under
 // it — nothing to blur at rest, so no reason to show a bar there.
 var _sbb=null;
@@ -3506,89 +3454,50 @@ window.addEventListener('scroll',function(){
 },{passive:true});
 
 var _overlayCount=0;
-// Safety: reset count if no overlays actually visible. This used to
-// check a hardcoded list of overlay ids, then a class query instead —
-// neither actually fixed the real bug (see below), both attempts kept
-// around here as history since the next thing broken in this area
-// should not retry either.
-//
-// The real problem: this used to block body scroll by preventDefault()
-// on touchmove outside the sheet — which can only stop a NEW scroll
-// gesture from starting. It can't stop one that's already committed:
-// if the user was scrolling Settings (or anything) with any real
-// velocity right as a sheet opened, iOS's own momentum/inertial scroll
-// keeps animating the background on its own, with no more touch events
-// for any handler to intercept — reported exactly this way ("there's a
-// scrollbar from the background scrolling... only after that one
-// disappears can I scroll in versions"). No amount of touchmove
-// handling fixes that, because by the time it's happening there's no
-// touch left to call preventDefault on.
-// Fixed properly: freeze the body itself out of the scrollable flow via
-// position:fixed while any overlay is open, instead of trying to
-// intercept gestures aimed at it. A position:fixed element can't be
-// mid-momentum-scroll — this stops an already-in-flight one dead, not
-// just future attempts, and needs no per-touch decision logic at all.
-var _bodyLockY=0;
-// Two ways to stop the page scrolling behind a sheet:
-//  - position:fixed on <body> (top:-scrollY, restored on unlock). Stops an
-//    already-in-flight iOS momentum scroll dead, which overflow:hidden may
-//    not — this is why it exists (see CLAUDE.md).
-//  - overflow:hidden on <html>, used in the installed iPhone app instead.
-// On the user's phone (iOS, standalone, screen 852pt) the first one makes
-// the layout viewport shrink from 852 to 793 — by exactly the 59pt top
-// safe area — the whole time it's applied: window.innerHeight 793, every
-// position:fixed element (sheet, backdrop) stops 59pt above the physical
-// bottom, leaving a strip the page can't paint into. Confirmed by their
-// on-device readout: same sheet, lock on = bottom 793 + strip, lock off =
-// bottom 852 and no strip. It also moved the fixed tab bar up and back
-// on every open/close, the "menu jump". Everything tried before that
-// (hide tab bar, extend sheet/backdrop, recolor html) was chasing a
-// symptom. Non-standalone browsers keep the fixed lock unchanged.
-var _lockMode='fixed';
-// The tab bar is hidden while a sheet is open (no bottom bar under it),
-// but only once the sheet has finished sliding up — hiding it first made
-// it vanish and THEN slide, which looked unfinished. On close it comes
-// back at the start of the slide down, so it's already there as the
-// sheet leaves. _tabSheetHide is read by TabBar.wantVisible().
-var _tabSheetHide=false,_tabSheetTimer=null;
+// Scroll lock while any sheet is open. position:fixed on <body> (top:-scrollY,
+// restored on unlock) stops an already-running iOS momentum scroll dead,
+// which touchmove blocking can't. In the installed iPhone app it shrinks the
+// layout viewport by the top safe area (852 -> 793), leaving a strip under
+// every sheet and moving the fixed tab bar, so there it's overflow:hidden on
+// <html> instead. _lockMode remembers which was applied. See CLAUDE.md.
+var _bodyLockY=0,_lockMode='fixed';
 function _lockBodyScroll(){
   _bodyLockY=window.scrollY||document.documentElement.scrollTop||0;
   _lockMode=(navigator.standalone===true)?'overflow':'fixed';
   if(_lockMode==='overflow'){
     document.documentElement.style.overflow='hidden';
   } else {
-    document.body.style.position='fixed';
-    document.body.style.top=(-_bodyLockY)+'px';
-    document.body.style.left='0';
-    document.body.style.right='0';
-    document.body.style.width='100%';
+    var b=document.body.style;
+    b.position='fixed';b.top=(-_bodyLockY)+'px';b.left='0';b.right='0';b.width='100%';
   }
 }
 function _unlockBodyScroll(){
   if(_lockMode==='overflow'){
     document.documentElement.style.overflow='';
   } else {
-    document.body.style.position='';
-    document.body.style.top='';
-    document.body.style.left='';
-    document.body.style.right='';
-    document.body.style.width='';
+    var b=document.body.style;
+    b.position='';b.top='';b.left='';b.right='';b.width='';
     window.scrollTo(0,_bodyLockY);
   }
 }
-// Kept in sync with .sheet's "transition:transform .13s" above — the
-// close path needs to know how long that animation takes so it can wait
-// for it to finish before actually hiding the sheet (see _overlayClose).
+// The tab bar is hidden while a sheet is open, but only once the sheet has
+// finished sliding up (hiding first looked unfinished); on close it comes
+// back at the start of the slide down. _tabSheetHide is read by
+// TabBar.wantVisible().
+var _tabSheetHide=false,_tabSheetTimer=null;
+function _tabBarBack(){
+  clearTimeout(_tabSheetTimer);
+  _tabSheetHide=false;
+  TabBar.applyVisibility(Nav.cur);
+}
+// Kept in sync with .sheet's "transition:transform .13s" — the close path
+// waits this long for the slide to finish before hiding the sheet.
 var SHEET_ANIM_MS=130;
 function _overlayOpen(id){
   var ov=document.getElementById(id);
-  // A same-overlay close, still mid-close-animation, was scheduled to
-  // hide this element shortly — reopening it before that fires must
-  // cancel it, or it'll yank the just-reopened sheet away again the
-  // moment that stale timer runs.
+  // Reopening during a close animation must cancel its pending hide.
   if(ov._closeTimer){clearTimeout(ov._closeTimer);ov._closeTimer=null;}
-  ov.classList.add('on'); // display:none -> block; .sheet is still at its
-  // resting off-screen transform here, .show isn't added yet.
+  ov.classList.add('on'); // display:none -> block; sheet still off-screen
   _overlayCount++;
   if(_overlayCount===1){
     _lockBodyScroll();
@@ -3597,42 +3506,20 @@ function _overlayOpen(id){
       if(_overlayCount>0){_tabSheetHide=true;TabBar.applyVisibility(Nav.cur);}
     },SHEET_ANIM_MS+40);
   }
-  // .show (which triggers the actual slide-up, see the CSS above) has to
-  // land in a LATER paint than the display:none->block flip above, or
-  // there's no real "before" frame for the transform transition to
-  // interpolate from — both changes hit the same recalc and different
-  // browsers resolve that ambiguity differently. Measured here: Chrome
-  // just skips the animation outright (jumps straight to open); the
-  // report from a real iPhone was a partial slide that then snaps the
-  // rest of the way — same underlying cause, two different-looking
-  // symptoms. A single requestAnimationFrame isn't reliably enough (the
-  // first callback can still land before the .on paint has committed);
-  // nesting a second one guarantees a full frame has already rendered
-  // the closed state first.
+  // .show starts the slide-up and must land in a LATER paint than the
+  // display flip above, or there is no "before" frame to transition from
+  // (Chrome skips the animation, iOS jumps partway). One rAF isn't reliably
+  // enough; two guarantee a rendered closed state first.
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
       ov.classList.add('show');
     });
   });
 }
-// `instant`: skip the wait-then-hide below entirely. For the normal
-// close paths (backdrop tap, Cancel/Save buttons) .show is still active
-// right up until this runs, so the CSS transition needs its full
-// duration to visibly slide the sheet away before it's actually hidden.
-// But #verhist-overlay's own swipe-to-dismiss gesture (see its IIFE
-// below) already animates the sheet off-screen ITSELF, with its own
-// duration, and only calls close() once that's fully finished — so by
-// the time we get here the sheet is already gone. Waiting SHEET_ANIM_MS
-// *again* before hiding the backdrop on top of that added a dead pause
-// after the sheet had visually already left (reported as "closing,
-// window's gone, then ~0.5s where nothing happens before you're back to
-// the screen behind it"). Any future custom pre-close animation should
-// pass `instant` too, for the same reason.
-function _tabBarBack(){
-  clearTimeout(_tabSheetTimer);
-  _tabSheetHide=false;
-  TabBar.applyVisibility(Nav.cur);
-}
+// `instant`: hide right away, no slide-down wait. For callers that already
+// animated the sheet off-screen themselves (Version history's swipe
+// dismiss) — waiting again left a dead pause before the page behind
+// returned.
 function _overlayClose(id,instant){
   var ov=document.getElementById(id);
   if(ov._closeTimer){clearTimeout(ov._closeTimer);ov._closeTimer=null;}
@@ -3644,21 +3531,15 @@ function _overlayClose(id,instant){
     if(_overlayCount===0)_unlockBodyScroll();
     return;
   }
-  // Mirror of the open animation: dropping .show (while .on/display:block
-  // is still in effect) slides the sheet back down first. Only once that
-  // finishes do we actually hide it (display:none) and, if nothing else
-  // is still open, unlock body scroll — doing either of those right away
-  // would cut the closing slide off after zero frames, same as removing
-  // .on used to do before this existed.
+  // Drop .show to slide down first; hide (and unlock, if nothing else is
+  // open) only once that finishes.
   ov._closeTimer=setTimeout(function(){
     ov.classList.remove('on');
     ov._closeTimer=null;
-    // Re-read _overlayCount live rather than capturing it above — another
-    // overlay may have opened or closed during this delay.
+    // Re-read live: another overlay may have opened or closed meanwhile.
     if(_overlayCount===0)_unlockBodyScroll();
   },SHEET_ANIM_MS);
 }
-
 
 var UpdateOverlay={
   show:function(text){
@@ -3685,11 +3566,8 @@ var UpdateOverlay={
   }
 };
 var WhatsNew={
-  // Skipping "Check for updates" a few times in a row used to mean this
-  // sheet only ever showed the single latest CHANGELOG entry — every
-  // version you missed in between was silently marked as seen the
-  // moment you dismissed it. Now it queues up every entry newer than
-  // your last-seen version and steps through them one screen at a time.
+  // Queues every CHANGELOG entry newer than the last-seen version and steps
+  // through them one screen at a time, so skipped versions aren't lost.
   _queue:[],
   _idx:0,
   _pending:function(){
@@ -3793,22 +3671,15 @@ var VersionHistory={
     if(!sheetEl||!dragging){sheetEl=null;return;}
     var el=sheetEl,ov=ovEl;
     if(curDy>80){
-      // Flat SHEET_ANIM_MS here (not a distance-scaled duration) so a
-      // swipe-dismiss finishes in exactly the same amount of time as
-      // tapping the backdrop to close does, on request — previously
-      // this scaled with remaining distance instead (see the dur2
-      // branch below, which still does, for the snap-back case).
+      // Flat SHEET_ANIM_MS so a swipe-dismiss takes as long as tapping the
+      // backdrop; only the snap-back below scales with distance.
       el.style.transition='transform '+SHEET_ANIM_MS+'ms cubic-bezier(.25,.46,.45,.94)';
       el.style.transform='translateY('+sheetH+'px)';
       ov.style.transition='opacity '+SHEET_ANIM_MS+'ms cubic-bezier(.25,.46,.45,.94)';
       ov.style.opacity='0';
       if(_overlayCount<=1)_tabBarBack();
       setTimeout(function(){
-        // instant: this gesture already slid the sheet (and faded the
-        // backdrop) fully away itself — _overlayClose() shouldn't wait
-        // out its own separate animation duration on top of that
-        // before hiding things, or the dimmed background lingers for a
-        // beat after the sheet's already gone.
+        // instant: this gesture already animated the sheet away itself.
         VersionHistory.close(true);
         el.style.transition='';el.style.transform='';
         ov.style.transition='';ov.style.opacity='';

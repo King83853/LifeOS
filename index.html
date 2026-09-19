@@ -889,7 +889,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.56';
+var APP_VERSION='Beta 1.57';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1113,6 +1113,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.56',notes:[
     'Sheets: the strip at the very bottom of the screen (where the home indicator sits) now takes the sheet\'s color while a sheet is open, instead of showing the page\'s dark-blue background'
+  ]},
+  {v:'Beta 1.57',notes:[
+    'Temporary: Version history now shows a small readout of screen/viewport numbers at the top, to track down the empty strip at the bottom of sheets on your phone'
   ]}
 ];
 var COLORS={
@@ -3468,12 +3471,49 @@ var WhatsNew={
 };
 var VersionHistory={
   open:function(){
-    document.getElementById('verhist-body').innerHTML=CHANGELOG.slice().reverse().map(function(entry){
+    document.getElementById('verhist-body').innerHTML=
+      // TEMPORARY DIAGNOSTIC (Beta 1.57): three blind fixes for the strip
+      // under sheets on the user's phone all failed and it can't be
+      // reproduced in preview, so this prints the real numbers from the
+      // device. Remove once the cause is known.
+      '<pre id="vh-diag" style="font:11px/1.35 ui-monospace,Menlo,monospace;white-space:pre-wrap;background:rgba(127,127,127,.15);border-radius:10px;padding:10px;margin-bottom:12px;-webkit-user-select:text;user-select:text"></pre>'
+      +'<div style="display:flex;gap:8px;margin-bottom:16px"><button class="sheet-cancel" style="flex:1" onclick="VersionHistory.diag()">Refresh numbers</button>'
+      +'<button class="sheet-cancel" style="flex:1" onclick="VersionHistory.diagLock()">Toggle scroll lock</button></div>'
+      +CHANGELOG.slice().reverse().map(function(entry){
       return '<div style="margin-bottom:18px"><div style="font-weight:800;font-size:15px;margin-bottom:6px">'+esc(entry.v)+'</div>'
         +entry.notes.map(function(n){return '<div class="wn-item">• '+esc(n)+'</div>';}).join('')
         +'</div>';
     }).join('');
     _overlayOpen('verhist-overlay');
+    setTimeout(function(){VersionHistory.diag();},600);
+  },
+  diag:function(){
+    var el=document.getElementById('vh-diag');if(!el)return;
+    function probe(css){var d=document.createElement('div');d.style.cssText='position:fixed;left:0;top:0;width:1px;visibility:hidden;pointer-events:none;'+css;document.body.appendChild(d);var h=Math.round(d.getBoundingClientRect().height);document.body.removeChild(d);return h;}
+    var vv=window.visualViewport,ov=document.getElementById('verhist-overlay'),sh=ov.querySelector('.sheet');
+    var o=ov.getBoundingClientRect(),r=sh.getBoundingClientRect(),b=document.body.getBoundingClientRect();
+    el.textContent=[
+      APP_VERSION+'  standalone='+(navigator.standalone===true)+'  dm='+window.matchMedia('(display-mode: standalone)').matches,
+      'inner '+innerWidth+'x'+innerHeight+'  outerH '+outerHeight,
+      'screen '+screen.width+'x'+screen.height+'  avail '+screen.availHeight,
+      'visualVP h '+(vv?Math.round(vv.height):'-')+' top '+(vv?Math.round(vv.offsetTop):'-'),
+      'docEl clientH '+document.documentElement.clientHeight,
+      'vh '+probe('height:100vh')+'  svh '+probe('height:100svh')+'  lvh '+probe('height:100lvh')+'  dvh '+probe('height:100dvh'),
+      'safe top '+probe('height:env(safe-area-inset-top)')+'  bottom '+probe('height:env(safe-area-inset-bottom)'),
+      'overlay top '+Math.round(o.top)+' bottom '+Math.round(o.bottom),
+      'sheet top '+Math.round(r.top)+' bottom '+Math.round(r.bottom),
+      'body top '+Math.round(b.top)+' h '+Math.round(b.height)+' pos '+document.body.style.position,
+      'html bg '+document.documentElement.style.background
+    ].join('\n');
+  },
+  diagLock:function(){
+    if(document.body.style.position==='fixed'){
+      document.body.style.position='';document.body.style.top='';
+      document.documentElement.style.background='';
+    } else {
+      document.body.style.position='fixed';document.body.style.top=(-_bodyLockY)+'px';
+    }
+    setTimeout(function(){VersionHistory.diag();},100);
   },
   close:function(instant){_overlayClose('verhist-overlay',instant);}
 };

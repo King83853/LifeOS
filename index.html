@@ -926,7 +926,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.67';
+var APP_VERSION='Beta 1.68';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1185,6 +1185,9 @@ var CHANGELOG=[
   {v:'Beta 1.67',notes:[
     'Today: the Tasks or Habits heading is hidden when it has nothing in it',
     'Fixed: a task you skipped could come back if you left Today right after swiping it'
+  ]},
+  {v:'Beta 1.68',notes:[
+    'Temporary: a small black readout appears when you skip a task, to help track down skipped tasks coming back'
   ]}
 ];
 var COLORS={
@@ -3075,6 +3078,13 @@ function syncTodaySections(){
   hh.style.marginTop=hasT?'22px':'';
   document.getElementById('today-none').style.display=(hasT||hasH)?'none':'';
 }
+// TEMP DIAGNOSTIC (1.68): on-device readout for the "skipped task comes back" report.
+var _skipDbg=null;
+function skipToast(msg){
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:99999;background:#111;color:#fff;font:12px/1.4 monospace;padding:10px 12px;border-radius:10px;white-space:pre-wrap;word-break:break-all';
+  d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove();},9000);
+}
 function renderToday(){
   var all=[];
   for(var pid in DB.data.extraTasks){
@@ -3082,6 +3092,7 @@ function renderToday(){
     if(pr&&pr.type==='list')continue;
     (DB.data.extraTasks[pid]||[]).forEach(function(t){
       if(t.skip===pDate(0))return; // skipped for today
+      if(_skipDbg&&t.key===_skipDbg.key){skipToast('BACK AGAIN\nkey='+t.key+'\nt.skip='+t.skip+'\npDate(0)='+pDate(0)+'\nsavedAtSkip='+_skipDbg.ds+'\nT='+T.toString()+'\nnow='+new Date().toString());_skipDbg=null;}
       all.push({text:t.text,pri:t.pri||'bs',section:pr?pr.name:pid,key:t.key,pid:pid,color:pr?pr.color:'c-grey',skip:t.skip});
     });
   }
@@ -3202,7 +3213,9 @@ var Skip=(function(){
     var ds=pDate(0);
     if(w.classList.contains('t')){
       var key=w.querySelector('.ti').getAttribute('data-key');
-      DB.skipTask(key,ds); // saved now, not after the animation, so leaving Today mid-slide can't lose it
+      DB.skipTask(key,ds);
+      var _n=0;for(var _p in DB.data.extraTasks)(DB.data.extraTasks[_p]||[]).forEach(function(t){if(t.key===key)_n++;});
+      _skipDbg={key:key,ds:ds};skipToast('skip key='+key+'\nmatches='+_n+'\nds='+ds+'\nrefill='+DB.data.settings.todayRefill); // saved now, not after the animation, so leaving Today mid-slide can't lose it
       setX(w,w.offsetWidth+20,true);
       setTimeout(function(){
         w.style.maxHeight=w.offsetHeight+'px';void w.offsetHeight;

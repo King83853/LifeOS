@@ -34,12 +34,15 @@ html[data-theme="light"] .statusbar-blur{background:rgba(243,244,246,.35)}
 html[data-theme="dark"] .tabbar{background:#1f2937;border-color:#2a2927}
 html[data-theme="light"] .tabbar{background:#f3f4f6;border-color:#e8e5e0}
 body.kb-open .tabbar,body.kb-open .fab{display:none!important}
-.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#aaa;font-size:11px;font-weight:700;font-family:inherit;background:none;border:none;padding:6px 0}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#6b7280;font-size:11px;font-weight:700;font-family:inherit;background:none;border:none;padding:6px 0}
 .tab-item.active{color:#1a1917}
 @media(prefers-color-scheme:dark){.tab-item.active{color:#e8e6df}}
 html[data-theme="dark"] .tab-item.active{color:#e8e6df}
 html[data-theme="light"] .tab-item.active{color:#1a1917}
-.tab-item svg{stroke:currentColor;width:23px;height:23px}
+.tab-item svg{stroke:currentColor;width:26px;height:26px}
+@media(prefers-color-scheme:dark){.tab-item{color:#9ca3af}}
+html[data-theme="dark"] .tab-item{color:#9ca3af}
+html[data-theme="light"] .tab-item{color:#6b7280}
 .fab{display:none;position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom) + 96px);width:52px;height:52px;border-radius:50%;background:#1a1917;color:#fff;align-items:center;justify-content:center;border:none;cursor:pointer;z-index:149;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .fab.show{display:flex}
 @media(prefers-color-scheme:dark){.fab{background:#e8e6df;color:#1a1917}}
@@ -364,6 +367,7 @@ html[data-theme="light"] .switch-slider{background:#d1d1d1}
 .switch input:checked+.switch-slider{background:#3b82f6}
 .switch input:checked+.switch-slider::before{transform:translateX(20px)}
 
+.sl-count{display:inline-block;margin-left:8px;min-width:18px;padding:1px 6px;border-radius:99px;background:rgba(127,127,127,.18);color:#888;font-size:10px;font-weight:800;letter-spacing:0;text-align:center;vertical-align:1px}
 .sl{font-size:11px;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px}
 
 .color-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
@@ -415,6 +419,16 @@ html[data-theme="light"] .sheet{background:#fff}
    the transform-to-open and the display:none->block flip can't be the
    same class change. */
 .sheet-overlay.on.show .sheet{transform:translateY(0)}
+/* Task sheet: name as a plain title, importance + project as one slim
+   row each (no labels), and the notes box is the main thing in it. Scoped
+   to #task-sheet-overlay so no other sheet changes. */
+#task-sheet-overlay .sheet{max-height:88vh;padding:18px 18px 20px}
+.ts-title{width:100%;font-size:21px;font-weight:800;line-height:1.25;border:none;background:transparent;color:inherit;outline:none;padding:2px 0;margin-bottom:12px;font-family:inherit}
+.ts-title::placeholder{color:#bbb}
+#task-sheet-pri{margin-top:0;margin-bottom:10px;flex-wrap:nowrap;gap:6px}
+#task-sheet-pri .pri-pill{flex:1;justify-content:center;padding:6px 2px;min-height:32px;font-size:12px}
+.cat-choice.ts-proj{display:inline-flex;padding:6px 12px;margin:0 0 14px;font-size:13px;border-radius:99px;gap:6px}
+.ts-notes{min-height:40vh;resize:none;line-height:1.5;font-family:inherit;font-size:16px;padding:14px;margin-bottom:14px;display:block}
 .sheet-drag-handle{width:36px;height:4px;border-radius:2px;background:#d1d1d1;margin:0 auto 16px}
 @media(prefers-color-scheme:dark){.sheet-drag-handle{background:#444}}
 html[data-theme="dark"] .sheet-drag-handle{background:#444}
@@ -478,16 +492,15 @@ html[data-theme="dark"] .type-btn{border-color:#2a2927}
 html[data-theme="light"] .type-btn{border-color:#e8e5e0}
 .type-btn.active{border-color:#1a1917;color:#1a1917;background:#f3f4f6}
 
-.seg-row{display:flex;gap:8px;margin-bottom:18px}
-.seg-btn{flex:1;padding:12px 6px;border:1.5px solid #e8e5e0;border-radius:14px;text-align:center;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;color:#999;background:#fff}
-@media(prefers-color-scheme:dark){.seg-btn{background:#1e1c1a;border-color:#2a2927}}
-html[data-theme="dark"] .seg-btn{background:#1e1c1a;border-color:#2a2927}
-html[data-theme="light"] .seg-btn{background:#fff;border-color:#e8e5e0}
-.seg-btn.active{border-color:#1a1917;color:#1a1917}
-@media(prefers-color-scheme:dark){.seg-btn.active{border-color:#e8e6df;color:#e8e6df}}
-html[data-theme="dark"] .seg-btn.active{border-color:#e8e6df;color:#e8e6df}
-html[data-theme="light"] .seg-btn.active{border-color:#1a1917;color:#1a1917}
+.seg-row{display:flex;flex:none;gap:2px;padding:2px;border-radius:99px;background:rgba(127,127,127,.15)}
+.seg-btn{padding:4px 10px;border:none;border-radius:99px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;color:#999;background:transparent}
+.seg-btn.active{background:#fff;color:#1a1917;box-shadow:0 1px 2px rgba(0,0,0,.14)}
+@media(prefers-color-scheme:dark){.seg-btn.active{background:#3a3836;color:#e8e6df;box-shadow:none}}
+html[data-theme="dark"] .seg-btn.active{background:#3a3836;color:#e8e6df;box-shadow:none}
+html[data-theme="light"] .seg-btn.active{background:#fff;color:#1a1917;box-shadow:0 1px 2px rgba(0,0,0,.14)}
 .seg-btn:active{opacity:.7}
+.chart-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;min-height:24px}
+.chart-hdr .chart-readout{font-size:12px;font-weight:700;color:#999;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(prefers-color-scheme:dark){.type-btn.active{border-color:#e8e6df;color:#e8e6df;background:#252320}}
 html[data-theme="dark"] .type-btn.active{border-color:#e8e6df;color:#e8e6df;background:#252320}
 html[data-theme="light"] .type-btn.active{border-color:#1a1917;color:#1a1917;background:#f3f4f6}
@@ -511,11 +524,11 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 <div class="statusbar-blur"></div>
 
 <div class="tabbar">
-  <button class="tab-item" data-tab="today" onclick="TabBar.go('today')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Today</span></button>
-  <button class="tab-item" data-tab="overview" onclick="TabBar.go('overview')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Overview</span></button>
-  <button class="tab-item" data-tab="lockedin" onclick="TabBar.go('lockedin')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg><span>Tasks</span></button>
-  <button class="tab-item" data-tab="stats" onclick="TabBar.go('stats')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg><span>Stats</span></button>
-  <button class="tab-item" data-tab="settings" onclick="TabBar.go('settings')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
+  <button class="tab-item" data-tab="today" onclick="TabBar.go('today')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><line x1="3.5" y1="10.5" x2="20.5" y2="10.5"/></svg><span>Today</span></button>
+  <button class="tab-item" data-tab="overview" onclick="TabBar.go('overview')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Overview</span></button>
+  <button class="tab-item" data-tab="lockedin" onclick="TabBar.go('lockedin')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><polyline points="8 12.2 10.8 15 16 9.2"/></svg><span>Tasks</span></button>
+  <button class="tab-item" data-tab="stats" onclick="TabBar.go('stats')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="11"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg><span>Stats</span></button>
+  <button class="tab-item" data-tab="settings" onclick="TabBar.go('settings')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3.5" y1="7" x2="6.5" y2="7"/><circle cx="9" cy="7" r="2.5"/><line x1="11.5" y1="7" x2="20.5" y2="7"/><line x1="3.5" y1="17" x2="12.5" y2="17"/><circle cx="15" cy="17" r="2.5"/><line x1="17.5" y1="17" x2="20.5" y2="17"/></svg><span>Settings</span></button>
 </div>
 
 <button class="fab" id="fab" onclick="TabPlus.tap()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
@@ -594,24 +607,29 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
     </div>
   </div>
 
-  <div class="shdr">📊 All habits combined</div>
+  <div class="shdr">📊 Consistency score</div>
   <div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:22px 14px;gap:10px">
     <div id="stats-pie"></div>
     <div id="stats-pie-text" style="font-size:13px;color:#999;text-align:center;line-height:1.5"></div>
   </div>
 
-  <div class="seg-row" id="stats-seg">
-    <button class="seg-btn active" data-view="day" onclick="Stats.setView('day')">Day</button>
-    <button class="seg-btn" data-view="week" onclick="Stats.setView('week')">Week</button>
-    <button class="seg-btn" data-view="month" onclick="Stats.setView('month')">Month</button>
-  </div>
-  <div class="calsec" style="padding:16px 14px 10px">
-    <div id="stats-chart-readout" style="font-size:12px;font-weight:700;color:#999;margin-bottom:10px;min-height:16px">&nbsp;</div>
+  <div class="calsec" style="padding:12px 14px 10px">
+    <div class="chart-hdr">
+      <div id="stats-chart-readout" class="chart-readout">&nbsp;</div>
+      <div class="seg-row" id="stats-seg">
+        <button class="seg-btn active" data-view="day" onclick="Stats.setView('day')">Day</button>
+        <button class="seg-btn" data-view="week" onclick="Stats.setView('week')">Week</button>
+        <button class="seg-btn" data-view="month" onclick="Stats.setView('month')">Month</button>
+      </div>
+    </div>
     <div id="stats-chart"></div>
   </div>
 
   <div class="shdr" style="margin-top:22px">🏅 Best score</div>
   <div class="calsec" id="stats-best" style="padding:16px;font-size:14px;text-align:center"></div>
+
+  <div class="shdr" style="margin-top:22px">📉 Worst score</div>
+  <div class="calsec" id="stats-worst" style="padding:16px;font-size:14px;text-align:center"></div>
 
   <div class="shdr" style="margin-top:22px">✅ One-time tasks</div>
   <div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:22px 14px;gap:6px">
@@ -680,13 +698,15 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
     </div>
     <button class="edit-proj-btn" onclick="HabitDetail.rename()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
   </div>
-  <div class="seg-row" id="hd-seg">
-    <button class="seg-btn active" data-view="day" onclick="HabitDetail.setView('day')">Day</button>
-    <button class="seg-btn" data-view="week" onclick="HabitDetail.setView('week')">Week</button>
-    <button class="seg-btn" data-view="month" onclick="HabitDetail.setView('month')">Month</button>
-  </div>
-  <div class="calsec" style="padding:16px 14px 10px">
-    <div id="hd-chart-readout" style="font-size:12px;font-weight:700;color:#999;margin-bottom:10px;min-height:16px">&nbsp;</div>
+  <div class="calsec" style="padding:12px 14px 10px">
+    <div class="chart-hdr">
+      <div id="hd-chart-readout" class="chart-readout">&nbsp;</div>
+      <div class="seg-row" id="hd-seg">
+        <button class="seg-btn active" data-view="day" onclick="HabitDetail.setView('day')">Day</button>
+        <button class="seg-btn" data-view="week" onclick="HabitDetail.setView('week')">Week</button>
+        <button class="seg-btn" data-view="month" onclick="HabitDetail.setView('month')">Month</button>
+      </div>
+    </div>
     <div id="hd-chart"></div>
   </div>
   <div class="shdr" style="margin-top:22px">🔥 Consistency</div>
@@ -857,25 +877,19 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 
 <div class="sheet-overlay" id="task-sheet-overlay" onclick="if(event.target===this)TaskSheet.close()">
   <div class="sheet">
-    <div class="sheet-title">Task</div>
-    <div class="sheet-label">Name</div>
-    <input class="sheet-inp" id="task-sheet-name" placeholder="Task name">
-    <div class="sheet-label">Notes</div>
-    <textarea id="task-sheet-desc" class="sheet-inp" style="min-height:80px;resize:vertical;font-family:inherit;font-size:15px" placeholder="Add notes (optional)"></textarea>
-    <div class="sheet-label">Importance</div>
-    <div class="pri-row" id="task-sheet-pri" style="margin-top:0;margin-bottom:18px">
+    <input class="ts-title" id="task-sheet-name" placeholder="Task name">
+    <div class="pri-row" id="task-sheet-pri">
       <span class="pri-pill bu" data-p="bu" onclick="TaskSheet.setPri(this)">War Room</span>
       <span class="pri-pill bs" data-p="bs" onclick="TaskSheet.setPri(this)">High</span>
       <span class="pri-pill bp" data-p="bp" onclick="TaskSheet.setPri(this)">Medium</span>
       <span class="pri-pill bl" data-p="bl" onclick="TaskSheet.setPri(this)">Low</span>
     </div>
-    <div class="sheet-label">Project</div>
-    <div id="task-sheet-move-btn" class="cat-choice" onclick="TaskSheet.pickProject()" style="margin-bottom:18px"></div>
+    <div id="task-sheet-move-btn" class="cat-choice ts-proj" onclick="TaskSheet.pickProject()"></div>
+    <textarea id="task-sheet-desc" class="sheet-inp ts-notes" placeholder="Notes" oninput="TaskSheet.autosize()"></textarea>
     <div class="sheet-btns">
       <button class="sheet-cancel" onclick="TaskSheet.close()">Cancel</button>
       <button class="sheet-save" onclick="TaskSheet.save()">Save</button>
     </div>
-    <button class="addbtn" style="width:100%;margin-top:10px;font-size:14px;min-height:48px;background:#22c55e;color:#fff;border-color:#22c55e" onclick="TaskSheet.complete()">✓ Mark complete</button>
   </div>
 </div>
 
@@ -889,7 +903,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.58';
+var APP_VERSION='Beta 1.63';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1119,6 +1133,23 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.58',notes:[
     'Fixed: the empty strip at the bottom of every sheet on iPhone — sheets now run all the way to the bottom edge. The cause was the scroll lock shrinking the screen by the status-bar height while a sheet was open; the readout is gone again'
+  ]},
+  {v:'Beta 1.59',notes:[
+    'Task window redesigned: cleaner and more compact — name as a plain title, importance and project on slim rows, and a much bigger notes box. "Mark complete" is gone from it (tick the task off in the list instead)',
+    'Tasks tab: each priority header now shows how many tasks are in it',
+    'Statistics: "All habits combined" is now called "Consistency score", and its caption reads "x / x habits"'
+  ]},
+  {v:'Beta 1.60',notes:[
+    'Day / Week / Month buttons are now small and sit inside the chart itself (Statistics tab and each habit\'s page) instead of being three big buttons above it'
+  ]},
+  {v:'Beta 1.61',notes:[
+    'Statistics: Best score no longer says "3-month consistency", and there\'s a new Worst score card showing your lowest-scoring habit'
+  ]},
+  {v:'Beta 1.62',notes:[
+    'Consistency scores now only count days since a habit was added (last 90 days at most) — a new habit no longer gets scored against months before it existed'
+  ]},
+  {v:'Beta 1.63',notes:[
+    'Footer icons redrawn as one matching, simpler set — a little bigger and much easier to see (the grey was very faint)'
   ]}
 ];
 var COLORS={
@@ -1330,7 +1361,7 @@ var DB={
   },
   addDailyItem:function(catId,text,days){
     var id='di'+Date.now()+Math.random().toString(36).slice(2);
-    this.data.dailyItems.push({id:id,catId:catId,text:text,days:days});
+    this.data.dailyItems.push({id:id,catId:catId,text:text,days:days,created:dStr(new Date())});
     this.save();return id;
   },
   // A tracker "habit" is a dailyItems entry with no text of its own —
@@ -1340,7 +1371,7 @@ var DB={
   // there doesn't leave a stale copy sitting in the daily item.
   addTrackerDailyItem:function(catId,trackerPid,days){
     var id='di'+Date.now()+Math.random().toString(36).slice(2);
-    this.data.dailyItems.push({id:id,catId:catId,trackerPid:trackerPid,days:days});
+    this.data.dailyItems.push({id:id,catId:catId,trackerPid:trackerPid,days:days,created:dStr(new Date())});
     this.save();return id;
   },
   deleteDailyItem:function(id){
@@ -1646,7 +1677,7 @@ function renderLockedIn(){
   ['bu','bs','bp','bl'].forEach(function(pri){
     var items=all.filter(function(t){return t.pri===pri;});
     if(!items.length)return;
-    h+='<div class="sl"'+(h?' style="margin-top:20px"':'')+'>'+PLBL[pri]+'</div>';
+    h+='<div class="sl"'+(h?' style="margin-top:20px"':'')+'>'+PLBL[pri]+'<span class="sl-count">'+items.length+'</span></div>';
     h+=items.map(function(t){
       var col=COLORS[t.color||'c-grey']||'#6b7280';
       return '<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
@@ -2565,30 +2596,45 @@ function wIdx(d){return (d.getDay()+6)%7;}
 // Cumulative, not a streak — every scheduled day you've ever completed
 // counts toward the total, gaps and all. 90/90 scheduled days completed
 // (ever) is 100%; 45/90 is 50%. They don't need to be back to back.
+// The date (YYYY-MM-DD) a habit started counting from. New habits store
+// `created`; older ones are dated from their id, which is 'di'+Date.now()+
+// random — so nothing existing needs migrating. Days before this never
+// count for or against a habit: adding one today must not score you
+// against three months you couldn't have done it.
+function habitCreatedDs(it){
+  if(it.created)return it.created;
+  var ms=parseInt(String(it.id||'').slice(2,15),10);
+  return ms>1e12?dStr(new Date(ms)):'0000-00-00';
+}
+// Score = scheduled days completed / scheduled days elapsed, over the last
+// 90 days but never reaching back before the habit existed. Today counts
+// only once it's checked off (still pending otherwise). target 0 = nothing
+// to judge yet (brand-new habit).
 function habitConsistency(item){
   var days=item.days||[];
-  if(!days.length)return{completed:0,target:1,pct:0};
-  var target=Math.max(1,Math.round(90*days.length/7));
-  var completed=0;
-  for(var ds in DB.data.dailyChecks){
-    if(!DB.data.dailyChecks[ds][item.id])continue;
-    if(days.indexOf(wIdx(new Date(ds+'T00:00:00')))===-1)continue; // only count days it was actually scheduled
-    completed++;
+  if(!days.length)return{completed:0,target:0,pct:0};
+  var created=habitCreatedDs(item),todayS=dStr(T);
+  var d=new Date(T);d.setDate(d.getDate()-89);
+  var completed=0,target=0;
+  for(;dStr(d)<=todayS;d.setDate(d.getDate()+1)){
+    var ds=dStr(d);
+    if(ds<created||days.indexOf(wIdx(d))===-1)continue;
+    var done=!!(DB.data.dailyChecks[ds]&&DB.data.dailyChecks[ds][item.id]);
+    if(ds===todayS&&!done)continue;
+    target++;if(done)completed++;
   }
-  return{completed:completed,target:target,pct:Math.min(100,Math.round(completed/target*100))};
+  return{completed:completed,target:target,pct:target?Math.min(100,Math.round(completed/target*100)):0};
 }
-
-// Bars: day view = one bar per scheduled day (binary — done or not).
-// Week/month = one bar per period, height = how many scheduled days in
-// that period were completed. Raw counts, not percentages.
 function habitPeriods(item,granularity,count){
   var days=item.days||[];
   var out=[];
   if(!days.length)return out;
+  var created=habitCreatedDs(item);
   if(granularity==='day'){
     var cursor=new Date(T),guard=0;
     while(out.length<count&&guard<450){
       guard++;
+      if(dStr(cursor)<created)break;
       if(days.indexOf(wIdx(cursor))!==-1){
         var ds=dStr(cursor);
         var done=!!(DB.data.dailyChecks[ds]&&DB.data.dailyChecks[ds][item.id]);
@@ -2604,9 +2650,9 @@ function habitPeriods(item,granularity,count){
       for(var d=0;d<7;d++){
         var day=new Date(start);day.setDate(day.getDate()+d);
         if(day>T)continue;
-        if(days.indexOf(d)!==-1){
+        var ds2=dStr(day);
+        if(days.indexOf(d)!==-1&&ds2>=created){
           scheduled++;
-          var ds2=dStr(day);
           if(DB.data.dailyChecks[ds2]&&DB.data.dailyChecks[ds2][item.id])completed++;
         }
       }
@@ -2619,9 +2665,9 @@ function habitPeriods(item,granularity,count){
       var mend=new Date(base.getFullYear(),base.getMonth()-m+1,0);
       var completed2=0,scheduled2=0,cur=new Date(mstart);
       while(cur<=mend){
-        if(cur<=T&&days.indexOf(wIdx(cur))!==-1){
+        var ds3=dStr(cur);
+        if(cur<=T&&days.indexOf(wIdx(cur))!==-1&&ds3>=created){
           scheduled2++;
-          var ds3=dStr(cur);
           if(DB.data.dailyChecks[ds3]&&DB.data.dailyChecks[ds3][item.id])completed2++;
         }
         cur.setDate(cur.getDate()+1);
@@ -2688,9 +2734,21 @@ function bestHabitConsistency(){
   DB.data.dailyItems.forEach(function(it){
     if(!it.days||!it.days.length||it.trackerPid)return;
     var s=habitConsistency(it);
+    if(!s.target)return;
     if(!best||s.pct>best.pct)best={item:it,pct:s.pct};
   });
   return best;
+}
+// Mirror of the above: the lowest-scoring habit.
+function worstHabitConsistency(){
+  var worst=null;
+  DB.data.dailyItems.forEach(function(it){
+    if(!it.days||!it.days.length||it.trackerPid)return;
+    var s=habitConsistency(it);
+    if(!s.target)return;
+    if(!worst||s.pct<worst.pct)worst={item:it,pct:s.pct};
+  });
+  return worst;
 }
 
 // Same shape as habitPeriods(), but a raw calendar walk (no skipping
@@ -2705,7 +2763,7 @@ function aggHabitPeriods(granularity,count){
     for(var i=0;i<count;i++){
       var ds=dStr(cursor),wi=wIdx(cursor),completed=0,scheduled=0;
       items.forEach(function(it){
-        if(it.days.indexOf(wi)!==-1){
+        if(it.days.indexOf(wi)!==-1&&ds>=habitCreatedDs(it)){
           scheduled++;
           if(DB.data.dailyChecks[ds]&&DB.data.dailyChecks[ds][it.id])completed++;
         }
@@ -2723,7 +2781,7 @@ function aggHabitPeriods(granularity,count){
         if(day>T)continue;
         var ds2=dStr(day);
         items.forEach(function(it){
-          if(it.days.indexOf(d)!==-1){
+          if(it.days.indexOf(d)!==-1&&ds2>=habitCreatedDs(it)){
             scheduled2++;
             if(DB.data.dailyChecks[ds2]&&DB.data.dailyChecks[ds2][it.id])completed2++;
           }
@@ -2741,7 +2799,7 @@ function aggHabitPeriods(granularity,count){
         if(cur<=T){
           var wi3=wIdx(cur),ds3=dStr(cur);
           items.forEach(function(it){
-            if(it.days.indexOf(wi3)!==-1){
+            if(it.days.indexOf(wi3)!==-1&&ds3>=habitCreatedDs(it)){
               scheduled3++;
               if(DB.data.dailyChecks[ds3]&&DB.data.dailyChecks[ds3][it.id])completed3++;
             }
@@ -2777,7 +2835,7 @@ var Stats={
     var agg=aggHabitConsistency();
     document.getElementById('stats-pie').innerHTML=renderPieChart(agg.pct);
     document.getElementById('stats-pie-text').innerHTML=agg.target
-      ?'<b>'+agg.completed+'</b> of <b>'+agg.target+'</b> scheduled days completed, across all habits'
+      ?'<b>'+agg.completed+'</b> / <b>'+agg.target+'</b> habits'
       :'No scheduled habits yet.';
     document.querySelectorAll('#stats-seg .seg-btn').forEach(function(b){
       b.classList.toggle('active',b.getAttribute('data-view')==='day');
@@ -2786,7 +2844,11 @@ var Stats={
     this.renderChart();
     var best=bestHabitConsistency();
     document.getElementById('stats-best').innerHTML=best
-      ?'<b>'+esc(best.item.text)+'</b> — <b>'+best.pct+'%</b> 3-month consistency'
+      ?'<b>'+esc(best.item.text)+'</b> — <b>'+best.pct+'%</b>'
+      :'No scheduled habits yet.';
+    var worst=worstHabitConsistency();
+    document.getElementById('stats-worst').innerHTML=worst
+      ?'<b>'+esc(worst.item.text)+'</b> — <b>'+worst.pct+'%</b>'
       :'No scheduled habits yet.';
     var ts=oneTimeTaskStats();
     document.getElementById('stats-avg-num').textContent=ts.total?ts.avg.toFixed(1):'0';
@@ -3662,6 +3724,12 @@ var TaskSheet={
     this.renderPri();
     this.renderMoveBtn();
     _overlayOpen('task-sheet-overlay');
+    this.autosize();
+  },
+  autosize:function(){
+    var el=document.getElementById('task-sheet-desc');
+    el.style.height='auto';
+    el.style.height=el.scrollHeight+'px';
   },
   renderPri:function(){
     var self=this;
@@ -3673,7 +3741,7 @@ var TaskSheet={
   renderMoveBtn:function(){
     var p=DB.data.projects[this.moveToPid];
     document.getElementById('task-sheet-move-btn').innerHTML=(p?p.icon+' '+esc(p.name):'')
-      +' <span style="color:#999;font-size:12px;margin-left:6px">(tap to change)</span>';
+      +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
   },
   pickProject:function(){
     var self=this;
@@ -3696,15 +3764,6 @@ var TaskSheet={
     } else {
       DB.updateTask(this.pid,this.key,{text:text,pri:this.pri,desc:desc});
     }
-    _overlayClose('task-sheet-overlay');
-    renderAllTaskViews();
-  },
-  complete:function(){
-    var self=this;
-    var t=(DB.data.extraTasks[this.pid]||[]).find(function(x){return x.key===self.key;});
-    if(!t)return;
-    var p=DB.data.projects[this.pid];
-    DB.completeTask(this.key,t.text,p?p.name:this.pid);
     _overlayClose('task-sheet-overlay');
     renderAllTaskViews();
   },

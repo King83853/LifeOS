@@ -94,6 +94,19 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   isn't a check-off streak and forcing it into that shape would only
   produce a meaningless score.
 
+- Habit consistency scores (`habitConsistency`, and the Statistics tab's
+  ring/best/worst built on it) count only days ON OR AFTER the habit was
+  created, over at most the last 90 days: score = scheduled days
+  completed / scheduled days elapsed, today counted only once checked.
+  Creation date is `it.created` (new items) or, for older ones, parsed
+  from the id (`'di'+Date.now()+random`, see `habitCreatedDs`) — nothing
+  needed migrating. It used to divide by a fixed ~90-day target, so a
+  habit added yesterday scored ~1% against months it didn't exist. Items
+  with target 0 (brand-new, nothing to judge yet) are skipped by
+  best/worst. The bar charts skip pre-creation days too. If you add
+  another place that counts "scheduled days" for a habit, use
+  `habitCreatedDs`.
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

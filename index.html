@@ -903,7 +903,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.63';
+var APP_VERSION='Beta 1.64';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1150,6 +1150,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.63',notes:[
     'Footer icons redrawn as one matching, simpler set — a little bigger and much easier to see (the grey was very faint)'
+  ]},
+  {v:'Beta 1.64',notes:[
+    'The footer menu no longer vanishes before a slide starts: it stays until a page or sheet has covered it, and is already there when a page slides back in'
   ]}
 ];
 var COLORS={
@@ -2312,6 +2315,7 @@ function navBack(targetId){
   ov.scrollTop=savedY;
   _fixPage(ov,-100);
   _renderPage(targetId);
+  TabBar.applyVisibility(targetId,200);
   _slideUnit(cur,ov,0,100,180,function(){
     _unfix(cur);cur.classList.remove('active');
     _unfix(ov);
@@ -2353,6 +2357,7 @@ function navBack(targetId){
       ov.style.display='block';
       _fixPage(ov,-100);
       ov.scrollTop=savedY;
+      TabBar.applyVisibility(backTarget,400);
     }
     e.preventDefault();
     curDx=Math.max(0,dx); // used for release threshold only
@@ -2388,6 +2393,7 @@ function navBack(targetId){
         Nav.cur=backTarget;TabBar.updateActive();
       });
     } else {
+      TabBar.applyVisibility(Nav.cur);
       _slideUnit(cur,ov,pct,0,120,function(){
         document.body.style.overflow='';
         _unfix(ov);ov.style.display='';
@@ -2404,7 +2410,7 @@ var Nav={cur:'today',sd:0,
     if(id===DB.data.habitsProjectId)id='habits';
     navForward(id);
     this.cur=id;
-    TabBar.updateActive();
+    TabBar.updateActive(190);
   },
   back:function(){navBack();},
   goHome:function(){if(this.cur!=='overview')navBack();}
@@ -3350,6 +3356,12 @@ var _bodyLockY=0;
 // (hide tab bar, extend sheet/backdrop, recolor html) was chasing a
 // symptom. Non-standalone browsers keep the fixed lock unchanged.
 var _lockMode='fixed';
+// The tab bar is hidden while a sheet is open (no bottom bar under it),
+// but only once the sheet has finished sliding up — hiding it first made
+// it vanish and THEN slide, which looked unfinished. On close it comes
+// back at the start of the slide down, so it's already there as the
+// sheet leaves. _tabSheetHide is read by TabBar.wantVisible().
+var _tabSheetHide=false,_tabSheetTimer=null;
 function _lockBodyScroll(){
   _bodyLockY=window.scrollY||document.documentElement.scrollTop||0;
   _lockMode=(navigator.standalone===true)?'overflow':'fixed';
@@ -3362,9 +3374,6 @@ function _lockBodyScroll(){
     document.body.style.right='0';
     document.body.style.width='100%';
   }
-  // Per request: no bottom bar while a sheet is up. It's z-index 150,
-  // under the sheets, so this only matters where stacking misbehaves.
-  var tb=document.querySelector('.tabbar');if(tb)tb.style.display='none';
 }
 function _unlockBodyScroll(){
   if(_lockMode==='overflow'){
@@ -3377,9 +3386,6 @@ function _unlockBodyScroll(){
     document.body.style.width='';
     window.scrollTo(0,_bodyLockY);
   }
-  // Ask TabBar rather than clearing to visible: project/habits pages
-  // want it hidden regardless.
-  if(typeof TabBar!=='undefined')TabBar.updateActive();
 }
 // Kept in sync with .sheet's "transition:transform .13s" above — the
 // close path needs to know how long that animation takes so it can wait
@@ -3395,7 +3401,13 @@ function _overlayOpen(id){
   ov.classList.add('on'); // display:none -> block; .sheet is still at its
   // resting off-screen transform here, .show isn't added yet.
   _overlayCount++;
-  if(_overlayCount===1)_lockBodyScroll();
+  if(_overlayCount===1){
+    _lockBodyScroll();
+    clearTimeout(_tabSheetTimer);
+    _tabSheetTimer=setTimeout(function(){
+      if(_overlayCount>0){_tabSheetHide=true;TabBar.applyVisibility(Nav.cur);}
+    },SHEET_ANIM_MS+40);
+  }
   // .show (which triggers the actual slide-up, see the CSS above) has to
   // land in a LATER paint than the display:none->block flip above, or
   // there's no real "before" frame for the transform transition to
@@ -3427,11 +3439,17 @@ function _overlayOpen(id){
 // window's gone, then ~0.5s where nothing happens before you're back to
 // the screen behind it"). Any future custom pre-close animation should
 // pass `instant` too, for the same reason.
+function _tabBarBack(){
+  clearTimeout(_tabSheetTimer);
+  _tabSheetHide=false;
+  TabBar.applyVisibility(Nav.cur);
+}
 function _overlayClose(id,instant){
   var ov=document.getElementById(id);
   if(ov._closeTimer){clearTimeout(ov._closeTimer);ov._closeTimer=null;}
   ov.classList.remove('show');
   _overlayCount=Math.max(0,_overlayCount-1);
+  if(_overlayCount===0)_tabBarBack();
   if(instant){
     ov.classList.remove('on');
     if(_overlayCount===0)_unlockBodyScroll();
@@ -3595,6 +3613,7 @@ var VersionHistory={
       el.style.transform='translateY('+sheetH+'px)';
       ov.style.transition='opacity '+SHEET_ANIM_MS+'ms cubic-bezier(.25,.46,.45,.94)';
       ov.style.opacity='0';
+      if(_overlayCount<=1)_tabBarBack();
       setTimeout(function(){
         // instant: this gesture already slid the sheet (and faded the
         // backdrop) fully away itself — _overlayClose() shouldn't wait
@@ -3777,7 +3796,7 @@ var TabBar={
     Nav.cur=id;
     TabBar.updateActive();
   },
-  updateActive:function(){
+  updateActive:function(deferHideMs){
     document.querySelectorAll('.tab-item').forEach(function(el){
       el.classList.toggle('active',el.getAttribute('data-tab')===Nav.cur);
     });
@@ -3790,8 +3809,25 @@ var TabBar={
       // ripping out along with it.
       fab.classList.remove('show');
     }
-    var tb=document.querySelector('.tabbar');
-    if(tb)tb.style.display=(DB.data.projects[Nav.cur]||Nav.cur==='habits')?'none':'';
+    this.applyVisibility(Nav.cur,deferHideMs);
+  },
+  // Whether the bar should show on `pageId` (project + Habits pages hide
+  // it; so does an open sheet, once it's fully up — see _overlayOpen).
+  wantVisible:function(pageId){
+    return !_tabSheetHide&&!(DB.data.projects[pageId]||pageId==='habits');
+  },
+  // Showing is always immediate. Hiding can be deferred by `deferHideMs`:
+  // when something slides and the bar is about to disappear (open a
+  // project, open a sheet), it has to stay until the sliding window has
+  // covered/replaced it — hiding it first, then sliding, looks unfinished.
+  // The flip side, showing it at the START of a slide back, means it's
+  // already there when the page slides in.
+  applyVisibility:function(pageId,deferHideMs){
+    var tb=document.querySelector('.tabbar');if(!tb)return;
+    clearTimeout(this._tbTimer);
+    if(this.wantVisible(pageId)){tb.style.display='';return;}
+    if(deferHideMs){this._tbTimer=setTimeout(function(){tb.style.display='none';},deferHideMs);}
+    else tb.style.display='none';
   }
 };
 

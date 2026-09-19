@@ -169,6 +169,23 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   adding one. One-time tasks have no delete path (completing one just
   removes it), so they aren't in the Trash.
 
+- Language (Settings > Language, `I18N` in index.html): English is the
+  source text in markup and JS; German is a DOM translation layer — `DE`
+  maps exact English strings to German, `RULES` (regex) handles strings
+  with numbers, a TreeWalker + MutationObserver translate text nodes and
+  placeholder/title attributes (original kept on the node so switching
+  back restores it). So: NEW UI TEXT needs an entry in `I18N`'s `DE`
+  (or a rule if it has a number/name in it) or it stays English in
+  German mode; strings that never reach the DOM (alert/confirm) must go
+  through `t()`; CSS `content:` strings need an `html[lang="de"]`
+  override. Text built as one string from a label + user content
+  ("Tracking: "+name) needs a rule, not a DE entry. A DE key that is an
+  ordinary word can also translate a user's own item with that exact
+  name — acceptable, but avoid adding very generic keys. Dates already
+  used de-CH everywhere, so they were left alone; What's new notes stay
+  English. To find gaps, switch to German and walk every page/sheet
+  listing text nodes that lack `__en`.
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

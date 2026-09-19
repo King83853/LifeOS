@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -301,6 +301,7 @@ html[data-theme="dark"] .sw.h .sw-row{background:#1e1c1a}
 html[data-theme="light"] .sw.h .sw-row{background:#fff}
 .cali.skipped input[type=checkbox]{accent-color:#f59e0b}
 .cali.skipped label::after{content:' \00b7 skipped';color:#f59e0b;font-size:12px;font-weight:700}
+html[lang="de"] .cali.skipped label::after{content:' \00b7 übersprungen'}
 .cali label{font-size:14px;flex:1;cursor:pointer}
 .cali input[type=checkbox]{accent-color:#22c55e;width:28px;height:28px;cursor:pointer;flex-shrink:0}
 /* Status dot for a tracker linked into Daily (see ciTracker()) — not a
@@ -380,7 +381,7 @@ html[data-theme="light"] .opt-radio-dot{background:#1a1917}
    neighboring row above/below. */
 .dsel-wrap{position:relative;display:inline-flex;flex:none;margin-left:auto}
 .dsel-visual{display:flex;align-items:center;gap:6px;pointer-events:none}
-.dsel-real{position:absolute;inset:-12px -16px;opacity:0;-webkit-tap-highlight-color:transparent}
+.dsel-real{position:absolute;inset:-14px -16px;opacity:0;-webkit-tap-highlight-color:transparent}
 
 /* On/off toggle for settings that are just one thing to enable, rather
    than a choice between two named options (those still use the
@@ -574,7 +575,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 <div class="page" id="p-archive">
   <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
   <div class="dhdr"><div class="dico">🗑️</div><div style="flex:1"><div class="dtitle">Trash</div></div>
-    <button class="rbtn" onclick="A.trashEmpty()">Empty</button>
+    <button class="rbtn" onclick="A.trashEmpty()">Empty trash</button>
   </div>
   <div class="trash-tabs" id="trash-tabs"></div>
   <div id="arch-list"></div>
@@ -908,7 +909,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.77';
+var APP_VERSION='Beta 1.78';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1200,6 +1201,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.77',notes:[
     'Fixed: the delete buttons in Edit layout showed as empty white squares — they are red again, with a trash can icon; habit and tracker-entry delete buttons use the same trash can'
+  ]},
+  {v:'Beta 1.78',notes:[
+    'New: German version — pick Deutsch under Settings > Language (What\'s new notes stay in English for now)',
+    'Settings: the rows with dropdowns (Language, Day starts at, Tasks shown) are the same height as the other rows now — the dropdown looks smaller, but the tap area around it is still big'
   ]}
 ];
 var COLORS={
@@ -1529,6 +1534,158 @@ var DB={
     this.save();
   }
 };
+
+// ── LANGUAGE (English / Deutsch) ─────────────────────────
+// English is the source language in the markup. For German, DE maps exact
+// English strings to German and RULES handles strings with numbers in them;
+// a DOM pass translates text nodes and placeholder/title attributes (and a
+// MutationObserver keeps newly rendered UI translated), remembering the
+// original text so switching back to English restores it. Strings that
+// never reach the DOM (alert/confirm) go through t(). User content (names
+// of habits, projects...) is only touched if it equals a UI string exactly.
+var I18N=(function(){
+  var DE={
+    // tab bar + page titles
+    'Today':'Heute','Overview':'Übersicht','Tasks':'Aufgaben','Stats':'Statistik','Settings':'Einstellungen','Statistics':'Statistik',
+    'Daily':'Täglich','Habits':'Gewohnheiten','Trash':'Papierkorb','Edit layout':'Layout bearbeiten','Reorder or remove':'Neu ordnen oder entfernen',
+    'Version history':'Versionsverlauf',"What's new":'Neuigkeiten','Got it':'Verstanden','General':'Allgemein','Data':'Daten',
+    // headers
+    '🎯 Tasks':'🎯 Aufgaben','📆 Habits':'📆 Gewohnheiten','📆 Daily':'📆 Täglich','📅 One-time':'📅 Einmalig','✅ One-time tasks':'✅ Einmalige Aufgaben',
+    '📊 Consistency score':'📊 Konsistenz-Wert','🏅 Best score':'🏅 Bester Wert','📉 Worst score':'📉 Schlechtester Wert','🔥 Consistency':'🔥 Konsistenz',
+    '⚠️ War Room':'⚠️ War Room','War Room':'War Room','📈 Tracker':'📈 Tracker','📋 List':'📋 Liste','✅ To-do':'✅ To-do',
+    'Nothing else matters until the War Room is clear.':'Nichts anderes zählt, bis der War Room leer ist.',
+    'Nothing to do today.':'Heute nichts zu tun.','Nothing scheduled for today.':'Für heute ist nichts geplant.','Nothing here.':'Hier ist nichts.',
+    // actions
+    'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
+    'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
+    '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
+    'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
+    // form labels
+    'Name':'Name','Type':'Typ','Category':'Kategorie','Color':'Farbe','Description':'Beschreibung','Date':'Datum','Day':'Tag','Days':'Tage','Week':'Woche','Month':'Monat',
+    'Habit':'Gewohnheit','Task':'Aufgabe','Project':'Projekt','Notes':'Notizen','Emoji icon':'Emoji-Symbol','View':'Ansicht','List':'Liste','Calendar':'Kalender',
+    'Every day':'Jeden Tag','Weekend':'Wochenende','Window size':'Fenstergröße','Moving average':'Gleitender Durchschnitt','Show moving average on chart':'Gleitenden Durchschnitt im Diagramm zeigen',
+    'Unit (e.g. kg, kcal, h)':'Einheit (z. B. kg, kcal, h)','Category name':'Kategoriename','New category name':'Neuer Kategoriename','New category name…':'Neuer Kategoriename…',
+    'Project name':'Projektname','Task name':'Aufgabenname','Short description (optional)':'Kurze Beschreibung (optional)','Add a task…':'Aufgabe hinzufügen…',
+    'Enter value':'Wert eingeben','New project':'Neues Projekt','Edit project':'Projekt bearbeiten','Daily categories':'Tageskategorien','Daily habits':'Tägliche Gewohnheiten',
+    'e.g. Business':'z. B. Business','e.g. Chores':'z. B. Haushalt','e.g. Health':'z. B. Gesundheit','📁 Category:':'📁 Kategorie:',
+    // priorities
+    'High':'Hoch','Medium':'Mittel','Low':'Niedrig','Overdue':'Überfällig',
+    // states
+    'All done':'Alles erledigt','No entries yet':'Noch keine Einträge','No tasks yet.':'Noch keine Aufgaben.','No list tasks yet.':'Noch keine Listenaufgaben.',
+    'No one-time tasks yet.':'Noch keine einmaligen Aufgaben.','No categories yet.':'Noch keine Kategorien.','Tap the ⋯ button above to add one.':'Tippe oben auf ⋯, um eine hinzuzufügen.',
+    'No tasks':'Keine Aufgaben','No data yet':'Noch keine Daten','No schedule set for this habit.':'Für diese Gewohnheit ist kein Zeitplan festgelegt.',
+    'No scheduled habits yet.':'Noch keine geplanten Gewohnheiten.','No completed one-time tasks yet.':'Noch keine erledigten einmaligen Aufgaben.',
+    'Skipped':'Übersprungen','Done':'Erledigt','Not done':'Nicht erledigt','Added':'Hinzugefügt',
+    // settings
+    'System':'System','Light':'Hell','Dark':'Dunkel','Language':'Sprache','Hold to complete tasks':'Zum Erledigen gedrückt halten',
+    'Day starts at':'Tag beginnt um','Habits disappear when checked off':'Gewohnheiten verschwinden beim Abhaken','Tasks shown':'Angezeigte Aufgaben','Refill automatically':'Automatisch auffüllen',
+    'Copy & save this data':'Diese Daten kopieren und speichern','Paste exported data':'Exportierte Daten einfügen','Paste here':'Hier einfügen',
+    // trash tabs
+    'Completed':'Erledigt','Projects':'Projekte','Categories':'Kategorien','Entries':'Einträge',
+    // stats
+    'habits':'Gewohnheiten','of':'von','scheduled days completed':'geplante Tage erledigt',
+    'average one-time tasks completed per day (':'durchschnittlich erledigte einmalige Aufgaben pro Tag (','total)':'gesamt)',
+    // updates
+    'Updating…':'Aktualisiere…','Downloading…':'Lade herunter…','Installing…':'Installiere…','Almost there…':'Fast geschafft…','Update ready — reloading…':'Update bereit — lade neu…',
+    'Nothing to update yet — close and reopen the app once first.':'Noch nichts zu aktualisieren — schließe die App einmal und öffne sie erneut.',
+    'Update failed — try again later. Nothing was changed.':'Update fehlgeschlagen — versuche es später erneut. Es wurde nichts geändert.',
+    // confirms / alerts
+    'Delete this forever?':'Endgültig löschen?','Move this entry to the Trash?':'Diesen Eintrag in den Papierkorb legen?','Move this habit to the Trash?':'Diese Gewohnheit in den Papierkorb legen?',
+    'Move this category and all its habits to the Trash?':'Diese Kategorie und alle ihre Gewohnheiten in den Papierkorb legen?','Restore the project first.':'Stelle zuerst das Projekt wieder her.',
+    'No tracker projects yet — create one first from Overview (+ > Project > Tracker), then come back here to add it to Daily.':'Noch keine Tracker-Projekte — erstelle zuerst eines in der Übersicht (+ > Projekt > Tracker) und füge es dann hier zu Täglich hinzu.',
+    // colors
+    'Grey':'Grau','Red':'Rot','Rose':'Rosé','Orange':'Orange','Amber':'Bernstein','Yellow':'Gelb','Lime':'Limette','Green':'Grün','Emerald':'Smaragd','Teal':'Petrol','Cyan':'Cyan','Sky':'Himmelblau',
+    'Blue':'Blau','Indigo':'Indigo','Violet':'Violett','Purple':'Lila','Fuchsia':'Fuchsia','Pink':'Pink','Slate':'Schiefer','Black':'Schwarz'
+  };
+  var RULES=[
+    [/^(\d+) active$/,'$1 aktiv'],
+    [/^1 tasks?$/,'1 Aufgabe'],[/^(\d+) tasks$/,'$1 Aufgaben'],
+    [/^(Skipped|Done|Not done) — (.*)$/,function(m,a,b){return DE[a]+' — '+b;}],
+    [/^habits · (\d+) skipped$/,'Gewohnheiten · $1 übersprungen'],
+    [/^scheduled days completed \((\d+) skipped\)$/,'geplante Tage erledigt ($1 übersprungen)'],
+    [/ \((\d+) skipped\)/g,' ($1 übersprungen)'],
+    [/^Tracking: (.*)$/,'Verfolge: $1'],
+    [/^What's new in (.*)$/,'Neuigkeiten in $1'],
+    [/^📁 Category: (.*)$/,'📁 Kategorie: $1'],
+    [/^Daily · (.*)$/,'Täglich · $1'],
+    [/^✓ Updated to (.*)$/,'✓ Aktualisiert auf $1'],
+    [/^Delete all (\d+) items in this tab forever\?$/,'Alle $1 Einträge in diesem Tab endgültig löschen?'],
+    [/^Move category "(.*)" and ALL its projects and tasks to the Trash\?$/,'Kategorie „$1“ und ALLE ihre Projekte und Aufgaben in den Papierkorb legen?'],
+    [/^Move project "(.*)" and all its tasks to the Trash\?$/,'Projekt „$1“ und alle seine Aufgaben in den Papierkorb legen?']
+  ];
+  var lang='en',ATTRS=['placeholder','title','aria-label'],SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1};
+  function tr(s){
+    if(Object.prototype.hasOwnProperty.call(DE,s))return DE[s];
+    for(var i=0;i<RULES.length;i++){
+      var r=RULES[i];r[0].lastIndex=0;
+      if(r[0].test(s)){r[0].lastIndex=0;return s.replace(r[0],r[1]);}
+    }
+    return null;
+  }
+  function t(s){
+    if(lang!=='de'||typeof s!=='string')return s;
+    var r=tr(s.trim());return r===null?s:r;
+  }
+  function text(n){
+    var cur=n.nodeValue;
+    if(n.__en!==undefined&&cur!==n.__de)delete n.__en; // app rewrote it since — new original
+    var orig=n.__en!==undefined?n.__en:cur;
+    if(lang!=='de'){if(n.__en!==undefined){n.nodeValue=n.__en;delete n.__en;delete n.__de;}return;}
+    var m=/^(\s*)([\s\S]*?)(\s*)$/.exec(orig);
+    var r=m[2]?tr(m[2]):null;
+    if(r===null){if(n.__en!==undefined){n.nodeValue=n.__en;delete n.__en;delete n.__de;}return;}
+    n.__en=orig;n.__de=m[1]+r+m[3];
+    if(n.nodeValue!==n.__de)n.nodeValue=n.__de;
+  }
+  function attrs(el){
+    for(var i=0;i<ATTRS.length;i++){
+      var a=ATTRS[i];if(!el.hasAttribute||!el.hasAttribute(a))continue;
+      var store=el.__enA||(el.__enA={});
+      var cur=el.getAttribute(a);
+      if(store[a]&&cur!==store[a].de)delete store[a];
+      var orig=store[a]?store[a].en:cur;
+      if(lang!=='de'){if(store[a]){el.setAttribute(a,store[a].en);delete store[a];}continue;}
+      var r=tr(orig.trim());
+      if(r===null){if(store[a]){el.setAttribute(a,store[a].en);delete store[a];}continue;}
+      store[a]={en:orig,de:r};if(cur!==r)el.setAttribute(a,r);
+    }
+  }
+  function walk(root){
+    if(!root)return;
+    if(root.nodeType===3){if(!SKIP[root.parentNode&&root.parentNode.tagName])text(root);return;}
+    if(root.nodeType!==1)return;
+    attrs(root);
+    var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);
+    var n;while((n=w.nextNode())){
+      if(n.nodeType===3){if(!SKIP[n.parentNode.tagName])text(n);}
+      else attrs(n);
+    }
+  }
+  var obs=null;
+  function start(){
+    if(obs||!window.MutationObserver)return;
+    obs=new MutationObserver(function(list){
+      if(lang!=='de')return;
+      list.forEach(function(m){
+        if(m.type==='characterData'){if(m.target.nodeValue!==m.target.__de)text(m.target);return;}
+        m.addedNodes.forEach(walk);
+      });
+    });
+    obs.observe(document.body,{childList:true,subtree:true,characterData:true});
+  }
+  return{
+    t:t,
+    get lang(){return lang;},
+    set:function(l){
+      lang=(l==='de')?'de':'en';
+      document.documentElement.lang=lang;
+      start();walk(document.body);
+    }
+  };
+})();
+function t(s){return I18N.t(s);}
 
 // ── CONSTANTS ─────────────────────────────────────────────
 var PLBL={bu:'War Room',bs:'High',bp:'Medium',bl:'Low'};
@@ -1950,7 +2107,7 @@ var ICON_CHEVRON='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" st
 function customSelect(opts,current,onchange){
   var sel=opts.filter(function(o){return String(o.value)===String(current);})[0]||opts[0]||{label:''};
   return '<div class="dsel-wrap">'
-    +'<div class="dsel-visual addinp" style="min-height:48px;padding:10px 14px;font-size:15px;font-weight:600">'+esc(sel.label)+ICON_CHEVRON+'</div>'
+    +'<div class="dsel-visual addinp" style="min-height:30px;padding:0 12px;font-size:14px;font-weight:600">'+esc(sel.label)+ICON_CHEVRON+'</div>'
     +'<select class="dsel-real" onchange="'+onchange+'">'
     +opts.map(function(o){return '<option value="'+o.value+'"'+(String(o.value)===String(current)?' selected':'')+'>'+esc(o.label)+'</option>';}).join('')
     +'</select></div>';
@@ -1977,7 +2134,7 @@ function renderSettings(){
     '<div class="opt-row" style="cursor:default">'
     +'<div class="opt-ico" style="background:#3b82f6">'+ICON_GLOBE+'</div>'
     +'<div class="opt-text"><div class="opt-title">Language</div></div>'
-    +customSelect([{value:'en',label:'English'}],lang,'A.setLanguage(this.value)')
+    +customSelect([{value:'en',label:'English'},{value:'de',label:'Deutsch'}],lang,'A.setLanguage(this.value)')
     +'</div>';
   var hold=DB.data.settings.holdToComplete;
   document.getElementById('settings-complete').innerHTML=
@@ -2069,7 +2226,7 @@ var A={
   },
   trashRestore:function(id){
     var msg=DB.restoreTrash(id);
-    if(msg){alert(msg);return;}
+    if(msg){alert(t(msg));return;}
     A._refreshAll();
   },
   trashDelete:function(id){
@@ -2108,13 +2265,13 @@ var A={
   moveCat:function(id,dir){DB.moveCategory(id,dir);renderEditLayout();renderGrids();},
   deleteCat:function(id){
     var n=DB.data.categories[id]?DB.data.categories[id].name:id;
-    if(!confirm('Move category "'+n+'" and ALL its projects and tasks to the Trash?'))return;
+    if(!confirm(t('Move category "'+n+'" and ALL its projects and tasks to the Trash?')))return;
     DB.deleteCategory(id);buildProjPages();renderEditLayout();renderGrids();renderWar();
   },
   moveProj:function(catId,pid,dir){DB.moveProject(catId,pid,dir);renderEditLayout();renderGrids();},
   deleteProj:function(catId,pid){
     var n=DB.data.projects[pid]?DB.data.projects[pid].name:pid;
-    if(!confirm('Move project "'+n+'" and all its tasks to the Trash?'))return;
+    if(!confirm(t('Move project "'+n+'" and all its tasks to the Trash?')))return;
     DB.deleteProject(catId,pid);buildProjPages();renderEditLayout();renderGrids();renderWar();
     buildPanels();restoreChecks(Nav.sd);
   },
@@ -2203,7 +2360,7 @@ var A={
       if(pollTimer)clearInterval(pollTimer);
       if(btn){btn.classList.remove('spinning');btn.disabled=false;}
       UpdateOverlay.hide();
-      if(msg)alert(msg);
+      if(msg)alert(t(msg));
     }
     if(!('serviceWorker' in navigator)){done("Updates aren't supported in this browser.");return;}
     navigator.serviceWorker.getRegistration().then(function(reg){
@@ -2322,6 +2479,7 @@ var A={
   },
   setLanguage:function(val){
     DB.data.settings.language=val;DB.save();
+    I18N.set(val);
     renderSettings();
   },
   toggleDailyItemFor:function(cb,dayIdx){
@@ -2387,7 +2545,7 @@ var A={
   startTrackerHabit:function(){
     var trackers=Object.keys(DB.data.projects).filter(function(pid){return DB.data.projects[pid].type==='tracker';});
     if(!trackers.length){
-      alert('No tracker projects yet — create one first from Overview (+ > Project > Tracker), then come back here to add it to Daily.');
+      alert(t('No tracker projects yet — create one first from Overview (+ > Project > Tracker), then come back here to add it to Daily.'));
       return;
     }
     function pickCategory(pid){
@@ -2741,7 +2899,7 @@ recomputeT();
 var DN=['Mo','Di','Mi','Do','Fr','Sa','So'];
 Nav.sd=0; // offset from today, not a weekday index — see buildPills/buildPanels
 var HOUR_OPTS=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
-function hourLabel(h){h=+h;var ap=h<12?'AM':'PM';var h12=h%12;if(h12===0)h12=12;return h12+':00 '+ap;}
+function hourLabel(h){h=+h;if(I18N.lang==='de')return String(h).padStart(2,'0')+':00';var ap=h<12?'AM':'PM';var h12=h%12;if(h12===0)h12=12;return h12+':00 '+ap;}
 
 function dStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function pDate(pi){var m=new Date(T);m.setDate(T.getDate()+pi);return dStr(m);}
@@ -4380,6 +4538,7 @@ recomputeT();Nav.sd=0; // re-derive "today" now that the real dayStartHour setti
 buildProjPages();
 applyHoldMode();
 applyTheme();
+I18N.set(DB.data.settings.language);
 document.getElementById('tlbl').textContent=T.toLocaleDateString('de-CH',{weekday:'short',day:'numeric',month:'short'});
 renderWar();
 renderGrids();

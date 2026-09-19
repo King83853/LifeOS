@@ -107,6 +107,23 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   another place that counts "scheduled days" for a habit, use
   `habitCreatedDs`.
 
+- Swipe-right-to-skip on Today (`Skip`, `swipeWrap`; rows are wrapped in
+  `.sw` with the amber action behind `.sw-row`). Two different data
+  shapes on purpose: a skipped TASK gets `t.skip = 'YYYY-MM-DD'` and is
+  just filtered out of Today for that one day (nothing to clean up — it
+  returns by itself tomorrow, sorted first within its priority); with
+  "Refill automatically" on Today re-renders so the next task fills in,
+  off it just removes the row (same as completing one). A skipped HABIT
+  day is stored in `dailyChecks[ds][id]` as the string `'skip'` instead of
+  `true` — deliberately truthy, so every existing "is it done" check
+  (score, streak, remaining count, disappear-when-checked) counts it as
+  done with zero changes; read it with `dcv(ds,id)==='skip'` where the
+  difference matters (amber bars in `renderBarChart`, `paintCheck`, the
+  "· N skipped" captions). Any new code that reads dailyChecks should use
+  `dcv`/`paintCheck` rather than assuming a boolean, and any wrapper
+  around Today rows means `.remove()` calls must remove the `.sw`, not
+  just the inner row (see `A.doneLockedIn`).
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

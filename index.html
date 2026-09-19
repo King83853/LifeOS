@@ -272,6 +272,28 @@ html[data-theme="light"] .calsec{background:#fff;border-color:#e8e5e0}
 html[data-theme="dark"] .cali{border-color:#252320}
 html[data-theme="light"] .cali{border-color:#f5f3ef}
 .cali:last-child{border-bottom:none}
+/* Swipe-right-to-skip rows on Today (see Skip). The amber action sits
+   behind the row and is only visible (.on) while it's being dragged/open,
+   so it can't leak past the rounded corners at rest. */
+.sw{position:relative;overflow:hidden;touch-action:pan-y}
+.sw.t{border-radius:14px;margin-bottom:8px}
+.sw.t .ti{margin-bottom:0}
+.sw.h{border-bottom:1px solid #f5f3ef}
+@media(prefers-color-scheme:dark){.sw.h{border-color:#252320}}
+html[data-theme="dark"] .sw.h{border-color:#252320}
+html[data-theme="light"] .sw.h{border-color:#f5f3ef}
+.sw.h:last-child{border-bottom:none}
+.sw.h .cali{border-bottom:none}
+.sw-act{position:absolute;top:0;bottom:0;left:0;right:0;background:#f59e0b;color:#fff;display:flex;align-items:center;font-size:12px;font-weight:800;cursor:pointer;visibility:hidden}
+.sw.on .sw-act{visibility:visible}
+.sw-act span{width:96px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.sw-row{position:relative;will-change:transform}
+.sw.h .sw-row{background:#fff}
+@media(prefers-color-scheme:dark){.sw.h .sw-row{background:#1e1c1a}}
+html[data-theme="dark"] .sw.h .sw-row{background:#1e1c1a}
+html[data-theme="light"] .sw.h .sw-row{background:#fff}
+.cali.skipped input[type=checkbox]{accent-color:#f59e0b}
+.cali.skipped label::after{content:' \00b7 skipped';color:#f59e0b;font-size:12px;font-weight:700}
 .cali label{font-size:14px;flex:1;cursor:pointer}
 .cali input[type=checkbox]{accent-color:#22c55e;width:28px;height:28px;cursor:pointer;flex-shrink:0}
 /* Status dot for a tracker linked into Daily (see ciTracker()) — not a
@@ -903,7 +925,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.64';
+var APP_VERSION='Beta 1.65';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1153,6 +1175,11 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.64',notes:[
     'The footer menu no longer vanishes before a slide starts: it stays until a page or sheet has covered it, and is already there when a page slides back in'
+  ]},
+  {v:'Beta 1.65',notes:[
+    'Today: swipe a task or habit to the right to skip it, like archiving a chat',
+    'Skipped tasks disappear for that day (the next one takes their place if Refill is on) and come back first the next day',
+    'Skipped habits count as ticked off, so they don\'t hurt your consistency score, but show in amber in the charts and are counted as skipped'
   ]}
 ];
 var COLORS={
@@ -1388,6 +1415,21 @@ var DB={
   toggleDailyCheck:function(itemId,ds,checked){
     if(!this.data.dailyChecks[ds])this.data.dailyChecks[ds]={};
     this.data.dailyChecks[ds][itemId]=checked;
+    this.save();
+  },
+  // A skipped habit day is stored as the string 'skip' instead of true.
+  // Truthy, so every existing "is it done" check (score, streak, remaining
+  // count, disappear-when-checked) already treats it as done — only the
+  // color in charts and the row's look tell it apart (dcv()==='skip').
+  skipDaily:function(itemId,ds){
+    if(!this.data.dailyChecks[ds])this.data.dailyChecks[ds]={};
+    this.data.dailyChecks[ds][itemId]='skip';
+    this.save();
+  },
+  // Skipping a task hides it from Today for that one day (t.skip = date);
+  // it comes back on its own the next day, no cleanup needed.
+  skipTask:function(key,ds){
+    for(var pid in this.data.extraTasks)(this.data.extraTasks[pid]||[]).forEach(function(t){if(t.key===key)t.skip=ds;});
     this.save();
   },
   isDailyChecked:function(itemId,ds){return !!(this.data.dailyChecks[ds]&&this.data.dailyChecks[ds][itemId]);},
@@ -1871,7 +1913,7 @@ var A={
     DB.completeTask(key,text,sec);
     item.style.opacity='0';
     setTimeout(function(){
-      item.remove();renderWar();renderGrids();
+      (item.closest('.sw')||item).remove();renderWar();renderGrids();
       // Only Today's top-N list refills — Locked In always shows everything
       // remaining anyway, so this would be a no-op there regardless.
       if(Nav.cur==='today'&&DB.data.settings.todayRefill)renderToday();
@@ -2121,7 +2163,7 @@ var A={
     var id=cb.getAttribute('data-id');
     var ds=pDate(dayIdx);
     DB.toggleDailyCheck(id,ds,cb.checked);
-    var l=cb.nextElementSibling;if(l){l.style.textDecoration=cb.checked?'line-through':'none';l.style.opacity=cb.checked?'0.35':'1';}
+    paintCheck(cb,cb.checked);
     if(Nav.cur==='today'&&DB.data.settings.todayHabitsDisappear&&cb.checked){
       var item=cb.closest('.cali');
       if(item){
@@ -2129,7 +2171,7 @@ var A={
         item.style.transition='opacity .3s';
         item.style.opacity='0';
         setTimeout(function(){
-          item.remove();
+          var sw=item.closest('.sw');(sw||item).remove();
           if(sec&&!sec.querySelector('.cali'))sec.remove();
           var host=document.getElementById('today-daily');
           if(host&&!host.querySelector('.cali'))host.innerHTML='<div class="empty">Nothing scheduled for today.</div>';
@@ -2621,15 +2663,15 @@ function habitConsistency(item){
   if(!days.length)return{completed:0,target:0,pct:0};
   var created=habitCreatedDs(item),todayS=dStr(T);
   var d=new Date(T);d.setDate(d.getDate()-89);
-  var completed=0,target=0;
+  var completed=0,target=0,skipped=0;
   for(;dStr(d)<=todayS;d.setDate(d.getDate()+1)){
     var ds=dStr(d);
     if(ds<created||days.indexOf(wIdx(d))===-1)continue;
-    var done=!!(DB.data.dailyChecks[ds]&&DB.data.dailyChecks[ds][item.id]);
+    var v=dcv(ds,item.id),done=!!v;
     if(ds===todayS&&!done)continue;
-    target++;if(done)completed++;
+    target++;if(done){completed++;if(v==='skip')skipped++;}
   }
-  return{completed:completed,target:target,pct:target?Math.min(100,Math.round(completed/target*100)):0};
+  return{completed:completed,target:target,skipped:skipped,pct:target?Math.min(100,Math.round(completed/target*100)):0};
 }
 function habitPeriods(item,granularity,count){
   var days=item.days||[];
@@ -2643,8 +2685,8 @@ function habitPeriods(item,granularity,count){
       if(dStr(cursor)<created)break;
       if(days.indexOf(wIdx(cursor))!==-1){
         var ds=dStr(cursor);
-        var done=!!(DB.data.dailyChecks[ds]&&DB.data.dailyChecks[ds][item.id]);
-        out.unshift({label:cursor.getDate()+'.'+(cursor.getMonth()+1)+'.',completed:done?1:0,scheduled:1});
+        var v=dcv(ds,item.id);
+        out.unshift({label:cursor.getDate()+'.'+(cursor.getMonth()+1)+'.',completed:v?1:0,skipped:v==='skip'?1:0,scheduled:1});
       }
       cursor.setDate(cursor.getDate()-1);
     }
@@ -2652,33 +2694,33 @@ function habitPeriods(item,granularity,count){
     var wkStart=new Date(T);wkStart.setDate(wkStart.getDate()-wIdx(T));
     for(var w=count-1;w>=0;w--){
       var start=new Date(wkStart);start.setDate(start.getDate()-7*w);
-      var completed=0,scheduled=0;
+      var completed=0,scheduled=0,skipped=0;
       for(var d=0;d<7;d++){
         var day=new Date(start);day.setDate(day.getDate()+d);
         if(day>T)continue;
         var ds2=dStr(day);
         if(days.indexOf(d)!==-1&&ds2>=created){
           scheduled++;
-          if(DB.data.dailyChecks[ds2]&&DB.data.dailyChecks[ds2][item.id])completed++;
+          {var v2=dcv(ds2,item.id);if(v2){completed++;if(v2==='skip')skipped++;}}
         }
       }
-      out.push({label:start.getDate()+'.'+(start.getMonth()+1)+'.',completed:completed,scheduled:scheduled});
+      out.push({label:start.getDate()+'.'+(start.getMonth()+1)+'.',completed:completed,skipped:skipped,scheduled:scheduled});
     }
   } else {
     var base=new Date(T.getFullYear(),T.getMonth(),1);
     for(var m=count-1;m>=0;m--){
       var mstart=new Date(base.getFullYear(),base.getMonth()-m,1);
       var mend=new Date(base.getFullYear(),base.getMonth()-m+1,0);
-      var completed2=0,scheduled2=0,cur=new Date(mstart);
+      var completed2=0,scheduled2=0,skipped2=0,cur=new Date(mstart);
       while(cur<=mend){
         var ds3=dStr(cur);
         if(cur<=T&&days.indexOf(wIdx(cur))!==-1&&ds3>=created){
           scheduled2++;
-          if(DB.data.dailyChecks[ds3]&&DB.data.dailyChecks[ds3][item.id])completed2++;
+          {var v3=dcv(ds3,item.id);if(v3){completed2++;if(v3==='skip')skipped2++;}}
         }
         cur.setDate(cur.getDate()+1);
       }
-      out.push({label:mstart.toLocaleDateString('de-CH',{month:'short'}),completed:completed2,scheduled:scheduled2});
+      out.push({label:mstart.toLocaleDateString('de-CH',{month:'short'}),completed:completed2,skipped:skipped2,scheduled:scheduled2});
     }
   }
   return out;
@@ -2698,6 +2740,13 @@ function renderBarChart(periods,svgId){
     var x=i*(barW+gap),y=h-padBottom-barH,rx=Math.min(4,barW/2);
     bars+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+barH+'" rx="'+rx.toFixed(1)+'"'
       +(p.completed>0?' fill="#22c55e"':' class="hd-bar-empty"')+' data-i="'+i+'"></rect>';
+    // skipped days are amber: the top share of the bar (all of it if every
+    // completed day in this period was a skip)
+    var sk=Math.min(p.skipped||0,p.completed);
+    if(p.completed>0&&sk>0){
+      var skH=sk===p.completed?barH:Math.max(3,Math.round(barH*sk/p.completed));
+      bars+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+skH+'" rx="'+rx.toFixed(1)+'" fill="#f59e0b" data-i="'+i+'"></rect>';
+    }
     if(i%everyN===0){
       labels+='<text class="hd-bar-label" x="'+(x+barW/2).toFixed(1)+'" y="'+(h-4)+'" font-size="7.5" text-anchor="middle">'+esc(p.label)+'</text>';
     }
@@ -2719,7 +2768,7 @@ function renderPieChart(pct){
 // Same 3-month-target consistency math as habitConsistency(), just
 // summed across every scheduled habit instead of one.
 function aggHabitConsistency(){
-  var totalCompleted=0,totalTarget=0;
+  var totalCompleted=0,totalTarget=0,totalSkipped=0;
   DB.data.dailyItems.forEach(function(it){
     // Tracker-linked items aren't boolean check-offs (see ciTracker()) —
     // habitConsistency()'s completed/target math only means something
@@ -2727,9 +2776,9 @@ function aggHabitConsistency(){
     // rather than always scoring 0% and dragging the real number down.
     if(!it.days||!it.days.length||it.trackerPid)return;
     var s=habitConsistency(it);
-    totalCompleted+=s.completed;totalTarget+=s.target;
+    totalCompleted+=s.completed;totalTarget+=s.target;totalSkipped+=s.skipped||0;
   });
-  return{completed:totalCompleted,target:totalTarget,
+  return{completed:totalCompleted,target:totalTarget,skipped:totalSkipped,
     pct:totalTarget?Math.min(100,Math.round(totalCompleted/totalTarget*100)):0};
 }
 
@@ -2767,21 +2816,21 @@ function aggHabitPeriods(granularity,count){
   if(granularity==='day'){
     var cursor=new Date(T);
     for(var i=0;i<count;i++){
-      var ds=dStr(cursor),wi=wIdx(cursor),completed=0,scheduled=0;
+      var ds=dStr(cursor),wi=wIdx(cursor),completed=0,scheduled=0,skipped=0;
       items.forEach(function(it){
         if(it.days.indexOf(wi)!==-1&&ds>=habitCreatedDs(it)){
           scheduled++;
-          if(DB.data.dailyChecks[ds]&&DB.data.dailyChecks[ds][it.id])completed++;
+          {var av=dcv(ds,it.id);if(av){completed++;if(av==='skip')skipped++;}}
         }
       });
-      out.unshift({label:cursor.getDate()+'.'+(cursor.getMonth()+1)+'.',completed:completed,scheduled:scheduled});
+      out.unshift({label:cursor.getDate()+'.'+(cursor.getMonth()+1)+'.',completed:completed,skipped:skipped,scheduled:scheduled});
       cursor.setDate(cursor.getDate()-1);
     }
   } else if(granularity==='week'){
     var wkStart=new Date(T);wkStart.setDate(wkStart.getDate()-wIdx(T));
     for(var w=count-1;w>=0;w--){
       var start=new Date(wkStart);start.setDate(start.getDate()-7*w);
-      var completed2=0,scheduled2=0;
+      var completed2=0,scheduled2=0,skipped2=0;
       for(var d=0;d<7;d++){
         var day=new Date(start);day.setDate(day.getDate()+d);
         if(day>T)continue;
@@ -2789,31 +2838,31 @@ function aggHabitPeriods(granularity,count){
         items.forEach(function(it){
           if(it.days.indexOf(d)!==-1&&ds2>=habitCreatedDs(it)){
             scheduled2++;
-            if(DB.data.dailyChecks[ds2]&&DB.data.dailyChecks[ds2][it.id])completed2++;
+            {var aw=dcv(ds2,it.id);if(aw){completed2++;if(aw==='skip')skipped2++;}}
           }
         });
       }
-      out.push({label:start.getDate()+'.'+(start.getMonth()+1)+'.',completed:completed2,scheduled:scheduled2});
+      out.push({label:start.getDate()+'.'+(start.getMonth()+1)+'.',completed:completed2,skipped:skipped2,scheduled:scheduled2});
     }
   } else {
     var base=new Date(T.getFullYear(),T.getMonth(),1);
     for(var m=count-1;m>=0;m--){
       var mstart=new Date(base.getFullYear(),base.getMonth()-m,1);
       var mend=new Date(base.getFullYear(),base.getMonth()-m+1,0);
-      var completed3=0,scheduled3=0,cur=new Date(mstart);
+      var completed3=0,scheduled3=0,skipped3=0,cur=new Date(mstart);
       while(cur<=mend){
         if(cur<=T){
           var wi3=wIdx(cur),ds3=dStr(cur);
           items.forEach(function(it){
             if(it.days.indexOf(wi3)!==-1&&ds3>=habitCreatedDs(it)){
               scheduled3++;
-              if(DB.data.dailyChecks[ds3]&&DB.data.dailyChecks[ds3][it.id])completed3++;
+              {var am=dcv(ds3,it.id);if(am){completed3++;if(am==='skip')skipped3++;}}
             }
           });
         }
         cur.setDate(cur.getDate()+1);
       }
-      out.push({label:mstart.toLocaleDateString('de-CH',{month:'short'}),completed:completed3,scheduled:scheduled3});
+      out.push({label:mstart.toLocaleDateString('de-CH',{month:'short'}),completed:completed3,skipped:skipped3,scheduled:scheduled3});
     }
   }
   return out;
@@ -2841,7 +2890,7 @@ var Stats={
     var agg=aggHabitConsistency();
     document.getElementById('stats-pie').innerHTML=renderPieChart(agg.pct);
     document.getElementById('stats-pie-text').innerHTML=agg.target
-      ?'<b>'+agg.completed+'</b> / <b>'+agg.target+'</b> habits'
+      ?'<b>'+agg.completed+'</b> / <b>'+agg.target+'</b> habits'+(agg.skipped?' \u00b7 '+agg.skipped+' skipped':'')
       :'No scheduled habits yet.';
     document.querySelectorAll('#stats-seg .seg-btn').forEach(function(b){
       b.classList.toggle('active',b.getAttribute('data-view')==='day');
@@ -2879,7 +2928,7 @@ var Stats={
       svg.addEventListener('click',function(e){
         var r=e.target.closest('rect');if(!r)return;
         var p=periods[+r.getAttribute('data-i')];if(!p)return;
-        document.getElementById('stats-chart-readout').textContent=p.completed+' / '+p.scheduled+' — '+p.label;
+        document.getElementById('stats-chart-readout').textContent=p.completed+' / '+p.scheduled+(p.skipped?' ('+p.skipped+' skipped)':'')+' — '+p.label;
       });
     }
   }
@@ -2933,7 +2982,7 @@ var HabitDetail={
       svg.addEventListener('click',function(e){
         var r=e.target.closest('rect');if(!r)return;
         var p=periods[+r.getAttribute('data-i')];if(!p)return;
-        var txt=p.scheduled>1?(p.completed+' / '+p.scheduled+' — '+p.label):(p.completed?'Done — '+p.label:'Not done — '+p.label);
+        var txt=p.scheduled>1?(p.completed+' / '+p.scheduled+(p.skipped?' ('+p.skipped+' skipped)':'')+' — '+p.label):(p.skipped?'Skipped — '+p.label:(p.completed?'Done — '+p.label:'Not done — '+p.label));
         document.getElementById('hd-chart-readout').textContent=txt;
       });
     }
@@ -2944,7 +2993,7 @@ var HabitDetail={
     var s=habitConsistency(item);
     document.getElementById('hd-pie').innerHTML=renderPieChart(s.pct);
     document.getElementById('hd-streak-text').innerHTML=
-      '<b>'+s.completed+'</b> of <b>'+s.target+'</b> scheduled days completed';
+      '<b>'+s.completed+'</b> of <b>'+s.target+'</b> scheduled days completed'+(s.skipped?' ('+s.skipped+' skipped)':'');
   }
 };
 
@@ -2991,12 +3040,22 @@ function buildPanels(){
   }
   var cur=document.getElementById('dp-'+Nav.sd);if(cur)cur.classList.add('on');
 }
+// value stored for a habit on a day: falsy, true, or 'skip'
+function dcv(ds,id){return DB.data.dailyChecks[ds]&&DB.data.dailyChecks[ds][id];}
+function paintCheck(cb,val){
+  cb.checked=!!val;
+  var row=cb.closest('.cali');if(row)row.classList.toggle('skipped',val==='skip');
+  var l=cb.nextElementSibling;
+  if(l){
+    if(val==='skip'){l.style.textDecoration='none';l.style.opacity='0.6';}
+    else{l.style.textDecoration=val?'line-through':'none';l.style.opacity=val?'0.35':'1';}
+  }
+}
 function restoreChecks(pi){
   var ds=pDate(pi);
   var panel=document.getElementById('dp-'+pi);if(!panel)return;
   panel.querySelectorAll('input[type=checkbox][data-id]').forEach(function(cb){
-    var on=DB.isDailyChecked(cb.getAttribute('data-id'),ds);cb.checked=on;
-    var l=cb.nextElementSibling;if(l){l.style.textDecoration=on?'line-through':'none';l.style.opacity=on?'0.35':'1';}
+    paintCheck(cb,dcv(ds,cb.getAttribute('data-id')));
   });
 }
 function renderToday(){
@@ -3005,10 +3064,17 @@ function renderToday(){
     var pr=DB.data.projects[pid];
     if(pr&&pr.type==='list')continue;
     (DB.data.extraTasks[pid]||[]).forEach(function(t){
-      all.push({text:t.text,pri:t.pri||'bs',section:pr?pr.name:pid,key:t.key,pid:pid,color:pr?pr.color:'c-grey'});
+      if(t.skip===pDate(0))return; // skipped for today
+      all.push({text:t.text,pri:t.pri||'bs',section:pr?pr.name:pid,key:t.key,pid:pid,color:pr?pr.color:'c-grey',skip:t.skip});
     });
   }
-  all.sort(function(a,b){return po(a.pri)-po(b.pri);});
+  // Priority first; within a priority, tasks skipped on an earlier day
+  // come first again (a skip only lasts the day it was made).
+  var today0=pDate(0);
+  all.sort(function(a,b){
+    var d=po(a.pri)-po(b.pri);if(d)return d;
+    return (a.skip&&a.skip<today0?0:1)-(b.skip&&b.skip<today0?0:1);
+  });
   var top3=all.slice(0,DB.data.settings.todayTaskCount||3);
   var c1=document.getElementById('today-priorities');
   c1.innerHTML=top3.length?top3.map(function(t){
@@ -3021,10 +3087,10 @@ function renderToday(){
       ? '<span class="bdg" style="'+tintStyle(col)+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span>'
       : '<span class="bdg '+t.pri+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+PLBL[t.pri]+'</span>';
     var sub=isWar?'':'<div class="ts">'+esc(t.section)+'</div>';
-    return '<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
+    return swipeWrap('t','<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
       +'<input type="checkbox" onchange="A.doneLockedIn(this)">'
       +'<div style="flex:1" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div>'+sub+'</div>'
-      +badge+'</div>';
+      +badge+'</div>');
   }).join(''):'<div class="empty">No tasks yet.</div>';
 
   var ds=pDate(0);
@@ -3046,17 +3112,105 @@ function renderToday(){
     });
     if(!items.length)return;
     h+='<div class="calsec"><div class="caltitle">'+cat.icon+' '+esc(cat.name)+'</div>';
-    items.forEach(function(it){h+=it.trackerPid?ciTracker(it,0,false):ci(it.id,it.text,0);});
+    items.forEach(function(it){h+=it.trackerPid?ciTracker(it,0,false):swipeWrap('h',ci(it.id,it.text,0));});
     h+='</div>';
   });
   if(!h)h='<div class="empty">Nothing scheduled for today.</div>';
   document.getElementById('today-daily').innerHTML=h;
 
   document.querySelectorAll('#today-daily input[type=checkbox][data-id]').forEach(function(cb){
-    var on=DB.isDailyChecked(cb.getAttribute('data-id'),ds);cb.checked=on;
-    var l=cb.nextElementSibling;if(l){l.style.textDecoration=on?'line-through':'none';l.style.opacity=on?'0.35':'1';}
+    paintCheck(cb,dcv(ds,cb.getAttribute('data-id')));
   });
 }
+
+
+// ── SWIPE RIGHT TO SKIP (Today's tasks + habits) ─────────────
+// Drag a row right like archiving a chat in WhatsApp: an amber "Skip"
+// action is revealed behind it. Past ~150px it fires; between ~48 and 150
+// it stays open (tap Skip); less snaps back. Tasks: hidden for today only
+// (DB.skipTask), and with "Refill automatically" on the next one takes its
+// place. Habits: stored as a 'skip' day (DB.skipDaily) — counts as done
+// but is amber in the charts. Only unchecked habits can be skipped.
+var SKIP_ICON='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 5 12 12 5 19"/><polyline points="13 5 20 12 13 19"/></svg>';
+function swipeWrap(kind,inner){
+  return '<div class="sw '+kind+'"><div class="sw-act" onclick="Skip.fire(this)"><span>'+SKIP_ICON+'Skip</span></div><div class="sw-row">'+inner+'</div></div>';
+}
+var Skip=(function(){
+  var W=96,FULL=150,cur=null,sx=0,sy=0,dx=0,base=0,mode=0,openEl=null,lastSwipe=0;
+  function setX(w,x,anim){var r=w.querySelector('.sw-row');r.style.transition=anim?'transform .2s ease-out':'none';r.style.transform=x?'translateX('+x+'px)':'';}
+  function close(w,anim){
+    setX(w,0,anim);
+    if(anim)setTimeout(function(){w.classList.remove('on');},220);else w.classList.remove('on');
+    if(openEl===w)openEl=null;
+  }
+  document.addEventListener('touchstart',function(e){
+    var w=e.target.closest&&e.target.closest('.sw');
+    if(openEl&&openEl!==w)close(openEl,true);
+    cur=null;mode=0;
+    if(!w||e.target.closest('.sw-act'))return;
+    if(w.classList.contains('h')){var cb=w.querySelector('input[type=checkbox]');if(!cb||cb.checked)return;}
+    cur=w;sx=e.touches[0].clientX;sy=e.touches[0].clientY;dx=0;base=(openEl===w)?W:0;mode=1;
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    if(!cur||!mode)return;
+    var x=e.touches[0].clientX-sx,y=e.touches[0].clientY-sy;
+    if(mode===1){
+      if(Math.abs(y)>10&&Math.abs(y)>Math.abs(x)){mode=0;cur=null;return;}
+      if(Math.abs(x)<8)return;
+      if(x<0&&!base){mode=0;cur=null;return;}
+      mode=2;cur.classList.add('on');
+      if(typeof _cancelHold==='function')_cancelHold();
+    }
+    dx=Math.max(0,Math.min(cur.offsetWidth,base+x));
+    setX(cur,dx,false);
+    e.preventDefault();
+  },{passive:false});
+  document.addEventListener('touchend',function(){
+    if(mode!==2){mode=0;cur=null;return;}
+    var w=cur;mode=0;cur=null;lastSwipe=Date.now();
+    if(dx>=FULL)go(w);
+    else if(dx>=48){setX(w,W,true);openEl=w;}
+    else close(w,true);
+  },{passive:true});
+  // A swipe must not also register as a tap on the row; a tap on an open
+  // row just closes it.
+  document.addEventListener('click',function(e){
+    if(e.target.closest('.sw-act'))return;
+    if(Date.now()-lastSwipe<350){e.stopPropagation();e.preventDefault();return;}
+    var w=e.target.closest('.sw');
+    if(openEl&&w===openEl){e.stopPropagation();e.preventDefault();close(openEl,true);}
+  },true);
+  function go(w){
+    if(openEl===w)openEl=null;
+    var ds=pDate(0);
+    if(w.classList.contains('t')){
+      var key=w.querySelector('.ti').getAttribute('data-key');
+      setX(w,w.offsetWidth+20,true);
+      setTimeout(function(){
+        w.style.maxHeight=w.offsetHeight+'px';void w.offsetHeight;
+        w.style.transition='max-height .18s ease-out,margin-bottom .18s ease-out';
+        w.style.maxHeight='0';w.style.marginBottom='0';
+      },200);
+      setTimeout(function(){
+        DB.skipTask(key,ds);
+        if(DB.data.settings.todayRefill)renderToday();
+        else{
+          w.remove();
+          var host=document.getElementById('today-priorities');
+          if(host&&!host.querySelector('.sw'))host.innerHTML='<div class="empty">No tasks yet.</div>';
+        }
+      },400);
+    } else {
+      var id=w.querySelector('input[type=checkbox]').getAttribute('data-id');
+      DB.skipDaily(id,ds);
+      close(w,true);
+      setTimeout(renderToday,230);
+    }
+  }
+  return{
+    fire:function(act){var w=act.closest('.sw');if(w)go(w);}
+  };
+})();
 
 var DailyCatSheet={
   open:function(){

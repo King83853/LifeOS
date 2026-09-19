@@ -124,6 +124,17 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   around Today rows means `.remove()` calls must remove the `.sw`, not
   just the inner row (see `A.doneLockedIn`).
 
+- Today's section headers (🎯 Tasks / 📆 Habits) are hidden when their
+  section is empty (`syncTodaySections`), with one "Nothing to do today."
+  line if both are. "Category with no tasks" in the user's wording meant
+  THESE sections on Today, not the Daily page's per-weekday categories —
+  I misread it once and changed Daily instead (reverted); when a request
+  names a page ("in daily" was mistranscribed voice input), confirm which
+  screen from the words around it before editing. Also: a swipe-skip must
+  be saved (`DB.skipTask`) at the START of the gesture, not after the
+  slide animation — leaving Today mid-animation re-rendered from
+  unsaved data and the task "reappeared".
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

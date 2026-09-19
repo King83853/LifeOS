@@ -602,10 +602,11 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
     </div>
     <span class="tlbl" id="tlbl"></span>
   </div>
-  <div class="shdr">🎯 Tasks</div>
+  <div class="shdr" id="today-tasks-hdr">🎯 Tasks</div>
   <div id="today-priorities"></div>
-  <div class="shdr" style="margin-top:22px">📆 Habits</div>
+  <div class="shdr" id="today-habits-hdr" style="margin-top:22px">📆 Habits</div>
   <div id="today-daily"></div>
+  <div class="empty" id="today-none" style="display:none">Nothing to do today.</div>
 </div>
 
 <div class="page" id="p-lockedin">
@@ -925,7 +926,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.66';
+var APP_VERSION='Beta 1.67';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1181,8 +1182,9 @@ var CHANGELOG=[
     'Skipped tasks disappear for that day (the next one takes their place if Refill is on) and come back first the next day',
     'Skipped habits count as ticked off, so they don\'t hurt your consistency score, but show in amber in the charts and are counted as skipped'
   ]},
-  {v:'Beta 1.66',notes:[
-    'Daily: categories with nothing scheduled on a day are no longer shown for that day'
+  {v:'Beta 1.67',notes:[
+    'Today: the Tasks or Habits heading is hidden when it has nothing in it',
+    'Fixed: a task you skipped could come back if you left Today right after swiping it'
   ]}
 ];
 var COLORS={
@@ -1919,7 +1921,7 @@ var A={
       (item.closest('.sw')||item).remove();renderWar();renderGrids();
       // Only Today's top-N list refills — Locked In always shows everything
       // remaining anyway, so this would be a no-op there regardless.
-      if(Nav.cur==='today'&&DB.data.settings.todayRefill)renderToday();
+      if(Nav.cur==='today'){if(DB.data.settings.todayRefill)renderToday();else syncTodaySections();}
     },300);
   },
   addTask:function(pid){
@@ -3033,12 +3035,11 @@ function buildPanels(){
     } else {
       DB.data.dailyCats.forEach(function(cat){
         var items=DB.data.dailyItems.filter(function(it){return it.catId===cat.id&&it.days.indexOf(wi)!==-1;});
-        if(!items.length)return; // a category with nothing on this day isn't shown at all
         h+='<div class="calsec"><div class="caltitle">'+cat.icon+' '+esc(cat.name)+'</div>';
+        if(!items.length)h+='<div style="font-size:12px;color:#ccc;padding:4px 0 2px">No tasks</div>';
         items.forEach(function(it){h+=it.trackerPid?ciTracker(it,pi,true):ciEdit(it.id,it.text,pi);});
         h+='</div>';
       });
-      if(!h)h='<div class="empty">Nothing scheduled for this day.</div>';
     }
     p.innerHTML=h;c.appendChild(p);
   }
@@ -3061,6 +3062,18 @@ function restoreChecks(pi){
   panel.querySelectorAll('input[type=checkbox][data-id]').forEach(function(cb){
     paintCheck(cb,dcv(ds,cb.getAttribute('data-id')));
   });
+}
+// A section with nothing in it (no tasks / no habits) isn't shown at all —
+// neither its header nor a placeholder. If both are empty, one line says so.
+function syncTodaySections(){
+  var hasT=!!document.querySelector('#today-priorities .sw');
+  var hasH=!!document.getElementById('today-daily').innerHTML;
+  document.getElementById('today-tasks-hdr').style.display=hasT?'':'none';
+  document.getElementById('today-priorities').style.display=hasT?'':'none';
+  var hh=document.getElementById('today-habits-hdr');
+  hh.style.display=hasH?'':'none';
+  hh.style.marginTop=hasT?'22px':'';
+  document.getElementById('today-none').style.display=(hasT||hasH)?'none':'';
 }
 function renderToday(){
   var all=[];
@@ -3095,7 +3108,7 @@ function renderToday(){
       +'<input type="checkbox" onchange="A.doneLockedIn(this)">'
       +'<div style="flex:1" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div>'+sub+'</div>'
       +badge+'</div>');
-  }).join(''):'<div class="empty">No tasks yet.</div>';
+  }).join(''):'';
 
   var ds=pDate(0);
   var h='';
@@ -3119,8 +3132,8 @@ function renderToday(){
     items.forEach(function(it){h+=it.trackerPid?ciTracker(it,0,false):swipeWrap('h',ci(it.id,it.text,0));});
     h+='</div>';
   });
-  if(!h)h='<div class="empty">Nothing scheduled for today.</div>';
   document.getElementById('today-daily').innerHTML=h;
+  syncTodaySections();
 
   document.querySelectorAll('#today-daily input[type=checkbox][data-id]').forEach(function(cb){
     paintCheck(cb,dcv(ds,cb.getAttribute('data-id')));
@@ -3189,6 +3202,7 @@ var Skip=(function(){
     var ds=pDate(0);
     if(w.classList.contains('t')){
       var key=w.querySelector('.ti').getAttribute('data-key');
+      DB.skipTask(key,ds); // saved now, not after the animation, so leaving Today mid-slide can't lose it
       setX(w,w.offsetWidth+20,true);
       setTimeout(function(){
         w.style.maxHeight=w.offsetHeight+'px';void w.offsetHeight;
@@ -3196,13 +3210,8 @@ var Skip=(function(){
         w.style.maxHeight='0';w.style.marginBottom='0';
       },200);
       setTimeout(function(){
-        DB.skipTask(key,ds);
         if(DB.data.settings.todayRefill)renderToday();
-        else{
-          w.remove();
-          var host=document.getElementById('today-priorities');
-          if(host&&!host.querySelector('.sw'))host.innerHTML='<div class="empty">No tasks yet.</div>';
-        }
+        else{w.remove();syncTodaySections();}
       },400);
     } else {
       var id=w.querySelector('input[type=checkbox]').getAttribute('data-id');

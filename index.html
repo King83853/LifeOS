@@ -909,7 +909,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.79';
+var APP_VERSION='Beta 1.80';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1209,6 +1209,9 @@ var CHANGELOG=[
   {v:'Beta 1.79',notes:[
     'Trash: the Completed tab is now called Tasks',
     'Trash: no more Categories tab — deleting a category puts its projects in Projects, deleting a Daily category puts its habits in Habits (restoring one brings its category back if it is gone)'
+  ]},
+  {v:'Beta 1.80',notes:[
+    'Trash: new Lists tab for tasks completed in a List project (Tasks keeps the others)'
   ]}
 ];
 var COLORS={
@@ -1436,7 +1439,11 @@ var DB={
   },
   completeTask:function(key,text,projName){
     if(!this.data.doneKeys.includes(key))this.data.doneKeys.push(key);
-    this.data.archived.push({key:key,text:text,section:projName,
+    var fromList=false,self=this;
+    for(var lp in this.data.extraTasks){
+      if((this.data.extraTasks[lp]||[]).some(function(t){return t.key===key;})){var pr=self.data.projects[lp];fromList=!!(pr&&pr.type==='list');}
+    }
+    this.data.archived.push({key:key,text:text,section:projName,list:fromList,
       date:new Date().toLocaleDateString('de-CH',{day:'numeric',month:'short',year:'numeric'}),
       dateISO:dStr(new Date())});
     for(var pid in this.data.extraTasks)
@@ -1597,7 +1604,7 @@ var I18N=(function(){
     'Day starts at':'Tag beginnt um','Habits disappear when checked off':'Gewohnheiten verschwinden beim Abhaken','Tasks shown':'Angezeigte Aufgaben','Refill automatically':'Automatisch auffüllen',
     'Copy & save this data':'Diese Daten kopieren und speichern','Paste exported data':'Exportierte Daten einfügen','Paste here':'Hier einfügen',
     // trash tabs
-    'Completed':'Erledigt','Projects':'Projekte','Categories':'Kategorien','Entries':'Einträge',
+    'Lists':'Listen','Projects':'Projekte','Categories':'Kategorien','Entries':'Einträge',
     // stats
     'habits':'Gewohnheiten','of':'von','scheduled days completed':'geplante Tage erledigt',
     'average one-time tasks completed per day (':'durchschnittlich erledigte einmalige Aufgaben pro Tag (','total)':'gesamt)',
@@ -1931,12 +1938,21 @@ function renderProj(pid){
 // archive of ticked-off tasks; the rest come from DB.data.trash.
 var Trash={
   tab:'completed',
-  TABS:[{id:'completed',label:'Tasks'},{id:'habit',label:'Habits'},{id:'project',label:'Projects'},{id:'entry',label:'Entries'}],
+  TABS:[{id:'completed',label:'Tasks'},{id:'lists',label:'Lists'},{id:'habit',label:'Habits'},{id:'project',label:'Projects'},{id:'entry',label:'Entries'}],
   items:function(tab){
     var d=DB.data;
-    if(tab==='completed')return d.archived;
+    if(tab==='completed')return d.archived.filter(function(a){return !Trash.isList(a);});
+    if(tab==='lists')return d.archived.filter(Trash.isList);
     return d.trash.filter(function(t){return t.type===tab;});
   },
+  // Completed tasks from a List project get their own tab. Older entries
+  // have no flag, so fall back to looking the project up by name.
+  isList:function(a){
+    if(a.list!==undefined)return a.list;
+    for(var pid in DB.data.projects){var p=DB.data.projects[pid];if(p.name===a.section)return p.type==='list';}
+    return false;
+  },
+  archivedTab:function(tab){return tab==='completed'||tab==='lists';},
   total:function(){return DB.data.archived.length+DB.data.trash.length;}
 };
 function renderArchive(){
@@ -1948,8 +1964,10 @@ function renderArchive(){
   var items=Trash.items(Trash.tab);
   if(!items.length){c.innerHTML='<div class="empty">Nothing here.</div>';return;}
   var h='<div class="archbox">';
-  if(Trash.tab==='completed'){
+  if(Trash.archivedTab(Trash.tab)){
+    var wantList=Trash.tab==='lists';
     DB.data.archived.slice().reverse().forEach(function(item,ri){
+      if(!!Trash.isList(item)!==wantList)return;
       var idx=DB.data.archived.length-1-ri;
       h+='<div class="archi"><div style="flex:1"><div style="font-size:14px;font-weight:500">'+esc(item.text)+'</div>'
         +'<div style="font-size:11px;color:#aaa;margin-top:3px">'+esc(item.section)+' · '+item.date+'</div></div>'
@@ -2254,7 +2272,7 @@ var A={
     var items=Trash.items(Trash.tab);
     if(!items.length)return;
     ConfirmSheet.show('Delete all '+items.length+' items in this tab forever?',function(){
-      if(Trash.tab==='completed')DB.data.archived=[];
+      if(Trash.archivedTab(Trash.tab))DB.data.archived=DB.data.archived.filter(function(a){return items.indexOf(a)===-1;});
       else{var ids=items.map(function(t){return t.id;});DB.data.trash=DB.data.trash.filter(function(t){return ids.indexOf(t.id)===-1;});}
       DB.save();renderGrids();renderArchive();
     });

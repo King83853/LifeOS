@@ -908,7 +908,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.75';
+var APP_VERSION='Beta 1.76';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1194,6 +1194,9 @@ var CHANGELOG=[
   {v:'Beta 1.75',notes:[
     'Settings: "Completed Tasks" is now "Trash" — everything you delete (habits, habit categories, projects, categories, tracker entries) goes there first, in its own tab, and can be restored or deleted for good',
     'Completed tasks are the first tab in the Trash'
+  ]},
+  {v:'Beta 1.76',notes:[
+    'Settings > Today: "Reset skipped tasks" is now a proper button (with the number of skipped tasks on it)'
   ]}
 ];
 var COLORS={
@@ -2005,12 +2008,10 @@ function renderSettings(){
     +'<div class="opt-text"><div class="opt-title">Refill automatically</div></div>'
     +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(refill?'checked':'')+' onchange="A.setTodayRefill(this.checked)"><span class="switch-slider"></span></label>'
     +'</div>'
-    +'<div class="opt-row" onclick="A.resetSkipped()">'
-    +'<div class="opt-ico" style="background:#f59e0b">'+ICON_RESET+'</div>'
-    +'<div class="opt-text"><div class="opt-title">Reset skipped tasks</div></div>'
-    +(skippedN?'<span class="ab" style="display:inline-flex">'+skippedN+'</span>':'')
     +'</div>'
-    +'</div>';
+    +'<button class="addbtn" style="width:100%;min-height:48px;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="A.resetSkipped()">'
+    +ICON_RESET+'<span>Reset skipped tasks</span>'+(skippedN?'<span class="ab" style="display:inline-flex;margin-left:0">'+skippedN+'</span>':'')
+    +'</button>';
 }
 
 function renderHabits(){

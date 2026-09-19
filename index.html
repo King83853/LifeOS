@@ -909,7 +909,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.78';
+var APP_VERSION='Beta 1.79';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1205,6 +1205,10 @@ var CHANGELOG=[
   {v:'Beta 1.78',notes:[
     'New: German version — pick Deutsch under Settings > Language (What\'s new notes stay in English for now)',
     'Settings: the rows with dropdowns (Language, Day starts at, Tasks shown) are the same height as the other rows now — the dropdown looks smaller, but the tap area around it is still big'
+  ]},
+  {v:'Beta 1.79',notes:[
+    'Trash: the Completed tab is now called Tasks',
+    'Trash: no more Categories tab — deleting a category puts its projects in Projects, deleting a Daily category puts its habits in Habits (restoring one brings its category back if it is gone)'
   ]}
 ];
 var COLORS={
@@ -1273,6 +1277,16 @@ var DB={
     if(!d.dailyItems)d.dailyItems=[];
     if(!d.dailyOnce)d.dailyOnce=[];
     if(!d.trash)d.trash=[];
+    // Categories are no longer trash entries of their own — split any old
+    // ones into their projects / habits.
+    d.trash=d.trash.reduce(function(out,t){
+      if(t.type==='category'){
+        t.data.projects.forEach(function(snap,i){out.push({id:t.id+'p'+i,type:'project',label:snap.project.name,sub:snap.project.icon,at:t.at,data:{catId:t.data.catId,cat:t.data.cat,index:i,snap:snap}});});
+      } else if(t.type==='habitcat'){
+        t.data.items.forEach(function(item,i){out.push({id:t.id+'h'+i,type:'habit',label:item.text||'Tracker',sub:t.data.cat.icon+' '+t.data.cat.name,at:t.at,data:{item:item,cat:t.data.cat}});});
+      } else out.push(t);
+      return out;
+    },[]);
     if(!d.dailyChecks)d.dailyChecks={};
     return this;
   },
@@ -1318,11 +1332,16 @@ var DB={
       if(d.dailyCats.some(function(c){return c.id===it.catId;})&&!d.dailyItems.some(function(x){return x.id===it.id;}))d.dailyItems.push(it);
     });
   },
+  // A deleted category isn't kept: its projects go to the Trash one by one
+  // (each remembers the category, and restoring recreates it if missing).
   deleteCategory:function(catId){
     var self=this,d=this.data,cat=d.categories[catId];
     var order=d.projectOrder[catId]||[];
-    var projects=order.filter(function(pid){return d.projects[pid];}).map(function(pid){return self._takeProject(pid);});
-    this._trash('category',cat?cat.name:catId,cat?cat.icon:'',{catId:catId,cat:cat,index:d.categoryOrder.indexOf(catId),order:order.slice(),projects:projects});
+    order.forEach(function(pid,index){
+      var p=d.projects[pid];if(!p)return;
+      var snap=self._takeProject(pid);
+      self._trash('project',p.name,p.icon,{catId:catId,cat:cat,index:index,snap:snap});
+    });
     delete d.categories[catId];
     delete d.projectOrder[catId];
     d.categoryOrder=d.categoryOrder.filter(function(x){return x!==catId;});
@@ -1357,18 +1376,9 @@ var DB={
       this._putProject(x.snap);
       var ord=d.projectOrder[x.catId];
       ord.splice(Math.min(Math.max(x.index,0),ord.length),0,x.snap.pid);
-    } else if(t.type==='category'){
-      if(!d.categories[x.catId]){
-        d.categories[x.catId]=x.cat;d.projectOrder[x.catId]=[];
-        d.categoryOrder.splice(Math.min(Math.max(x.index,0),d.categoryOrder.length),0,x.catId);
-      }
-      x.projects.forEach(function(snap){self._putProject(snap);if(d.projectOrder[x.catId].indexOf(snap.pid)===-1)d.projectOrder[x.catId].push(snap.pid);});
     } else if(t.type==='habit'){
       ensureDailyCat(x.cat);
       if(!d.dailyItems.some(function(it){return it.id===x.item.id;}))d.dailyItems.push(x.item);
-    } else if(t.type==='habitcat'){
-      ensureDailyCat(x.cat);
-      x.items.forEach(function(item){if(!d.dailyItems.some(function(it){return it.id===item.id;}))d.dailyItems.push(item);});
     } else if(t.type==='entry'){
       if(!d.projects[x.pid])return 'Restore the project first.';
       if(!d.trackerEntries)d.trackerEntries={};
@@ -1467,9 +1477,13 @@ var DB={
     if(c){c.name=name;this.save();}
   },
   deleteDailyCat:function(id){
-    var cat=this.data.dailyCats.find(function(x){return x.id===id;});
-    var items=this.data.dailyItems.filter(function(x){return x.catId===id;});
-    if(cat)this._trash('habitcat',cat.name,cat.icon,{cat:cat,items:items});
+    var self=this,d=this.data;
+    var cat=d.dailyCats.find(function(x){return x.id===id;});
+    // its habits go to the Trash one by one (restoring recreates the category)
+    d.dailyItems.filter(function(x){return x.catId===id;}).forEach(function(item){
+      var tp=item.trackerPid&&d.projects[item.trackerPid];
+      self._trash('habit',item.text||(tp?tp.name:'Tracker'),cat?cat.icon+' '+cat.name:'',{item:item,cat:cat||{id:id,name:'Restored',icon:'📌'}});
+    });
     this.data.dailyCats=this.data.dailyCats.filter(function(x){return x.id!==id;});
     this.data.dailyItems=this.data.dailyItems.filter(function(x){return x.catId!==id;});
     this.save();
@@ -1593,7 +1607,7 @@ var I18N=(function(){
     'Update failed — try again later. Nothing was changed.':'Update fehlgeschlagen — versuche es später erneut. Es wurde nichts geändert.',
     // confirms / alerts
     'Delete this forever?':'Endgültig löschen?','Move this entry to the Trash?':'Diesen Eintrag in den Papierkorb legen?','Move this habit to the Trash?':'Diese Gewohnheit in den Papierkorb legen?',
-    'Move this category and all its habits to the Trash?':'Diese Kategorie und alle ihre Gewohnheiten in den Papierkorb legen?','Restore the project first.':'Stelle zuerst das Projekt wieder her.',
+    'Delete this category? Its habits move to the Trash.':'Diese Kategorie löschen? Ihre Gewohnheiten kommen in den Papierkorb.','Restore the project first.':'Stelle zuerst das Projekt wieder her.',
     'No tracker projects yet — create one first from Overview (+ > Project > Tracker), then come back here to add it to Daily.':'Noch keine Tracker-Projekte — erstelle zuerst eines in der Übersicht (+ > Projekt > Tracker) und füge es dann hier zu Täglich hinzu.',
     // colors
     'Grey':'Grau','Red':'Rot','Rose':'Rosé','Orange':'Orange','Amber':'Bernstein','Yellow':'Gelb','Lime':'Limette','Green':'Grün','Emerald':'Smaragd','Teal':'Petrol','Cyan':'Cyan','Sky':'Himmelblau',
@@ -1609,10 +1623,9 @@ var I18N=(function(){
     [/^Tracking: (.*)$/,'Verfolge: $1'],
     [/^What's new in (.*)$/,'Neuigkeiten in $1'],
     [/^📁 Category: (.*)$/,'📁 Kategorie: $1'],
-    [/^Daily · (.*)$/,'Täglich · $1'],
     [/^✓ Updated to (.*)$/,'✓ Aktualisiert auf $1'],
     [/^Delete all (\d+) items in this tab forever\?$/,'Alle $1 Einträge in diesem Tab endgültig löschen?'],
-    [/^Move category "(.*)" and ALL its projects and tasks to the Trash\?$/,'Kategorie „$1“ und ALLE ihre Projekte und Aufgaben in den Papierkorb legen?'],
+    [/^Delete category "(.*)"\? Its projects move to the Trash\.$/,'Kategorie „$1“ löschen? Ihre Projekte kommen in den Papierkorb.'],
     [/^Move project "(.*)" and all its tasks to the Trash\?$/,'Projekt „$1“ und alle seine Aufgaben in den Papierkorb legen?']
   ];
   var lang='en',ATTRS=['placeholder','title','aria-label'],SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1};
@@ -1918,16 +1931,11 @@ function renderProj(pid){
 // archive of ticked-off tasks; the rest come from DB.data.trash.
 var Trash={
   tab:'completed',
-  TABS:[{id:'completed',label:'Completed'},{id:'habit',label:'Habits'},{id:'project',label:'Projects'},{id:'category',label:'Categories'},{id:'entry',label:'Entries'}],
-  // Deleted Daily categories and Overview categories share one tab.
+  TABS:[{id:'completed',label:'Tasks'},{id:'habit',label:'Habits'},{id:'project',label:'Projects'},{id:'entry',label:'Entries'}],
   items:function(tab){
     var d=DB.data;
     if(tab==='completed')return d.archived;
-    return d.trash.filter(function(t){
-      if(tab==='habit')return t.type==='habit';
-      if(tab==='category')return t.type==='category'||t.type==='habitcat';
-      return t.type===tab;
-    });
+    return d.trash.filter(function(t){return t.type===tab;});
   },
   total:function(){return DB.data.archived.length+DB.data.trash.length;}
 };
@@ -1951,8 +1959,8 @@ function renderArchive(){
   } else {
     items.slice().reverse().forEach(function(t){
       var when=new Date(t.at).toLocaleDateString('de-CH',{day:'numeric',month:'short',year:'numeric'});
-      var icon=(t.type==='project'||t.type==='category'||t.type==='habitcat')&&t.sub?esc(t.sub)+' ':'';
-      var sub=(t.type==='habit'||t.type==='entry')&&t.sub?esc(t.sub)+' · ':(t.type==='habitcat'?'Daily · ':'');
+      var icon=t.type==='project'&&t.sub?esc(t.sub)+' ':'';
+      var sub=(t.type==='habit'||t.type==='entry')&&t.sub?esc(t.sub)+' · ':'';
       h+='<div class="archi"><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500">'+icon+esc(t.label)+'</div>'
         +'<div style="font-size:11px;color:#aaa;margin-top:3px">'+sub+when+'</div></div>'
         +'<button class="rbtn" onclick="A.trashRestore(\''+t.id+'\')">Restore</button>'
@@ -2265,7 +2273,7 @@ var A={
   moveCat:function(id,dir){DB.moveCategory(id,dir);renderEditLayout();renderGrids();},
   deleteCat:function(id){
     var n=DB.data.categories[id]?DB.data.categories[id].name:id;
-    if(!confirm(t('Move category "'+n+'" and ALL its projects and tasks to the Trash?')))return;
+    if(!confirm(t('Delete category "'+n+'"? Its projects move to the Trash.')))return;
     DB.deleteCategory(id);buildProjPages();renderEditLayout();renderGrids();renderWar();
   },
   moveProj:function(catId,pid,dir){DB.moveProject(catId,pid,dir);renderEditLayout();renderGrids();},
@@ -3597,7 +3605,7 @@ var DailyCatSheet={
     document.getElementById('input-sheet-field').value=cat.name;
   },
   remove:function(id){
-    ConfirmSheet.show('Move this category and all its habits to the Trash?',function(){
+    ConfirmSheet.show('Delete this category? Its habits move to the Trash.',function(){
       DB.deleteDailyCat(id);
       DailyCatSheet.render();buildPanels();restoreChecks(Nav.sd);renderGrids();
     });

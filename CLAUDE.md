@@ -159,11 +159,13 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
 
 - Trash (Settings > Trash, page id `p-archive`, `renderArchive`/`Trash`):
   nothing is deleted outright anymore. Every delete path snapshots into
-  `DB.data.trash` (`{id,type,label,sub,at,data}`, types: habit, habitcat,
-  project, category, entry) and `DB.restoreTrash(id)` puts it back
+  `DB.data.trash` (`{id,type,label,sub,at,data}`, types: habit, project,
+  entry — a deleted category is NOT an entry: its projects/habits are
+  trashed one by one, each carrying a snapshot of the category so
+  restoring recreates it; old category/habitcat entries are split on load) and `DB.restoreTrash(id)` puts it back
   (recreating a missing parent category from the snapshot; an entry needs
   its project to exist, else it returns a message). Completed tasks are
-  still `DB.data.archived` and are the first tab. A NEW delete path must
+  still `DB.data.archived` and are the first tab (labelled Tasks). A NEW delete path must
   push to trash too (use `DB._trash`, and `_takeProject`/`_putProject`
   for projects) — grep `filter(` on dailyItems/dailyCats/projects when
   adding one. One-time tasks have no delete path (completing one just

@@ -330,7 +330,7 @@ html[data-theme="light"] .el-icon{background:#f3f4f6}
 html[data-theme="dark"] .el-btn{border-color:#444;background:#1e1c1a}
 html[data-theme="light"] .el-btn{border-color:#d1cec9;background:#fff}
 .el-btn:active{opacity:.7}
-.el-btn.danger{border-color:#dc2626;background:#dc2626}
+.el-btn.danger,html[data-theme="light"] .el-btn.danger,html[data-theme="dark"] .el-btn.danger{border-color:#dc2626;background:#dc2626}
 .el-grp{font-size:11px;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:.07em;margin:18px 0 8px}
 
 .opt-row{display:flex;align-items:center;gap:12px;padding:14px;background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px;cursor:pointer}
@@ -908,7 +908,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.76';
+var APP_VERSION='Beta 1.77';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1197,6 +1197,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.76',notes:[
     'Settings > Today: "Reset skipped tasks" is now a proper button (with the number of skipped tasks on it)'
+  ]},
+  {v:'Beta 1.77',notes:[
+    'Fixed: the delete buttons in Edit layout showed as empty white squares — they are red again, with a trash can icon; habit and tracker-entry delete buttons use the same trash can'
   ]}
 ];
 var COLORS={
@@ -1713,7 +1716,7 @@ function renderTracker(pid){
     var d=new Date(e.ts);
     var ds=d.toLocaleDateString('de-CH',{day:'numeric',month:'short',year:'2-digit'})
       +' '+d.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'});
-    var delBtn='<button class="trk-del" onclick="A.delTrackerEntry(\''+pid+'\','+e.ts+')">x</button>';
+    var delBtn='<button class="trk-del" onclick="A.delTrackerEntry(\''+pid+'\','+e.ts+')">'+trashSvg(18,'currentColor')+'</button>';
     return '<div class="trk-entry"><div><div class="trk-entry-val">'+e.val+' '+unit+'</div>'
       +'<div class="trk-entry-date">'+ds+'</div></div>'+delBtn+'</div>';
   }).join('');
@@ -1900,7 +1903,7 @@ function renderEditLayout(){
     h+='<div class="el-btns">';
     h+='<button class="el-btn"'+(ci===0?' disabled style="opacity:.3"':'')+' onclick="A.moveCat(\''+catId+'\', -1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>';
     h+='<button class="el-btn"'+(ci===d.categoryOrder.length-1?' disabled style="opacity:.3"':'')+' onclick="A.moveCat(\''+catId+'\', 1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>';
-    h+='<button class="el-btn danger" onclick="A.deleteCat(\''+catId+'\')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
+    h+='<button class="el-btn danger" onclick="A.deleteCat(\''+catId+'\')">'+trashSvg(22,'#fff')+'</button>';
     h+='</div></div>';
     var projs=d.projectOrder[catId]||[];
     projs.forEach(function(pid,pi){
@@ -1917,7 +1920,7 @@ function renderEditLayout(){
       h+='<div class="el-btns">';
       h+='<button class="el-btn"'+(pi===0?' disabled style="opacity:.3"':'')+' onclick="A.moveProj(\''+catId+'\',\''+pid+'\',-1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>';
       h+='<button class="el-btn"'+(pi===projs.length-1?' disabled style="opacity:.3"':'')+' onclick="A.moveProj(\''+catId+'\',\''+pid+'\',1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>';
-      h+='<button class="el-btn danger" onclick="A.deleteProj(\''+catId+'\',\''+pid+'\')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
+      h+='<button class="el-btn danger" onclick="A.deleteProj(\''+catId+'\',\''+pid+'\')">'+trashSvg(22,'#fff')+'</button>';
       h+='</div></div>';
     });
   });
@@ -1933,6 +1936,7 @@ var ICON_SYSTEM='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" str
 var ICON_SUN='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
 var ICON_MOON='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 var ICON_GLOBE='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
+function trashSvg(sz,stroke){return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+stroke+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';}
 var ICON_RESET='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>';
 var ICON_TARGET='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
 var ICON_CHEVRON='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>';
@@ -2751,7 +2755,7 @@ function ciEdit(itemId,text,dayIdx){
   return '<div class="cali" data-id="'+itemId+'">'
     +'<input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'" onchange="A.toggleDailyItemFor(this,'+dayIdx+')">'
     +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label>'
-    +'<button class="trk-del" onclick="A.deleteDailyItem(event,\''+itemId+'\')">×</button></div>';
+    +'<button class="trk-del" onclick="A.deleteDailyItem(event,\''+itemId+'\')">'+trashSvg(18,'currentColor')+'</button></div>';
 }
 // The most recent tracker entry actually logged on calendar date `ds`
 // (local time, matching dStr/pDate everywhere else) — null if none.
@@ -2785,7 +2789,7 @@ function ciTracker(it,dayIdx,editable){
     +'<div class="trk-daily-dot'+(val!=null?' done':'')+'"></div>'
     +'<label style="cursor:pointer">'+(p.icon||'📈')+' '+esc(p.name)+'</label>'
     +(val!=null?'<span class="trk-daily-val">'+esc(val+(unit?' '+unit:''))+'</span>':'')
-    +(editable?'<button class="trk-del" onclick="A.deleteDailyItem(event,\''+it.id+'\')">×</button>':'')
+    +(editable?'<button class="trk-del" onclick="A.deleteDailyItem(event,\''+it.id+'\')">'+trashSvg(18,'currentColor')+'</button>':'')
     +'</div>';
 }
 // ── HABIT STATS ───────────────────────────────────────────
@@ -3415,7 +3419,7 @@ var DailyCatSheet={
       return '<div class="el-row"><div class="el-icon">'+cat.icon+'</div><div class="el-name">'+esc(cat.name)+'</div>'
         +'<div class="el-btns">'
         +'<button class="el-btn" onclick="DailyCatSheet.rename(\''+cat.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
-        +'<button class="el-btn danger" onclick="DailyCatSheet.remove(\''+cat.id+'\')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+        +'<button class="el-btn danger" onclick="DailyCatSheet.remove(\''+cat.id+'\')">'+trashSvg(18,'#fff')+'</button>'
         +'</div></div>';
     }).join('');
   },

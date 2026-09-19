@@ -896,7 +896,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.72';
+var APP_VERSION='Beta 1.73';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1171,6 +1171,10 @@ var CHANGELOG=[
   {v:'Beta 1.72',notes:[
     'Settings: the red count on Completed Tasks is bigger and easier to read',
     'Settings: the Tasks shown icon is red, and Edit layout has a new layout icon in purple'
+  ]},
+  {v:'Beta 1.73',notes:[
+    'Settings > Today: new "Reset skipped tasks" button below Refill automatically — brings every skipped task back to Today (shows how many are skipped)',
+    'Settings > Appearance: order is now Light, Dark, System'
   ]}
 ];
 var COLORS={
@@ -1799,6 +1803,7 @@ var ICON_SYSTEM='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" str
 var ICON_SUN='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
 var ICON_MOON='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 var ICON_GLOBE='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
+var ICON_RESET='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>';
 var ICON_TARGET='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
 var ICON_CHEVRON='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>';
 
@@ -1821,9 +1826,9 @@ function renderSettings(){
   var vl=document.getElementById('version-btn');if(vl)vl.textContent=APP_VERSION;
   var theme=DB.data.settings.theme||'system';
   document.getElementById('settings-theme').innerHTML='<div class="opt-group">'+[
-    {v:'system',icon:ICON_SYSTEM,title:'System',bg:'#6b7280'},
     {v:'light',icon:ICON_SUN,title:'Light',bg:'#f59e0b'},
-    {v:'dark',icon:ICON_MOON,title:'Dark',bg:'#6366f1'}
+    {v:'dark',icon:ICON_MOON,title:'Dark',bg:'#6366f1'},
+    {v:'system',icon:ICON_SYSTEM,title:'System',bg:'#6b7280'}
   ].map(function(o){
     return '<div class="opt-row'+(theme===o.v?' active':'')+'" onclick="A.setTheme(\''+o.v+'\')">'
       +'<div class="opt-ico" style="background:'+o.bg+'">'+o.icon+'</div>'
@@ -1849,6 +1854,8 @@ function renderSettings(){
 
   var refill=DB.data.settings.todayRefill;
   var vanish=DB.data.settings.todayHabitsDisappear;
+  var skippedN=0;
+  for(var sp in DB.data.extraTasks)(DB.data.extraTasks[sp]||[]).forEach(function(t){if(t.skip)skippedN++;});
   document.getElementById('settings-today').innerHTML=
     '<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
@@ -1870,6 +1877,11 @@ function renderSettings(){
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Refill automatically</div></div>'
     +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(refill?'checked':'')+' onchange="A.setTodayRefill(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div>'
+    +'<div class="opt-row" onclick="A.resetSkipped()">'
+    +'<div class="opt-ico" style="background:#f59e0b">'+ICON_RESET+'</div>'
+    +'<div class="opt-text"><div class="opt-title">Reset skipped tasks</div></div>'
+    +(skippedN?'<span class="ab" style="display:inline-flex">'+skippedN+'</span>':'')
     +'</div>'
     +'</div>';
 }
@@ -2128,6 +2140,11 @@ var A={
   setTodayTaskCount:function(val){
     DB.data.settings.todayTaskCount=parseInt(val,10)||3;DB.save();
     renderSettings();renderToday();
+  },
+  // Un-skips every skipped task so they all show on Today again.
+  resetSkipped:function(){
+    for(var pid in DB.data.extraTasks)(DB.data.extraTasks[pid]||[]).forEach(function(t){delete t.skip;});
+    DB.save();renderSettings();renderToday();
   },
   setTodayRefill:function(val){
     DB.data.settings.todayRefill=val;DB.save();

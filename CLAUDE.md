@@ -450,6 +450,20 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   regardless) once the last one closes. If it's not fully hidden, it
   can't show through and it can't visibly snap into place — sidesteps
   the stacking question instead of needing to answer it.
+  That fixed the tab bar jump, but the user then confirmed a strip of
+  dead space below the sheets was STILL there afterward — so it wasn't
+  the tab bar. Their screenshot showed it undimmed (page-background
+  gray, not backdrop-dimmed) with the home indicator in it, i.e. neither
+  the sheet nor `.sheet-overlay` reaches the physical bottom on that
+  device even though both are fixed `bottom:0`/`inset:0` and the meta
+  viewport has `viewport-fit=cover`. Not reproducible in desktop preview.
+  Beta 1.55 extends both past the bottom edge (overlay `bottom:-120px`;
+  sheet via a sheet-colored `box-shadow:0 120px 0 60px`, deliberately
+  NOT padding/negative-bottom on `.sheet` itself, since input-sheet and
+  confirm-sheet set their own inline padding that would silently
+  un-compensate it). Unverified on-device — if a strip is still there,
+  get a fresh screenshot of it with a sheet open and read its color and
+  whether it's dimmed before touching anything else.
 
 ## Definition of "done" for a change
 0. If index.html (or any other cached asset) changed, bump `CACHE_NAME` in

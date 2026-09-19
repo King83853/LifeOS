@@ -400,7 +400,7 @@ html[data-theme="light"] #whatsnew-body{color:#555}
 .wn-ver{font-size:11px;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px}
 .wn-ver:first-child{margin-top:0}
 
-.sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;opacity:0;transition:opacity .13s ease-out}
+.sheet-overlay{display:none;position:fixed;inset:0;bottom:-120px;background:rgba(0,0,0,.5);z-index:500;opacity:0;transition:opacity .13s ease-out}
 .sheet-overlay.on{display:block}
 /* Keyed off the same .show class the sheet's own slide uses (see
    _overlayOpen/_overlayClose) so the backdrop fades in/out in sync
@@ -408,9 +408,23 @@ html[data-theme="light"] #whatsnew-body{color:#555}
    display flips — it used to have no transition at all. */
 .sheet-overlay.on.show{opacity:1}
 .sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;max-height:75vh;border-radius:24px 24px 0 0;padding:24px 20px 44px;z-index:501;transform:translateY(100%);transition:transform .13s ease-out}
-@media(prefers-color-scheme:dark){.sheet{background:#1e1c1a}}
-html[data-theme="dark"] .sheet{background:#1e1c1a}
-html[data-theme="light"] .sheet{background:#fff}
+/* Reported on a real iPhone (standalone PWA): a strip of undimmed page
+   background below the sheet, between its bottom edge and the physical
+   bottom of the screen, that neither the sheet nor its dark backdrop
+   covers -- fixed elements' bottom edge evidently stops short of the
+   physical bottom there. Not reproducible in desktop preview (no safe
+   area, fixed bottom:0 reaches the real edge). So both are extended
+   past the bottom edge by more than that strip could plausibly be:
+   the backdrop via bottom:-120px above, the sheet via a solid
+   sheet-colored box-shadow offset downward below (a shadow rather than
+   padding/negative bottom on the sheet itself, since several sheets
+   set their own inline padding that would have silently un-compensated
+   a padding-based version). Where the fixed box already reaches the
+   real bottom, all of it is just off-screen and does nothing. */
+.sheet{background:#fff;box-shadow:0 120px 0 60px #fff}
+@media(prefers-color-scheme:dark){.sheet{background:#1e1c1a;box-shadow:0 120px 0 60px #1e1c1a}}
+html[data-theme="dark"] .sheet{background:#1e1c1a;box-shadow:0 120px 0 60px #1e1c1a}
+html[data-theme="light"] .sheet{background:#fff;box-shadow:0 120px 0 60px #fff}
 /* Split from the overlay's own .on: see _overlayOpen()'s comment for why
    the transform-to-open and the display:none->block flip can't be the
    same class change. */
@@ -889,7 +903,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.54';
+var APP_VERSION='Beta 1.55';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1107,6 +1121,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.54',notes:[
     'Fixed: the footer tab bar could show through behind an open sheet and visibly jump into place right as one closed — it\'s now fully hidden for as long as any sheet is open, instead of relying on stacking order alone'
+  ]},
+  {v:'Beta 1.55',notes:[
+    'Sheets: the dimmed background and the sheet itself now extend past the bottom edge of the screen, to cover the strip of dead space that was showing below them'
   ]}
 ];
 var COLORS={

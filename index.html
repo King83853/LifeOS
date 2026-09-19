@@ -896,7 +896,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.73';
+var APP_VERSION='Beta 1.74';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1175,6 +1175,9 @@ var CHANGELOG=[
   {v:'Beta 1.73',notes:[
     'Settings > Today: new "Reset skipped tasks" button below Refill automatically — brings every skipped task back to Today (shows how many are skipped)',
     'Settings > Appearance: order is now Light, Dark, System'
+  ]},
+  {v:'Beta 1.74',notes:[
+    'Habit charts: a dashed "Added" line marks the day, week or month the habit was created'
   ]}
 ];
 var COLORS={
@@ -2675,10 +2678,10 @@ function habitPeriods(item,granularity,count){
   if(!days.length)return out;
   var created=habitCreatedDs(item);
   if(granularity==='day'){
-    var cursor=new Date(T),guard=0;
+    var cursor=new Date(T),guard=0,hitStart=false;
     while(out.length<count&&guard<450){
       guard++;
-      if(dStr(cursor)<created)break;
+      if(dStr(cursor)<created){hitStart=true;break;}
       if(days.indexOf(wIdx(cursor))!==-1){
         var ds=dStr(cursor);
         var v=dcv(ds,item.id);
@@ -2686,6 +2689,8 @@ function habitPeriods(item,granularity,count){
       }
       cursor.setDate(cursor.getDate()-1);
     }
+    // the earliest bar is where the habit was added
+    if(hitStart&&out.length)out[0].added=true;
   } else if(granularity==='week'){
     var wkStart=new Date(T);wkStart.setDate(wkStart.getDate()-wIdx(T));
     for(var w=count-1;w>=0;w--){
@@ -2700,7 +2705,8 @@ function habitPeriods(item,granularity,count){
           {var v2=dcv(ds2,item.id);if(v2){completed++;if(v2==='skip')skipped++;}}
         }
       }
-      out.push({label:start.getDate()+'.'+(start.getMonth()+1)+'.',completed:completed,skipped:skipped,scheduled:scheduled});
+      var wend=dStr(new Date(start.getFullYear(),start.getMonth(),start.getDate()+6));
+      out.push({label:start.getDate()+'.'+(start.getMonth()+1)+'.',completed:completed,skipped:skipped,scheduled:scheduled,added:created>=dStr(start)&&created<=wend});
     }
   } else {
     var base=new Date(T.getFullYear(),T.getMonth(),1);
@@ -2716,7 +2722,7 @@ function habitPeriods(item,granularity,count){
         }
         cur.setDate(cur.getDate()+1);
       }
-      out.push({label:mstart.toLocaleDateString('de-CH',{month:'short'}),completed:completed2,skipped:skipped2,scheduled:scheduled2});
+      out.push({label:mstart.toLocaleDateString('de-CH',{month:'short'}),completed:completed2,skipped:skipped2,scheduled:scheduled2,added:created>=dStr(mstart)&&created<=dStr(mend)});
     }
   }
   return out;
@@ -2725,7 +2731,8 @@ function habitPeriods(item,granularity,count){
 function renderBarChart(periods,svgId){
   if(!periods.length)return '<div class="empty" style="padding:20px 0">No schedule set for this habit.</div>';
   svgId=svgId||'hd-svg';
-  var w=300,h=110,padBottom=18,padTop=6;
+  var hasAdded=periods.some(function(p){return p.added;});
+  var w=300,h=110,padBottom=18,padTop=hasAdded?16:6;
   var n=periods.length,gap=n>20?2:6;
   var barW=Math.max(2,(w-gap*(n-1))/n);
   var maxVal=Math.max(1,Math.max.apply(null,periods.map(function(p){return p.completed;})));
@@ -2745,6 +2752,12 @@ function renderBarChart(periods,svgId){
     }
     if(i%everyN===0){
       labels+='<text class="hd-bar-label" x="'+(x+barW/2).toFixed(1)+'" y="'+(h-4)+'" font-size="7.5" text-anchor="middle">'+esc(p.label)+'</text>';
+    }
+    if(p.added){
+      // dashed line + tag where the habit was added
+      var mx=Math.max(0.5,x-gap/2);
+      labels+='<line x1="'+mx.toFixed(1)+'" y1="11" x2="'+mx.toFixed(1)+'" y2="'+(h-padBottom)+'" stroke="#6366f1" stroke-width="1" stroke-dasharray="2.5 2"/>'
+        +'<text x="'+(mx>w-50?mx-3:mx+3).toFixed(1)+'" y="8.5" font-size="8" font-weight="700" fill="#6366f1" text-anchor="'+(mx>w-50?'end':'start')+'">Added</text>';
     }
   });
   return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:120px;display:block" id="'+svgId+'">'+bars+labels+'</svg>';

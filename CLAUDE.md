@@ -450,20 +450,24 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   regardless) once the last one closes. If it's not fully hidden, it
   can't show through and it can't visibly snap into place — sidesteps
   the stacking question instead of needing to answer it.
-  That fixed the tab bar jump, but the user then confirmed a strip of
-  dead space below the sheets was STILL there afterward — so it wasn't
-  the tab bar. Their screenshot showed it undimmed (page-background
-  gray, not backdrop-dimmed) with the home indicator in it, i.e. neither
-  the sheet nor `.sheet-overlay` reaches the physical bottom on that
-  device even though both are fixed `bottom:0`/`inset:0` and the meta
-  viewport has `viewport-fit=cover`. Not reproducible in desktop preview.
-  Beta 1.55 extends both past the bottom edge (overlay `bottom:-120px`;
-  sheet via a sheet-colored `box-shadow:0 120px 0 60px`, deliberately
-  NOT padding/negative-bottom on `.sheet` itself, since input-sheet and
-  confirm-sheet set their own inline padding that would silently
-  un-compensate it). Unverified on-device — if a strip is still there,
-  get a fresh screenshot of it with a sheet open and read its color and
-  whether it's dimmed before touching anything else.
+  That fixed the tab bar jump, but a strip of "dead space" below every
+  sheet remained — user sent their phone's screenshot next to the native
+  iOS Settings app, which fills to the very bottom edge. The strip in
+  ours is navy #1f2937 = exactly `<html>`'s own dark background (not the
+  sheet's #1e1c1a, and NOT dimmed by the backdrop), with the home
+  indicator in it. Beta 1.55 tried extending `.sheet-overlay` and the
+  sheet (negative bottom / big box-shadow) past the bottom edge: no
+  effect, and it can't have — that strip is outside what the page can
+  paint into on that device (standalone PWA, viewport-fit=cover), so
+  nothing positioned in the page reaches it; only the canvas/html
+  background color shows there. That's the one lever: while any sheet
+  is open, `_lockBodyScroll` sets `documentElement.style.background` to
+  the open sheet's computed background color (so it follows
+  light/dark/system) and `_unlockBodyScroll` clears it. Reverted 1.55's
+  CSS. Lesson: a screenshot with the strip's actual color in it answered
+  in one look what three rounds of guessing didn't — when a rendering
+  report is device-only, read colors/positions off the user's image
+  first, and reason from what could physically paint there.
 
 ## Definition of "done" for a change
 0. If index.html (or any other cached asset) changed, bump `CACHE_NAME` in

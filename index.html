@@ -400,7 +400,7 @@ html[data-theme="light"] #whatsnew-body{color:#555}
 .wn-ver{font-size:11px;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px}
 .wn-ver:first-child{margin-top:0}
 
-.sheet-overlay{display:none;position:fixed;inset:0;bottom:-120px;background:rgba(0,0,0,.5);z-index:500;opacity:0;transition:opacity .13s ease-out}
+.sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;opacity:0;transition:opacity .13s ease-out}
 .sheet-overlay.on{display:block}
 /* Keyed off the same .show class the sheet's own slide uses (see
    _overlayOpen/_overlayClose) so the backdrop fades in/out in sync
@@ -408,23 +408,9 @@ html[data-theme="light"] #whatsnew-body{color:#555}
    display flips — it used to have no transition at all. */
 .sheet-overlay.on.show{opacity:1}
 .sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;max-height:75vh;border-radius:24px 24px 0 0;padding:24px 20px 44px;z-index:501;transform:translateY(100%);transition:transform .13s ease-out}
-/* Reported on a real iPhone (standalone PWA): a strip of undimmed page
-   background below the sheet, between its bottom edge and the physical
-   bottom of the screen, that neither the sheet nor its dark backdrop
-   covers -- fixed elements' bottom edge evidently stops short of the
-   physical bottom there. Not reproducible in desktop preview (no safe
-   area, fixed bottom:0 reaches the real edge). So both are extended
-   past the bottom edge by more than that strip could plausibly be:
-   the backdrop via bottom:-120px above, the sheet via a solid
-   sheet-colored box-shadow offset downward below (a shadow rather than
-   padding/negative bottom on the sheet itself, since several sheets
-   set their own inline padding that would have silently un-compensated
-   a padding-based version). Where the fixed box already reaches the
-   real bottom, all of it is just off-screen and does nothing. */
-.sheet{background:#fff;box-shadow:0 120px 0 60px #fff}
-@media(prefers-color-scheme:dark){.sheet{background:#1e1c1a;box-shadow:0 120px 0 60px #1e1c1a}}
-html[data-theme="dark"] .sheet{background:#1e1c1a;box-shadow:0 120px 0 60px #1e1c1a}
-html[data-theme="light"] .sheet{background:#fff;box-shadow:0 120px 0 60px #fff}
+@media(prefers-color-scheme:dark){.sheet{background:#1e1c1a}}
+html[data-theme="dark"] .sheet{background:#1e1c1a}
+html[data-theme="light"] .sheet{background:#fff}
 /* Split from the overlay's own .on: see _overlayOpen()'s comment for why
    the transform-to-open and the display:none->block flip can't be the
    same class change. */
@@ -903,7 +889,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.55';
+var APP_VERSION='Beta 1.56';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1124,6 +1110,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.55',notes:[
     'Sheets: the dimmed background and the sheet itself now extend past the bottom edge of the screen, to cover the strip of dead space that was showing below them'
+  ]},
+  {v:'Beta 1.56',notes:[
+    'Sheets: the strip at the very bottom of the screen (where the home indicator sits) now takes the sheet\'s color while a sheet is open, instead of showing the page\'s dark-blue background'
   ]}
 ];
 var COLORS={
@@ -3299,6 +3288,19 @@ function _lockBodyScroll(){
   // through, and it can't visibly snap into its final position on close,
   // if it was never there to begin with.
   var tb=document.querySelector('.tabbar');if(tb)tb.style.display='none';
+  // On the user's iPhone (standalone PWA) there's a strip at the very
+  // bottom, where the home indicator is, that the page cannot paint into
+  // at all — neither .sheet nor .sheet-overlay reaches it however far
+  // they're extended (tried: Beta 1.55, no effect). All that shows there
+  // is the <html> background color (measured off their screenshot:
+  // navy #1f2937 in dark mode, i.e. exactly html's own background —
+  // not the sheet's #1e1c1a, not dimmed by the backdrop). So the only
+  // thing that CAN be changed is that color: match it to the sheet's
+  // while one is open so the strip reads as the sheet continuing to the
+  // bottom of the screen. Read live off the open sheet so it follows
+  // light/dark/system without a second copy of the colors here.
+  var sh=document.querySelector('.sheet-overlay.on .sheet')||document.querySelector('.sheet');
+  if(sh)document.documentElement.style.background=getComputedStyle(sh).backgroundColor;
 }
 function _unlockBodyScroll(){
   document.body.style.position='';
@@ -3312,6 +3314,7 @@ function _unlockBodyScroll(){
   // (project/habits pages hide it deliberately), so ask it instead of
   // assuming "unlocked" means "visible."
   if(typeof TabBar!=='undefined')TabBar.updateActive();
+  document.documentElement.style.background=''; // back to the stylesheet's html background
 }
 // Kept in sync with .sheet's "transition:transform .13s" above — the
 // close path needs to know how long that animation takes so it can wait

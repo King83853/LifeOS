@@ -889,7 +889,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.57';
+var APP_VERSION='Beta 1.58';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1116,6 +1116,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.57',notes:[
     'Temporary: Version history now shows a small readout of screen/viewport numbers at the top, to track down the empty strip at the bottom of sheets on your phone'
+  ]},
+  {v:'Beta 1.58',notes:[
+    'Fixed: the empty strip at the bottom of every sheet on iPhone — sheets now run all the way to the bottom edge. The cause was the scroll lock shrinking the screen by the status-bar height while a sheet was open; the readout is gone again'
   ]}
 ];
 var COLORS={
@@ -3269,55 +3272,52 @@ var _overlayCount=0;
 // mid-momentum-scroll — this stops an already-in-flight one dead, not
 // just future attempts, and needs no per-touch decision logic at all.
 var _bodyLockY=0;
+// Two ways to stop the page scrolling behind a sheet:
+//  - position:fixed on <body> (top:-scrollY, restored on unlock). Stops an
+//    already-in-flight iOS momentum scroll dead, which overflow:hidden may
+//    not — this is why it exists (see CLAUDE.md).
+//  - overflow:hidden on <html>, used in the installed iPhone app instead.
+// On the user's phone (iOS, standalone, screen 852pt) the first one makes
+// the layout viewport shrink from 852 to 793 — by exactly the 59pt top
+// safe area — the whole time it's applied: window.innerHeight 793, every
+// position:fixed element (sheet, backdrop) stops 59pt above the physical
+// bottom, leaving a strip the page can't paint into. Confirmed by their
+// on-device readout: same sheet, lock on = bottom 793 + strip, lock off =
+// bottom 852 and no strip. It also moved the fixed tab bar up and back
+// on every open/close, the "menu jump". Everything tried before that
+// (hide tab bar, extend sheet/backdrop, recolor html) was chasing a
+// symptom. Non-standalone browsers keep the fixed lock unchanged.
+var _lockMode='fixed';
 function _lockBodyScroll(){
   _bodyLockY=window.scrollY||document.documentElement.scrollTop||0;
-  document.body.style.position='fixed';
-  document.body.style.top=(-_bodyLockY)+'px';
-  document.body.style.left='0';
-  document.body.style.right='0';
-  document.body.style.width='100%';
-  // The tab bar is z-index 150, well under any sheet-overlay (500+), so
-  // it should never be visible while one's open — but two things were
-  // reported that both point at it showing through anyway: a strip of
-  // "something else" visible below/behind the sheet, and the tab bar
-  // itself visibly jumping to its correct spot right as a sheet finishes
-  // closing. Both are explained if this specific WebKit version isn't
-  // actually respecting that z-index ordering here (a fixed-position
-  // child, body.style.position also being fixed for the lock above, and
-  // 500-vs-150 stacking not resolving the way it does on desktop Chrome
-  // wouldn't be the first iOS-only stacking surprise in this app). Rather
-  // than fight the exact mechanism blind, just take the tab bar out of
-  // rendering entirely for as long as any sheet is open — it can't show
-  // through, and it can't visibly snap into its final position on close,
-  // if it was never there to begin with.
+  _lockMode=(navigator.standalone===true)?'overflow':'fixed';
+  if(_lockMode==='overflow'){
+    document.documentElement.style.overflow='hidden';
+  } else {
+    document.body.style.position='fixed';
+    document.body.style.top=(-_bodyLockY)+'px';
+    document.body.style.left='0';
+    document.body.style.right='0';
+    document.body.style.width='100%';
+  }
+  // Per request: no bottom bar while a sheet is up. It's z-index 150,
+  // under the sheets, so this only matters where stacking misbehaves.
   var tb=document.querySelector('.tabbar');if(tb)tb.style.display='none';
-  // On the user's iPhone (standalone PWA) there's a strip at the very
-  // bottom, where the home indicator is, that the page cannot paint into
-  // at all — neither .sheet nor .sheet-overlay reaches it however far
-  // they're extended (tried: Beta 1.55, no effect). All that shows there
-  // is the <html> background color (measured off their screenshot:
-  // navy #1f2937 in dark mode, i.e. exactly html's own background —
-  // not the sheet's #1e1c1a, not dimmed by the backdrop). So the only
-  // thing that CAN be changed is that color: match it to the sheet's
-  // while one is open so the strip reads as the sheet continuing to the
-  // bottom of the screen. Read live off the open sheet so it follows
-  // light/dark/system without a second copy of the colors here.
-  var sh=document.querySelector('.sheet-overlay.on .sheet')||document.querySelector('.sheet');
-  if(sh)document.documentElement.style.background=getComputedStyle(sh).backgroundColor;
 }
 function _unlockBodyScroll(){
-  document.body.style.position='';
-  document.body.style.top='';
-  document.body.style.left='';
-  document.body.style.right='';
-  document.body.style.width='';
-  window.scrollTo(0,_bodyLockY);
-  // Don't just clear our own override back to '' — TabBar.updateActive()
-  // already knows whether THIS page wants the tab bar hidden regardless
-  // (project/habits pages hide it deliberately), so ask it instead of
-  // assuming "unlocked" means "visible."
+  if(_lockMode==='overflow'){
+    document.documentElement.style.overflow='';
+  } else {
+    document.body.style.position='';
+    document.body.style.top='';
+    document.body.style.left='';
+    document.body.style.right='';
+    document.body.style.width='';
+    window.scrollTo(0,_bodyLockY);
+  }
+  // Ask TabBar rather than clearing to visible: project/habits pages
+  // want it hidden regardless.
   if(typeof TabBar!=='undefined')TabBar.updateActive();
-  document.documentElement.style.background=''; // back to the stylesheet's html background
 }
 // Kept in sync with .sheet's "transition:transform .13s" above — the
 // close path needs to know how long that animation takes so it can wait
@@ -3471,49 +3471,12 @@ var WhatsNew={
 };
 var VersionHistory={
   open:function(){
-    document.getElementById('verhist-body').innerHTML=
-      // TEMPORARY DIAGNOSTIC (Beta 1.57): three blind fixes for the strip
-      // under sheets on the user's phone all failed and it can't be
-      // reproduced in preview, so this prints the real numbers from the
-      // device. Remove once the cause is known.
-      '<pre id="vh-diag" style="font:11px/1.35 ui-monospace,Menlo,monospace;white-space:pre-wrap;background:rgba(127,127,127,.15);border-radius:10px;padding:10px;margin-bottom:12px;-webkit-user-select:text;user-select:text"></pre>'
-      +'<div style="display:flex;gap:8px;margin-bottom:16px"><button class="sheet-cancel" style="flex:1" onclick="VersionHistory.diag()">Refresh numbers</button>'
-      +'<button class="sheet-cancel" style="flex:1" onclick="VersionHistory.diagLock()">Toggle scroll lock</button></div>'
-      +CHANGELOG.slice().reverse().map(function(entry){
+    document.getElementById('verhist-body').innerHTML=CHANGELOG.slice().reverse().map(function(entry){
       return '<div style="margin-bottom:18px"><div style="font-weight:800;font-size:15px;margin-bottom:6px">'+esc(entry.v)+'</div>'
         +entry.notes.map(function(n){return '<div class="wn-item">• '+esc(n)+'</div>';}).join('')
         +'</div>';
     }).join('');
     _overlayOpen('verhist-overlay');
-    setTimeout(function(){VersionHistory.diag();},600);
-  },
-  diag:function(){
-    var el=document.getElementById('vh-diag');if(!el)return;
-    function probe(css){var d=document.createElement('div');d.style.cssText='position:fixed;left:0;top:0;width:1px;visibility:hidden;pointer-events:none;'+css;document.body.appendChild(d);var h=Math.round(d.getBoundingClientRect().height);document.body.removeChild(d);return h;}
-    var vv=window.visualViewport,ov=document.getElementById('verhist-overlay'),sh=ov.querySelector('.sheet');
-    var o=ov.getBoundingClientRect(),r=sh.getBoundingClientRect(),b=document.body.getBoundingClientRect();
-    el.textContent=[
-      APP_VERSION+'  standalone='+(navigator.standalone===true)+'  dm='+window.matchMedia('(display-mode: standalone)').matches,
-      'inner '+innerWidth+'x'+innerHeight+'  outerH '+outerHeight,
-      'screen '+screen.width+'x'+screen.height+'  avail '+screen.availHeight,
-      'visualVP h '+(vv?Math.round(vv.height):'-')+' top '+(vv?Math.round(vv.offsetTop):'-'),
-      'docEl clientH '+document.documentElement.clientHeight,
-      'vh '+probe('height:100vh')+'  svh '+probe('height:100svh')+'  lvh '+probe('height:100lvh')+'  dvh '+probe('height:100dvh'),
-      'safe top '+probe('height:env(safe-area-inset-top)')+'  bottom '+probe('height:env(safe-area-inset-bottom)'),
-      'overlay top '+Math.round(o.top)+' bottom '+Math.round(o.bottom),
-      'sheet top '+Math.round(r.top)+' bottom '+Math.round(r.bottom),
-      'body top '+Math.round(b.top)+' h '+Math.round(b.height)+' pos '+document.body.style.position,
-      'html bg '+document.documentElement.style.background
-    ].join('\n');
-  },
-  diagLock:function(){
-    if(document.body.style.position==='fixed'){
-      document.body.style.position='';document.body.style.top='';
-      document.documentElement.style.background='';
-    } else {
-      document.body.style.position='fixed';document.body.style.top=(-_bodyLockY)+'px';
-    }
-    setTimeout(function(){VersionHistory.diag();},100);
   },
   close:function(instant){_overlayClose('verhist-overlay',instant);}
 };

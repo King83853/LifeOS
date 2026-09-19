@@ -428,46 +428,39 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   new type is handled in BOTH branches (`.cali` and the `.ti`/`.wri`
   one), not just wherever its own `onchange` lives.
 
-- Two reports about an open sheet — something visible below/behind it,
-  and the footer tab bar visibly jumping into its correct position
-  right as the sheet finished closing — turned out to be the same root
-  cause: the tab bar (`z-index:150`) showing through an open sheet-
-  overlay (`z-index:500+`) despite that stacking order, on whatever
-  WebKit version this was reported from. Not reproducible in this
-  desktop preview (same ceiling as every other iOS-only rendering
-  report in this file — nothing here shows the actual paint order on
-  that device). First guess was WRONG and got reverted after explicit
-  correction: misread which part of a marked-up screenshot the user had
-  circled and "fixed" Version History's height/padding instead, which
-  wasn't the actual problem — if a screenshot has an annotation on it,
-  read it as literally as given rather than picking the interpretation
-  that's easiest to act on. The real fix didn't need to know the exact
-  stacking mechanism: `_lockBodyScroll`/`_unlockBodyScroll` (which
-  already run exactly once per 0-to-1 and 1-to-0 `_overlayCount`
-  transition) now also set the tab bar to `display:none` for as long as
-  any sheet is open, and restore it via `TabBar.updateActive()` (not a
-  blind clear-to-visible — a project/Habits page wants it hidden
-  regardless) once the last one closes. If it's not fully hidden, it
-  can't show through and it can't visibly snap into place — sidesteps
-  the stacking question instead of needing to answer it.
-  That fixed the tab bar jump, but a strip of "dead space" below every
-  sheet remained — user sent their phone's screenshot next to the native
-  iOS Settings app, which fills to the very bottom edge. The strip in
-  ours is navy #1f2937 = exactly `<html>`'s own dark background (not the
-  sheet's #1e1c1a, and NOT dimmed by the backdrop), with the home
-  indicator in it. Beta 1.55 tried extending `.sheet-overlay` and the
-  sheet (negative bottom / big box-shadow) past the bottom edge: no
-  effect, and it can't have — that strip is outside what the page can
-  paint into on that device (standalone PWA, viewport-fit=cover), so
-  nothing positioned in the page reaches it; only the canvas/html
-  background color shows there. That's the one lever: while any sheet
-  is open, `_lockBodyScroll` sets `documentElement.style.background` to
-  the open sheet's computed background color (so it follows
-  light/dark/system) and `_unlockBodyScroll` clears it. Reverted 1.55's
-  CSS. Lesson: a screenshot with the strip's actual color in it answered
-  in one look what three rounds of guessing didn't — when a rendering
-  report is device-only, read colors/positions off the user's image
-  first, and reason from what could physically paint there.
+- ROOT CAUSE of the "dead space"/strip under every sheet AND the footer
+  tab bar "jumping" on close (took five rounds; four were blind guesses
+  that each got reverted): on the user's iPhone (iOS, installed
+  standalone PWA, 393x852) the `position:fixed` body scroll lock shrinks
+  the layout viewport from 852 to 793 — exactly the 59pt top safe area —
+  for as long as it's applied. `window.innerHeight` goes 852 -> 793, every
+  `position:fixed` element (sheet, backdrop, tab bar) is laid out against
+  the shorter viewport and stops 59pt above the physical bottom, and the
+  page cannot paint into the strip below it at all (only the html
+  background color shows). The tab bar jumped because it moved up when
+  the lock went on and back when it came off. Found only by adding a
+  TEMPORARY on-device readout (innerHeight/screen/visualViewport/vh
+  units/safe-area/rects + a lock toggle) to Version history and having
+  the user screenshot it with the lock on and off: lock on -> sheet
+  bottom 793 + strip; lock off -> 852, no strip. When a rendering bug is
+  device-only and reproduction fails in preview, ship a diagnostic like
+  that after the FIRST failed guess, not the fourth.
+  Fix: `_lockBodyScroll` uses `overflow:hidden` on `<html>` (no viewport
+  change) when `navigator.standalone===true`, and keeps the original
+  `position:fixed` body lock everywhere else. `_lockMode` remembers which
+  was applied so unlock undoes the right one. Trade-off to know about:
+  the fixed lock existed because it stops an already-in-flight iOS
+  momentum scroll dead; `overflow:hidden` may not, so background
+  scrolling coasting behind a sheet is the thing to check first if that
+  old report comes back on the installed app.
+  Also kept, per explicit request ("no bottom bar when something slides
+  up"): the tab bar is `display:none` while any sheet is open, restored
+  through `TabBar.updateActive()` (project/Habits pages hide it
+  regardless). Things that did NOT help and were removed: extending the
+  sheet/backdrop past the bottom edge, recoloring `<html>` to the sheet's
+  color, making Version history taller. Lesson: also read an annotated
+  screenshot literally — one of those guesses came from picking the
+  easiest reading of a circled region.
 
 ## Definition of "done" for a change
 0. If index.html (or any other cached asset) changed, bump `CACHE_NAME` in

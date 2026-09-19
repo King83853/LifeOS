@@ -157,6 +157,18 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   same change, and don't leave "Temporary:" entries in CHANGELOG (keep the
   version entry, reword it — WhatsNew's queue looks versions up by name).
 
+- Trash (Settings > Trash, page id `p-archive`, `renderArchive`/`Trash`):
+  nothing is deleted outright anymore. Every delete path snapshots into
+  `DB.data.trash` (`{id,type,label,sub,at,data}`, types: habit, habitcat,
+  project, category, entry) and `DB.restoreTrash(id)` puts it back
+  (recreating a missing parent category from the snapshot; an entry needs
+  its project to exist, else it returns a message). Completed tasks are
+  still `DB.data.archived` and are the first tab. A NEW delete path must
+  push to trash too (use `DB._trash`, and `_takeProject`/`_putProject`
+  for projects) — grep `filter(` on dailyItems/dailyCats/projects when
+  adding one. One-time tasks have no delete path (completing one just
+  removes it), so they aren't in the Trash.
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

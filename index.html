@@ -218,6 +218,17 @@ html[data-theme="light"] .archbox{background:#fff;border-color:#e8e5e0}
 html[data-theme="dark"] .archi{border-color:#2a2927}
 html[data-theme="light"] .archi{border-color:#f0ede8}
 .archi:last-child{border-bottom:none}
+.trash-tabs{display:flex;gap:6px;overflow-x:auto;margin:4px -16px 14px;padding:0 16px;scrollbar-width:none}
+.trash-tabs::-webkit-scrollbar{display:none}
+.trash-tab{flex:none;padding:8px 14px;border-radius:99px;border:1.5px solid #d1cec9;background:transparent;color:#888;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap}
+.trash-tab.active{background:#1a1917;border-color:#1a1917;color:#fff}
+@media(prefers-color-scheme:dark){.trash-tab{border-color:#444;color:#999}.trash-tab.active{background:#e8e6df;border-color:#e8e6df;color:#1a1917}}
+html[data-theme="dark"] .trash-tab{border-color:#444;color:#999}
+html[data-theme="dark"] .trash-tab.active{background:#e8e6df;border-color:#e8e6df;color:#1a1917}
+html[data-theme="light"] .trash-tab{border-color:#d1cec9;color:#888}
+html[data-theme="light"] .trash-tab.active{background:#1a1917;border-color:#1a1917;color:#fff}
+.trash-tab i{font-style:normal;opacity:.6;margin-left:5px}
+.trash-x{background:none;border:none;color:#dc2626;font-size:13px;font-weight:600;cursor:pointer;padding:9px 6px;white-space:nowrap}
 .rbtn{font-size:13px;font-weight:600;padding:9px 16px;background:#fff;border:1.5px solid #d1cec9;border-radius:14px;cursor:pointer;color:#888;white-space:nowrap}
 @media(prefers-color-scheme:dark){.rbtn{border-color:#444;background:#1e1c1a;color:#777}}
 html[data-theme="dark"] .rbtn{border-color:#444;background:#1e1c1a;color:#777}
@@ -562,9 +573,10 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 
 <div class="page" id="p-archive">
   <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-  <div class="dhdr"><div class="dico">🏆</div><div style="flex:1"><div class="dtitle">Completed Tasks</div></div>
-    <button class="rbtn" onclick="A.clearArchive()">Clear all</button>
+  <div class="dhdr"><div class="dico">🗑️</div><div style="flex:1"><div class="dtitle">Trash</div></div>
+    <button class="rbtn" onclick="A.trashEmpty()">Empty</button>
   </div>
+  <div class="trash-tabs" id="trash-tabs"></div>
   <div id="arch-list"></div>
 </div>
 
@@ -657,7 +669,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
   <div id="settings-language"></div>
   <div class="opt-row" onclick="Nav.go('archive')">
     <div class="opt-ico" style="background:#71717a"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></div>
-    <div class="opt-text"><div class="opt-title">Completed Tasks</div></div>
+    <div class="opt-text"><div class="opt-title">Trash</div></div>
     <span class="ab" id="ab2" style="margin-left:auto"></span>
   </div>
   <div class="sl" style="margin-top:28px">Today</div>
@@ -896,7 +908,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.74';
+var APP_VERSION='Beta 1.75';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1178,6 +1190,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.74',notes:[
     'Habit charts: a dashed "Added" line marks the day, week or month the habit was created'
+  ]},
+  {v:'Beta 1.75',notes:[
+    'Settings: "Completed Tasks" is now "Trash" — everything you delete (habits, habit categories, projects, categories, tracker entries) goes there first, in its own tab, and can be restored or deleted for good',
+    'Completed tasks are the first tab in the Trash'
   ]}
 ];
 var COLORS={
@@ -1215,7 +1231,7 @@ var DB={
   data:null,
   _blank:function(){
     return{doneKeys:[],extraTasks:{},archived:[],
-      dailyCats:[],dailyItems:[],dailyOnce:[],dailyChecks:{},
+      dailyCats:[],dailyItems:[],dailyOnce:[],dailyChecks:{},trash:[],
       projects:{},   // {id:{name,icon,categoryId}}
       categories:{}, // {id:{name,icon}}
       categoryOrder:[],      // [catId,...]
@@ -1245,6 +1261,7 @@ var DB={
     if(!d.dailyCats){d.dailyCats=[];d.dailyItems=[];d.dailyOnce=[];d.dailyChecks={};}
     if(!d.dailyItems)d.dailyItems=[];
     if(!d.dailyOnce)d.dailyOnce=[];
+    if(!d.trash)d.trash=[];
     if(!d.dailyChecks)d.dailyChecks={};
     return this;
   },
@@ -1264,30 +1281,93 @@ var DB={
     this.data.projectOrder[catId].push(id);
     this.save(); return id;
   },
-  deleteCategory:function(catId){
-    var self=this;
-    (this.data.projectOrder[catId]||[]).forEach(function(pid){
-      delete self.data.projects[pid];
-      delete self.data.extraTasks[pid];
+  // Everything deleted goes to the Trash first (DB.data.trash): a snapshot
+  // that restoreTrash() can put back. Completed tasks live in `archived`.
+  _trash:function(type,label,sub,data){
+    this.data.trash.push({id:'tr'+Date.now()+Math.random().toString(36).slice(2),type:type,label:label,sub:sub||'',at:Date.now(),data:data});
+  },
+  // Snapshot + remove one project (tasks, tracker entries, Daily links).
+  _takeProject:function(pid){
+    var d=this.data,snap={pid:pid,project:d.projects[pid],tasks:d.extraTasks[pid]||[],
+      entries:(d.trackerEntries&&d.trackerEntries[pid])||[],
+      links:d.dailyItems.filter(function(it){return it.trackerPid===pid;})};
+    delete d.projects[pid];delete d.extraTasks[pid];
+    if(d.trackerEntries)delete d.trackerEntries[pid];
+    // A tracker linked into Daily only makes sense pointing at a project
+    // that still exists.
+    d.dailyItems=d.dailyItems.filter(function(it){return it.trackerPid!==pid;});
+    return snap;
+  },
+  _putProject:function(snap){
+    var d=this.data;
+    d.projects[snap.pid]=snap.project;
+    d.extraTasks[snap.pid]=snap.tasks;
+    if(snap.entries.length){if(!d.trackerEntries)d.trackerEntries={};d.trackerEntries[snap.pid]=snap.entries;}
+    snap.links.forEach(function(it){
+      if(d.dailyCats.some(function(c){return c.id===it.catId;})&&!d.dailyItems.some(function(x){return x.id===it.id;}))d.dailyItems.push(it);
     });
-    delete this.data.categories[catId];
-    delete this.data.projectOrder[catId];
-    this.data.categoryOrder=this.data.categoryOrder.filter(function(x){return x!==catId;});
+  },
+  deleteCategory:function(catId){
+    var self=this,d=this.data,cat=d.categories[catId];
+    var order=d.projectOrder[catId]||[];
+    var projects=order.filter(function(pid){return d.projects[pid];}).map(function(pid){return self._takeProject(pid);});
+    this._trash('category',cat?cat.name:catId,cat?cat.icon:'',{catId:catId,cat:cat,index:d.categoryOrder.indexOf(catId),order:order.slice(),projects:projects});
+    delete d.categories[catId];
+    delete d.projectOrder[catId];
+    d.categoryOrder=d.categoryOrder.filter(function(x){return x!==catId;});
     this.save();
   },
   deleteProject:function(catId,projId){
-    delete this.data.projects[projId];
-    delete this.data.extraTasks[projId];
-    if(this.data.trackerEntries)delete this.data.trackerEntries[projId];
-    // A tracker linked into Daily (see addTrackerDailyItem) only makes
-    // sense pointing at a project that still exists — ciTracker() already
-    // hides the row gracefully if it doesn't, but there's no reason to
-    // leave the dead link sitting in dailyItems once the project is
-    // actually gone.
-    this.data.dailyItems=this.data.dailyItems.filter(function(it){return it.trackerPid!==projId;});
-    if(this.data.projectOrder[catId])
-      this.data.projectOrder[catId]=this.data.projectOrder[catId].filter(function(x){return x!==projId;});
+    var d=this.data,p=d.projects[projId];
+    var index=(d.projectOrder[catId]||[]).indexOf(projId);
+    var cat=d.categories[catId];
+    var snap=this._takeProject(projId);
+    this._trash('project',p?p.name:projId,p?p.icon:'',{catId:catId,cat:cat,index:index,snap:snap});
+    if(d.projectOrder[catId])
+      d.projectOrder[catId]=d.projectOrder[catId].filter(function(x){return x!==projId;});
     this.save();
+  },
+  // Puts a trashed item back. Returns '' on success or a message on failure.
+  restoreTrash:function(id){
+    var d=this.data,i=d.trash.findIndex(function(x){return x.id===id;});
+    if(i===-1)return '';
+    var t=d.trash[i],x=t.data,self=this;
+    function ensureCat(catId,cat){
+      if(d.categories[catId])return;
+      d.categories[catId]=cat||{name:'Restored',icon:'📁'};
+      if(d.categoryOrder.indexOf(catId)===-1)d.categoryOrder.push(catId);
+      if(!d.projectOrder[catId])d.projectOrder[catId]=[];
+    }
+    function ensureDailyCat(cat){
+      if(!d.dailyCats.some(function(c){return c.id===cat.id;}))d.dailyCats.push(cat);
+    }
+    if(t.type==='project'){
+      ensureCat(x.catId,x.cat);
+      this._putProject(x.snap);
+      var ord=d.projectOrder[x.catId];
+      ord.splice(Math.min(Math.max(x.index,0),ord.length),0,x.snap.pid);
+    } else if(t.type==='category'){
+      if(!d.categories[x.catId]){
+        d.categories[x.catId]=x.cat;d.projectOrder[x.catId]=[];
+        d.categoryOrder.splice(Math.min(Math.max(x.index,0),d.categoryOrder.length),0,x.catId);
+      }
+      x.projects.forEach(function(snap){self._putProject(snap);if(d.projectOrder[x.catId].indexOf(snap.pid)===-1)d.projectOrder[x.catId].push(snap.pid);});
+    } else if(t.type==='habit'){
+      ensureDailyCat(x.cat);
+      if(!d.dailyItems.some(function(it){return it.id===x.item.id;}))d.dailyItems.push(x.item);
+    } else if(t.type==='habitcat'){
+      ensureDailyCat(x.cat);
+      x.items.forEach(function(item){if(!d.dailyItems.some(function(it){return it.id===item.id;}))d.dailyItems.push(item);});
+    } else if(t.type==='entry'){
+      if(!d.projects[x.pid])return 'Restore the project first.';
+      if(!d.trackerEntries)d.trackerEntries={};
+      if(!d.trackerEntries[x.pid])d.trackerEntries[x.pid]=[];
+      d.trackerEntries[x.pid].push(x.entry);
+      d.trackerEntries[x.pid].sort(function(a,b){return a.ts-b.ts;});
+    }
+    d.trash.splice(i,1);
+    this.save();
+    return '';
   },
   moveCategory:function(id,dir){
     var arr=this.data.categoryOrder,i=arr.indexOf(id),j=i+dir;
@@ -1376,6 +1456,9 @@ var DB={
     if(c){c.name=name;this.save();}
   },
   deleteDailyCat:function(id){
+    var cat=this.data.dailyCats.find(function(x){return x.id===id;});
+    var items=this.data.dailyItems.filter(function(x){return x.catId===id;});
+    if(cat)this._trash('habitcat',cat.name,cat.icon,{cat:cat,items:items});
     this.data.dailyCats=this.data.dailyCats.filter(function(x){return x.id!==id;});
     this.data.dailyItems=this.data.dailyItems.filter(function(x){return x.catId!==id;});
     this.save();
@@ -1396,7 +1479,13 @@ var DB={
     this.save();return id;
   },
   deleteDailyItem:function(id){
-    this.data.dailyItems=this.data.dailyItems.filter(function(x){return x.id!==id;});
+    var d=this.data,item=d.dailyItems.find(function(x){return x.id===id;});
+    if(item){
+      var cat=d.dailyCats.find(function(c){return c.id===item.catId;})||{id:item.catId,name:'Restored',icon:'📌'};
+      var tp=item.trackerPid&&d.projects[item.trackerPid];
+      this._trash('habit',item.text||(tp?tp.name:'Tracker'),cat.icon+' '+cat.name,{item:item,cat:cat});
+    }
+    d.dailyItems=d.dailyItems.filter(function(x){return x.id!==id;});
     this.save();
   },
   renameDailyItem:function(id,text){
@@ -1476,7 +1565,7 @@ function renderGrids(){
   var h='';
   if(!d.categoryOrder.length){
     document.getElementById('overview-grid').innerHTML='';
-    var _ab=document.getElementById('ab');if(_ab){_ab.style.display=d.archived.length?'inline':'none';_ab.textContent=d.archived.length;}
+    var _ab=document.getElementById('ab');if(_ab){_ab.style.display=Trash.total()?'inline':'none';_ab.textContent=Trash.total();}
     return;
   }
   d.categoryOrder.forEach(function(catId){
@@ -1524,7 +1613,7 @@ function renderGrids(){
     h+='</div>';
   });
   document.getElementById('overview-grid').innerHTML=h;
-  var ab2=document.getElementById('ab2');if(ab2){ab2.style.display=d.archived.length?'inline-flex':'none';ab2.textContent=d.archived.length;}
+  var ab2=document.getElementById('ab2');if(ab2){ab2.style.display=Trash.total()?'inline-flex':'none';ab2.textContent=Trash.total();}
 
 }
 
@@ -1662,16 +1751,51 @@ function renderProj(pid){
   if(priRow)priRow.style.display=isList?'none':'';
 }
 
+// Trash page: one tab per kind of deleted thing. "Completed" is the
+// archive of ticked-off tasks; the rest come from DB.data.trash.
+var Trash={
+  tab:'completed',
+  TABS:[{id:'completed',label:'Completed'},{id:'habit',label:'Habits'},{id:'project',label:'Projects'},{id:'category',label:'Categories'},{id:'entry',label:'Entries'}],
+  // Deleted Daily categories and Overview categories share one tab.
+  items:function(tab){
+    var d=DB.data;
+    if(tab==='completed')return d.archived;
+    return d.trash.filter(function(t){
+      if(tab==='habit')return t.type==='habit';
+      if(tab==='category')return t.type==='category'||t.type==='habitcat';
+      return t.type===tab;
+    });
+  },
+  total:function(){return DB.data.archived.length+DB.data.trash.length;}
+};
 function renderArchive(){
   var c=document.getElementById('arch-list');
-  if(!DB.data.archived.length){c.innerHTML='';return;}
+  document.getElementById('trash-tabs').innerHTML=Trash.TABS.map(function(t){
+    var n=Trash.items(t.id).length;
+    return '<button class="trash-tab'+(Trash.tab===t.id?' active':'')+'" onclick="A.trashTab(\''+t.id+'\')">'+t.label+(n?'<i>'+n+'</i>':'')+'</button>';
+  }).join('');
+  var items=Trash.items(Trash.tab);
+  if(!items.length){c.innerHTML='<div class="empty">Nothing here.</div>';return;}
   var h='<div class="archbox">';
-  DB.data.archived.slice().reverse().forEach(function(item,ri){
-    var idx=DB.data.archived.length-1-ri;
-    h+='<div class="archi"><div style="flex:1"><div style="font-size:14px;font-weight:500">'+item.text+'</div>'
-      +'<div style="font-size:11px;color:#aaa;margin-top:3px">'+item.section+' · '+item.date+'</div></div>'
-      +'<button class="rbtn" onclick="A.restore('+idx+')">Restore</button></div>';
-  });
+  if(Trash.tab==='completed'){
+    DB.data.archived.slice().reverse().forEach(function(item,ri){
+      var idx=DB.data.archived.length-1-ri;
+      h+='<div class="archi"><div style="flex:1"><div style="font-size:14px;font-weight:500">'+esc(item.text)+'</div>'
+        +'<div style="font-size:11px;color:#aaa;margin-top:3px">'+esc(item.section)+' · '+item.date+'</div></div>'
+        +'<button class="rbtn" onclick="A.restore('+idx+')">Restore</button>'
+        +'<button class="trash-x" onclick="A.trashDeleteCompleted('+idx+')">Delete</button></div>';
+    });
+  } else {
+    items.slice().reverse().forEach(function(t){
+      var when=new Date(t.at).toLocaleDateString('de-CH',{day:'numeric',month:'short',year:'numeric'});
+      var icon=(t.type==='project'||t.type==='category'||t.type==='habitcat')&&t.sub?esc(t.sub)+' ':'';
+      var sub=(t.type==='habit'||t.type==='entry')&&t.sub?esc(t.sub)+' · ':(t.type==='habitcat'?'Daily · ':'');
+      h+='<div class="archi"><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500">'+icon+esc(t.label)+'</div>'
+        +'<div style="font-size:11px;color:#aaa;margin-top:3px">'+sub+when+'</div></div>'
+        +'<button class="rbtn" onclick="A.trashRestore(\''+t.id+'\')">Restore</button>'
+        +'<button class="trash-x" onclick="A.trashDelete(\''+t.id+'\')">Delete</button></div>';
+    });
+  }
   c.innerHTML=h+'</div>';
 }
 
@@ -1932,10 +2056,38 @@ var A={
     renderArchive();renderWar();renderGrids();
     for(var pid in DB.data.projects)renderProj(pid);
   },
-  clearArchive:function(){
-    if(!DB.data.archived.length)return;
-    if(!confirm('Delete all '+DB.data.archived.length+' archived tasks?'))return;
-    DB.data.archived=[];DB.save();renderArchive();renderGrids();
+  trashTab:function(t){Trash.tab=t;renderArchive();},
+  _refreshAll:function(){
+    buildProjPages();renderGrids();renderWar();renderToday();buildPanels();restoreChecks(Nav.sd);
+    if(document.getElementById('p-editlayout').classList.contains('active'))renderEditLayout();
+    renderArchive();
+  },
+  trashRestore:function(id){
+    var msg=DB.restoreTrash(id);
+    if(msg){alert(msg);return;}
+    A._refreshAll();
+  },
+  trashDelete:function(id){
+    ConfirmSheet.show('Delete this forever?',function(){
+      DB.data.trash=DB.data.trash.filter(function(t){return t.id!==id;});
+      DB.save();renderGrids();renderArchive();
+    });
+  },
+  trashDeleteCompleted:function(idx){
+    ConfirmSheet.show('Delete this forever?',function(){
+      DB.data.archived.splice(idx,1);
+      DB.save();renderGrids();renderArchive();
+    });
+  },
+  // Empties the tab that's showing.
+  trashEmpty:function(){
+    var items=Trash.items(Trash.tab);
+    if(!items.length)return;
+    ConfirmSheet.show('Delete all '+items.length+' items in this tab forever?',function(){
+      if(Trash.tab==='completed')DB.data.archived=[];
+      else{var ids=items.map(function(t){return t.id;});DB.data.trash=DB.data.trash.filter(function(t){return ids.indexOf(t.id)===-1;});}
+      DB.save();renderGrids();renderArchive();
+    });
   },
   newCategory:function(){
     InputSheet.show('Category name','e.g. Business',function(name){
@@ -1951,13 +2103,13 @@ var A={
   moveCat:function(id,dir){DB.moveCategory(id,dir);renderEditLayout();renderGrids();},
   deleteCat:function(id){
     var n=DB.data.categories[id]?DB.data.categories[id].name:id;
-    if(!confirm('Delete category "'+n+'" and ALL its projects and tasks?'))return;
+    if(!confirm('Move category "'+n+'" and ALL its projects and tasks to the Trash?'))return;
     DB.deleteCategory(id);buildProjPages();renderEditLayout();renderGrids();renderWar();
   },
   moveProj:function(catId,pid,dir){DB.moveProject(catId,pid,dir);renderEditLayout();renderGrids();},
   deleteProj:function(catId,pid){
     var n=DB.data.projects[pid]?DB.data.projects[pid].name:pid;
-    if(!confirm('Delete project "'+n+'" and all its tasks?'))return;
+    if(!confirm('Move project "'+n+'" and all its tasks to the Trash?'))return;
     DB.deleteProject(catId,pid);buildProjPages();renderEditLayout();renderGrids();renderWar();
     buildPanels();restoreChecks(Nav.sd);
   },
@@ -1974,8 +2126,14 @@ var A={
   },
   delTrackerEntry:function(pid,ts){
     var self=this;
-    ConfirmSheet.show('Delete this entry?',function(){
+    ConfirmSheet.show('Move this entry to the Trash?',function(){
       if(!DB.data.trackerEntries||!DB.data.trackerEntries[pid])return;
+      var gone=DB.data.trackerEntries[pid].find(function(e){return e.ts===ts;});
+      if(gone){
+        var tp=DB.data.projects[pid]||{};
+        DB.data.trash.push({id:'tr'+Date.now()+Math.random().toString(36).slice(2),type:'entry',
+          label:gone.val+' '+(tp.unit||''),sub:(tp.icon||'')+' '+(tp.name||''),at:Date.now(),data:{pid:pid,entry:gone}});
+      }
       DB.data.trackerEntries[pid]=DB.data.trackerEntries[pid].filter(function(e){return e.ts!==ts;});
       DB.save();renderTracker(pid);
     });
@@ -2183,7 +2341,7 @@ var A={
   },
   deleteDailyItem:function(ev,id){
     if(ev){ev.preventDefault();ev.stopPropagation();}
-    ConfirmSheet.show('Delete this task?',function(){
+    ConfirmSheet.show('Move this habit to the Trash?',function(){
       DB.deleteDailyItem(id);
       buildPanels();restoreChecks(Nav.sd);
     });
@@ -3276,7 +3434,7 @@ var DailyCatSheet={
     document.getElementById('input-sheet-field').value=cat.name;
   },
   remove:function(id){
-    ConfirmSheet.show('Delete this category and all its tasks?',function(){
+    ConfirmSheet.show('Move this category and all its habits to the Trash?',function(){
       DB.deleteDailyCat(id);
       DailyCatSheet.render();buildPanels();restoreChecks(Nav.sd);renderGrids();
     });

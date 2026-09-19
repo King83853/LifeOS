@@ -925,7 +925,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.65';
+var APP_VERSION='Beta 1.66';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1180,6 +1180,9 @@ var CHANGELOG=[
     'Today: swipe a task or habit to the right to skip it, like archiving a chat',
     'Skipped tasks disappear for that day (the next one takes their place if Refill is on) and come back first the next day',
     'Skipped habits count as ticked off, so they don\'t hurt your consistency score, but show in amber in the charts and are counted as skipped'
+  ]},
+  {v:'Beta 1.66',notes:[
+    'Daily: categories with nothing scheduled on a day are no longer shown for that day'
   ]}
 ];
 var COLORS={
@@ -3030,11 +3033,12 @@ function buildPanels(){
     } else {
       DB.data.dailyCats.forEach(function(cat){
         var items=DB.data.dailyItems.filter(function(it){return it.catId===cat.id&&it.days.indexOf(wi)!==-1;});
+        if(!items.length)return; // a category with nothing on this day isn't shown at all
         h+='<div class="calsec"><div class="caltitle">'+cat.icon+' '+esc(cat.name)+'</div>';
-        if(!items.length)h+='<div style="font-size:12px;color:#ccc;padding:4px 0 2px">No tasks</div>';
         items.forEach(function(it){h+=it.trackerPid?ciTracker(it,pi,true):ciEdit(it.id,it.text,pi);});
         h+='</div>';
       });
+      if(!h)h='<div class="empty">Nothing scheduled for this day.</div>';
     }
     p.innerHTML=h;c.appendChild(p);
   }

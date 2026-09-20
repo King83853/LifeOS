@@ -544,11 +544,12 @@ html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
 @media(prefers-color-scheme:dark){:root{--line:#1f2937}}
 html[data-theme="dark"]{--line:#1f2937}
 html[data-theme="light"]{--line:#f3f4f6}
-/* dividers inside a card run edge to edge, like in Settings */
-.calsec .sw.h{margin:0 -14px}
-.calsec .sw.h .sw-row{padding:0 14px}
-.calsec .sw.h .sw-act{left:14px}
-.calsec>.cali{margin:0 -14px;padding-left:14px;padding-right:14px}
+/* dividers inside a card run edge to edge, like in Settings (14px padding
+   + the card's 1.5px border) */
+.calsec .sw.h{margin:0 -15.5px}
+.calsec .sw.h .sw-row{padding:0 15.5px}
+.calsec .sw.h .sw-act{left:15.5px}
+.calsec>.cali{margin:0 -15.5px;padding-left:15.5px;padding-right:15.5px}
 html:not(#x) .shdr{border-bottom:1.5px solid var(--line)}
 html:not(#x) .cali,html:not(#x) .sw.h,html:not(#x) .archi,html:not(#x) .trk-entry{border-bottom-color:var(--line);border-bottom-width:1.5px}
 html:not(#x) .opt-group .opt-row{border-bottom:1.5px solid var(--line)}
@@ -943,7 +944,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.99';
+var APP_VERSION='Beta 2.0';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1313,6 +1314,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.99',notes:[
     'Dividers are a tiny bit thicker, and the widgets in Settings have more space between them'
+  ]},
+  {v:'Beta 2.0',notes:[
+    'Dividers inside cards now reach all the way to both edges of the white widget'
   ]}
 ];
 var COLORS={

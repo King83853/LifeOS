@@ -283,7 +283,6 @@ html[data-theme="dark"] .sw.h{border-color:#252320}
 html[data-theme="light"] .sw.h{border-color:#f5f3ef}
 .sw.h:last-child{border-bottom:none}
 .sw.h .cali{border-bottom:none}
-.sw.h{border-radius:12px}
 .sw-act{position:absolute;top:0;bottom:0;left:0;width:calc(max(var(--x,0) - 8, 0) * 1px);overflow:hidden;white-space:nowrap;background:#86efac;color:#000;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:400;visibility:hidden}
 .sw.anim .sw-act{transition:width .2s ease-out}
 .sw.on .sw-act{visibility:visible}
@@ -538,8 +537,13 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 html:not(#x) .acard,html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .calsec,html:not(#x) .archbox,html:not(#x) .el-row,html:not(#x) .opt-row,html:not(#x) .opt-group{border-color:transparent}
 html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
 /* One divider look everywhere: section-header underlines, habit rows,
-   settings groups, trash and tracker lists (1px, --line). */
-:root{--line:rgba(127,127,127,.18)}
+   settings groups, trash and tracker lists (1px, --line). A solid color, not
+   a translucent one, so it looks identical on the grey page and on white
+   cards. */
+:root{--line:#e6e3de}
+@media(prefers-color-scheme:dark){:root{--line:#3a3d44}}
+html[data-theme="dark"]{--line:#3a3d44}
+html[data-theme="light"]{--line:#e6e3de}
 html:not(#x) .shdr{border-bottom:1px solid var(--line)}
 html:not(#x) .cali,html:not(#x) .sw.h,html:not(#x) .archi,html:not(#x) .trk-entry{border-bottom-color:var(--line)}
 html:not(#x) .opt-group .opt-row{border-bottom:1px solid var(--line)}
@@ -934,7 +938,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.95';
+var APP_VERSION='Beta 1.96';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1291,6 +1295,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.95',notes:[
     'All the thin grey dividers (under Tasks/Habits headings, between habits, in Settings, Trash and tracker lists) now look exactly the same'
+  ]},
+  {v:'Beta 1.96',notes:[
+    'Dividers: really the same now — they were a see-through grey that looked different on the page than on white cards, and the habit dividers had curved ends. Now one solid color and straight lines'
   ]}
 ];
 var COLORS={

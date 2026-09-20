@@ -159,7 +159,7 @@ html[data-theme="light"] .proj-name-pill{background:#fff;border-color:#1a1917;co
 html[data-theme="dark"] .ti{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .ti{background:#fff;border-color:#e8e5e0}
 html .ti[data-pri="bu"]{border:1.5px solid #e24b4a}
-.ti input[type=checkbox]{accent-color:#1a1917;width:32px;height:32px;flex-shrink:0;cursor:pointer}
+.ti input[type=checkbox]{accent-color:#1a1917;width:28px;height:28px;flex-shrink:0;cursor:pointer}
 @media(prefers-color-scheme:dark){.ti input[type=checkbox]{accent-color:#e8e6df}}
 html[data-theme="dark"] .ti input[type=checkbox]{accent-color:#e8e6df}
 html[data-theme="light"] .ti input[type=checkbox]{accent-color:#1a1917}
@@ -922,7 +922,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.91';
+var APP_VERSION='Beta 1.92';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1265,6 +1265,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.91',notes:[
     'Footer menu: the labels are a little thinner and smaller'
+  ]},
+  {v:'Beta 1.92',notes:[
+    'Task check-off squares are now the same size as the habit ones (Today, Tasks tab and project pages)'
   ]}
 ];
 var COLORS={

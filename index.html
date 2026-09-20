@@ -95,7 +95,7 @@ html[data-theme="light"] .wrbd{background:#fff}
 @media(prefers-color-scheme:dark){.wrd{background:#3d1010;color:#fca5a5}}
 html[data-theme="dark"] .wrd{background:#3d1010;color:#fca5a5}
 html[data-theme="light"] .wrd{background:#fef2f2;color:#b91c1c}
-.wri{display:flex;align-items:center;gap:12px;padding:12px;background:#fafaf8;border:1.5px solid #f0ede8;border-radius:12px;margin-bottom:7px;position:relative;overflow:hidden;transition:opacity .3s}
+.wri{display:flex;align-items:center;gap:12px;padding:8px 12px;background:#fafaf8;border:1.5px solid #f0ede8;border-radius:12px;margin-bottom:7px;position:relative;overflow:hidden;transition:opacity .3s}
 @media(prefers-color-scheme:dark){.wri{background:#252320;border-color:#333}}
 html[data-theme="dark"] .wri{background:#252320;border-color:#333}
 html[data-theme="light"] .wri{background:#fafaf8;border-color:#f0ede8}
@@ -154,7 +154,7 @@ html[data-theme="light"] .proj-name-pill{background:#fff;border-color:#1a1917;co
 .proj-name-pill .dtitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17px}
 
 .ti,.wri{position:relative;overflow:hidden}
-.ti{display:flex;align-items:center;gap:12px;padding:13px 14px;background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px;transition:opacity .3s}
+.ti{display:flex;align-items:center;gap:12px;padding:8px 14px;background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px;transition:opacity .3s}
 @media(prefers-color-scheme:dark){.ti{background:#1e1c1a;border-color:#2a2927}}
 html[data-theme="dark"] .ti{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .ti{background:#fff;border-color:#e8e5e0}
@@ -938,7 +938,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.96';
+var APP_VERSION='Beta 1.97';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1298,6 +1298,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.96',notes:[
     'Dividers: really the same now — they were a see-through grey that looked different on the page than on white cards, and the habit dividers had curved ends. Now one solid color and straight lines'
+  ]},
+  {v:'Beta 1.97',notes:[
+    'Task widgets (Today, Tasks tab, project pages, War Room) are slimmer — less padding above and below, same text and tick-off size'
   ]}
 ];
 var COLORS={

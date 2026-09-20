@@ -23,7 +23,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 html[data-theme="dark"] body{background:#1f2937;color:#e8e6df}
 html[data-theme="light"] body{background:#f3f4f6;color:#1a1917}
 .page{display:none;padding:calc(env(safe-area-inset-top) + 14px) 16px 118px}.page.active{display:block}
-.statusbar-blur{position:fixed;top:0;left:0;right:0;height:calc(env(safe-area-inset-top) + 6px);background:rgba(243,244,246,.35);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);-webkit-mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.5) 100%);mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.5) 100%);z-index:140;pointer-events:none;opacity:0;transition:opacity .25s ease}
+.statusbar-blur{position:fixed;top:-14px;left:0;right:0;height:calc(env(safe-area-inset-top) + 6px);background:rgba(243,244,246,.35);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);-webkit-mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.5) 100%);mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.5) 100%);z-index:140;pointer-events:none;opacity:0;transition:opacity .25s ease}
 .statusbar-blur.on{opacity:1}
 @media(prefers-color-scheme:dark){.statusbar-blur{background:rgba(26,25,23,.35)}}
 html[data-theme="dark"] .statusbar-blur{background:rgba(26,25,23,.35)}
@@ -550,6 +550,8 @@ html[data-theme="light"]{--line:#eceef1}
 .calsec .sw.h .sw-row{padding:0 15.5px}
 .calsec .sw.h .sw-act{left:15.5px}
 .calsec>.cali{margin:0 -15.5px;padding-left:15.5px;padding-right:15.5px}
+/* the last row already has its own padding, so the card needs less below it */
+#today-daily .calsec,[id^="dp-"] .calsec{padding-bottom:4px}
 html:not(#x) .shdr{border-bottom:1.5px solid var(--line)}
 html:not(#x) .cali,html:not(#x) .sw.h,html:not(#x) .archi,html:not(#x) .trk-entry{border-bottom-color:var(--line);border-bottom-width:1.5px}
 html:not(#x) .opt-group .opt-row{border-bottom:1.5px solid var(--line)}
@@ -944,7 +946,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.0';
+var APP_VERSION='Beta 2.1';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1318,6 +1320,10 @@ var CHANGELOG=[
   {v:'Beta 2.0',notes:[
     'Dividers inside cards now reach all the way to both edges of the white widget',
     'Dividers are a tiny bit darker'
+  ]},
+  {v:'Beta 2.1',notes:[
+    'The blur bar at the very top sits higher, so it covers less of the page',
+    'Today and Daily: less empty space at the bottom of the white habit widgets'
   ]}
 ];
 var COLORS={

@@ -284,9 +284,9 @@ html[data-theme="light"] .sw.h{border-color:#f5f3ef}
 .sw.h:last-child{border-bottom:none}
 .sw.h .cali{border-bottom:none}
 .sw.h{border-radius:12px}
-.sw-act{position:absolute;top:0;bottom:0;left:0;width:calc(var(--x,0) * 1px);overflow:hidden;white-space:nowrap;background:#c6a15b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:.01em;visibility:hidden;transition:background .15s}
+.sw-act{position:absolute;top:0;bottom:0;left:0;width:calc(var(--x,0) * 1px);overflow:hidden;white-space:nowrap;background:#86efac;color:#14532d;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:.01em;visibility:hidden;transition:background .15s}
 .sw.on .sw-act{visibility:visible}
-.sw.armed .sw-act{background:#b48f47}
+.sw.armed .sw-act{background:#4ade80}
 .sw-act span{display:flex;align-items:center;justify-content:center;gap:7px;opacity:var(--p,0)}
 .sw-act svg{width:18px;height:18px}
 .sw-row{position:relative;will-change:transform}
@@ -294,8 +294,8 @@ html[data-theme="light"] .sw.h{border-color:#f5f3ef}
 @media(prefers-color-scheme:dark){.sw.h .sw-row{background:#1e1c1a}}
 html[data-theme="dark"] .sw.h .sw-row{background:#1e1c1a}
 html[data-theme="light"] .sw.h .sw-row{background:#fff}
-.cali.skipped input[type=checkbox]{accent-color:#c6a15b}
-.cali.skipped label::after{content:' \00b7 skipped';color:#c6a15b;font-size:12px;font-weight:700}
+.cali.skipped input[type=checkbox]{accent-color:#86efac}
+.cali.skipped label::after{content:' \00b7 skipped';color:#4ade80;font-size:12px;font-weight:700}
 html[lang="de"] .cali.skipped label::after{content:' \00b7 übersprungen'}
 .cali label{font-size:14px;flex:1;cursor:pointer}
 .cali input[type=checkbox]{accent-color:#22c55e;width:28px;height:28px;cursor:pointer;flex-shrink:0}
@@ -910,7 +910,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.86';
+var APP_VERSION='Beta 1.87';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1238,6 +1238,9 @@ var CHANGELOG=[
   {v:'Beta 1.86',notes:[
     'Swipe to skip: no more half-open state — swipe far enough to skip, or let go and it springs back',
     'Swipe to skip: cleaner look — rounded, with the Skip label fading in as you swipe and deepening once you are far enough'
+  ]},
+  {v:'Beta 1.87',notes:[
+    'Skipped days are now light green instead of gold — in the charts, rings, the swipe-to-skip action and the skipped label'
   ]}
 ];
 var COLORS={
@@ -2147,9 +2150,9 @@ var ICON_SUN='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke
 var ICON_MOON='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 var ICON_GLOBE='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
 function trashSvg(sz,stroke){return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+stroke+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';}
-// Gold used for skipped days (charts and rings); the Skip swipe action and
+// Light green used for skipped days (charts and rings); the Skip swipe action and
 // skipped-habit label use the same value in CSS.
-var SKIP_COLOR='#c6a15b';
+var SKIP_COLOR='#86efac';
 var ICON_RESET='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>';
 var ICON_TARGET='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
 var ICON_CHEVRON='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>';
@@ -3123,16 +3126,16 @@ function renderBarChart(periods,svgId){
     if(empty){
       // nothing to draw
     } else if(p.completed>0&&sk>0&&sk<p.completed){
-      // Skipped days sit on top of the bar in gold. Both colors are square
+      // Skipped days sit on top of the bar in light green. Both colors are square
       // blocks clipped to ONE rounded bar shape, so the outer corners are
-      // round and the seam between gold and green is flat.
+      // round and the seam between the two greens is flat.
       var skH=Math.max(3,Math.round(barH*sk/p.completed)),cid=svgId+'-c'+i;
       bars+='<clipPath id="'+cid+'"><rect '+shape+' rx="'+rx.toFixed(1)+'"></rect></clipPath>'
         +'<g clip-path="url(#'+cid+')">'
         +'<rect '+shape+' fill="#22c55e" data-i="'+i+'"></rect>'
         +'<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+skH+'" fill="'+SKIP_COLOR+'" data-i="'+i+'"></rect></g>';
     } else {
-      // all skipped = all gold
+      // all skipped = all light green
       bars+='<rect '+shape+' rx="'+rx.toFixed(1)+'"'
         +(p.completed>0?' fill="'+(sk===p.completed?SKIP_COLOR:'#22c55e')+'"':' class="hd-bar-empty"')+' data-i="'+i+'"></rect>';
     }

@@ -363,6 +363,11 @@ html[data-theme="dark"] .opt-radio-dot{background:#e8e6df}
 html[data-theme="light"] .opt-radio-dot{background:#1a1917}
 .opt-row.active .opt-radio-dot{display:block}
 .opt-text{flex:1}
+/* Slimmer rows on the Settings page only */
+#p-settings .opt-row{padding:9px 14px}
+#p-settings .opt-ico{width:26px;height:26px;border-radius:8px}
+#p-settings .opt-ico svg{width:17px;height:17px}
+#p-settings .addbtn{min-height:44px!important}
 .opt-title{font-size:14px;font-weight:600}
 /* Colored badge behind each settings icon (background set per-instance
    inline) instead of a flat gray glyph — flat currentColor read as low
@@ -377,7 +382,7 @@ html[data-theme="light"] .opt-radio-dot{background:#1a1917}
    neighboring row above/below. */
 .dsel-wrap{position:relative;display:inline-flex;flex:none;margin-left:auto}
 .dsel-visual{display:flex;align-items:center;gap:6px;pointer-events:none}
-.dsel-real{position:absolute;inset:-14px -16px;opacity:0;-webkit-tap-highlight-color:transparent}
+.dsel-real{position:absolute;inset:-9px -16px;opacity:0;-webkit-tap-highlight-color:transparent}
 
 /* On/off toggle for settings that are just one thing to enable, rather
    than a choice between two named options (those still use the
@@ -911,7 +916,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.88';
+var APP_VERSION='Beta 1.89';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1245,6 +1250,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.88',notes:[
     'Swipe to skip: one light-green color (no more color change), plain black regular-weight text, rounded corners with a small gap before the row, and a smooth slide when it springs back or skips'
+  ]},
+  {v:'Beta 1.89',notes:[
+    'Settings: slimmer rows and buttons, for a cleaner look'
   ]}
 ];
 var COLORS={
@@ -2170,7 +2178,7 @@ var ICON_CHEVRON='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" st
 function customSelect(opts,current,onchange){
   var sel=opts.filter(function(o){return String(o.value)===String(current);})[0]||opts[0]||{label:''};
   return '<div class="dsel-wrap">'
-    +'<div class="dsel-visual addinp" style="min-height:30px;padding:0 12px;font-size:14px;font-weight:600">'+esc(sel.label)+ICON_CHEVRON+'</div>'
+    +'<div class="dsel-visual addinp" style="min-height:28px;padding:0 12px;font-size:14px;font-weight:600">'+esc(sel.label)+ICON_CHEVRON+'</div>'
     +'<select class="dsel-real" onchange="'+onchange+'">'
     +opts.map(function(o){return '<option value="'+o.value+'"'+(String(o.value)===String(current)?' selected':'')+'>'+esc(o.label)+'</option>';}).join('')
     +'</select></div>';

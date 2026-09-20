@@ -909,7 +909,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.82';
+var APP_VERSION='Beta 1.83';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1219,6 +1219,10 @@ var CHANGELOG=[
   {v:'Beta 1.82',notes:[
     'Skipped days are now a muted gold instead of bright yellow, in the charts, rings and the swipe-to-skip action',
     'Bar charts: a bar with skipped days is round on top and flat where the gold meets the green'
+  ]},
+  {v:'Beta 1.83',notes:[
+    'Today: every task now shows its project in the project\'s color on the right (like the War Room), instead of its importance',
+    'Today: trackers show just their name, without the emoji'
   ]}
 ];
 var COLORS={
@@ -2981,7 +2985,7 @@ function ciTracker(it,dayIdx,editable){
   var unit=p.unit||'';
   return '<div class="cali" style="cursor:pointer" onclick="_projFromDaily=\''+it.trackerPid+'\';Nav.go(\''+it.trackerPid+'\')">'
     +'<div class="trk-daily-dot'+(val!=null?' done':'')+'"></div>'
-    +'<label style="cursor:pointer">'+(p.icon||'📈')+' '+esc(p.name)+'</label>'
+    +'<label style="cursor:pointer">'+(editable?(p.icon||'📈')+' ':'')+esc(p.name)+'</label>'
     +(val!=null?'<span class="trk-daily-val">'+esc(val+(unit?' '+unit:''))+'</span>':'')
     +(editable?'<button class="trk-del" onclick="A.deleteDailyItem(event,\''+it.id+'\')">'+trashSvg(18,'currentColor')+'</button>':'')
     +'</div>';
@@ -3486,15 +3490,11 @@ function renderToday(){
   }
   var c1=document.getElementById('today-priorities');
   c1.innerHTML=top3.length?top3.map(function(t){
-    // War Room items match the War Room widget's own look — project-colored
-    // badge with the project name, no "War Room" text — instead of the
-    // generic priority badge the other tasks get.
-    var isWar=t.pri==='bu';
+    // Every task shows its project as a project-colored badge, like the
+    // War Room widget (the priority already decides the order).
     var col=COLORS[t.color||'c-grey']||'#6b7280';
-    var badge=isWar
-      ? '<span class="bdg" style="'+tintStyle(col)+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span>'
-      : '<span class="bdg '+t.pri+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+PLBL[t.pri]+'</span>';
-    var sub=isWar?'':'<div class="ts">'+esc(t.section)+'</div>';
+    var badge='<span class="bdg" style="'+tintStyle(col)+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span>';
+    var sub='';
     return swipeWrap('t','<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
       +'<input type="checkbox" onchange="A.doneLockedIn(this)">'
       +'<div style="flex:1" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div>'+sub+'</div>'

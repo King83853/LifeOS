@@ -708,15 +708,8 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
     <button class="addbtn" id="version-btn" style="flex:1;font-size:14px;min-height:48px;font-weight:700" onclick="VersionHistory.open()"></button>
     <button class="addbtn" id="update-btn" style="width:48px;min-height:48px;flex:none;padding:0" onclick="A.checkForUpdate()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
   </div>
-  <div id="settings-start"></div>
-  <div id="settings-complete"></div>
   <div id="settings-theme"></div>
-  <div id="settings-language"></div>
-  <div class="opt-row" onclick="Nav.go('archive')">
-    <div class="opt-ico" style="background:#71717a"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></div>
-    <div class="opt-text"><div class="opt-title">Trash</div></div>
-    <span class="ab" id="ab2" style="margin-left:auto"></span>
-  </div>
+  <div id="settings-main"></div>
   <div class="sl" style="margin-top:28px">Today</div>
   <div id="settings-today"></div>
   <div class="sl" style="margin-top:28px">Overview</div>
@@ -959,7 +952,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.4';
+var APP_VERSION='Beta 2.5';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1350,6 +1343,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.4',notes:[
     'Settings > General: new "Open app on" dropdown — choose which tab the app opens on (Today, Overview, Tasks, Stats or Settings)'
+  ]},
+  {v:'Beta 2.5',notes:[
+    'Settings: Open app on, Hold to complete tasks, Language and Trash are now together in one white window below Appearance (Open app on has no icon)',
+    'Settings dropdown list sits closer to its widget (smaller gap)'
   ]}
 ];
 var COLORS={
@@ -2315,12 +2312,12 @@ var DSel=(function(){
     // right under the row (the widget), right-aligned with it
     var row=wrap.closest('.opt-row')||wrap,r=row.getBoundingClientRect();
     var mh=menu.offsetHeight,mw=menu.offsetWidth,vh=window.innerHeight;
-    var top=r.bottom+4,below=vh-top-8;
+    var top=r.bottom+1,below=vh-top-8;
     if(mh>below){
       // not enough room below: shrink to fit if it's still a usable size,
       // otherwise open above the row
       if(below>=140){menu.style.maxHeight=below+'px';}
-      else{var above=r.top-4-8;menu.style.maxHeight=Math.min(mh,above)+'px';top=r.top-4-Math.min(mh,above);}
+      else{var above=r.top-1-8;menu.style.maxHeight=Math.min(mh,above)+'px';top=r.top-1-Math.min(mh,above);}
     }
     menu.style.top=Math.max(8,top)+'px';
     menu.style.left=Math.max(12,Math.min(r.right-mw,window.innerWidth-mw-12))+'px';
@@ -2354,27 +2351,27 @@ function renderSettings(){
       +'<div class="opt-text"><div class="opt-title">'+o.title+'</div></div>'
       +'<div class="opt-radio" style="margin-left:auto"><div class="opt-radio-dot"></div></div></div>';
   }).join('')+'</div>';
-  document.getElementById('settings-start').innerHTML=
-    '<div class="opt-row" style="cursor:default">'
-    +'<div class="opt-ico" style="background:#14b8a6">'+ICON_HOME+'</div>'
+  // One white window: start tab, hold to complete, language, trash.
+  var lang=DB.data.settings.language||'en',hold=DB.data.settings.holdToComplete,trashN=Trash.total();
+  document.getElementById('settings-main').innerHTML='<div class="opt-group">'
+    +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Open app on</div></div>'
     +customSelect([{value:'today',label:'Today'},{value:'overview',label:'Overview'},{value:'lockedin',label:'Tasks'},{value:'stats',label:'Stats'},{value:'settings',label:'Settings'}],DB.data.settings.startTab||'today','A.setStartTab(this.value)')
-    +'</div>';
-  var lang=DB.data.settings.language||'en';
-  // Only English exists so far — this just gives the setting a home to
-  // live in ahead of time. Add more <option>s here once real
-  // translations exist; nothing else needs to change to support that.
-  document.getElementById('settings-language').innerHTML=
-    '<div class="opt-row" style="cursor:default">'
+    +'</div>'
+    +'<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-text"><div class="opt-title">Hold to complete tasks</div></div>'
+    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(hold?'checked':'')+' onchange="A.setHoldMode(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div>'
+    +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-ico" style="background:#3b82f6">'+ICON_GLOBE+'</div>'
     +'<div class="opt-text"><div class="opt-title">Language</div></div>'
     +customSelect([{value:'en',label:'English'},{value:'de',label:'Deutsch'}],lang,'A.setLanguage(this.value)')
-    +'</div>';
-  var hold=DB.data.settings.holdToComplete;
-  document.getElementById('settings-complete').innerHTML=
-    '<div class="opt-row" style="cursor:default">'
-    +'<div class="opt-text"><div class="opt-title">Hold to complete tasks</div></div>'
-    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(hold?'checked':'')+' onchange="A.setHoldMode(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div>'
+    +'<div class="opt-row" onclick="Nav.go(\'archive\')">'
+    +'<div class="opt-ico" style="background:#71717a">'+trashSvg(20,'currentColor')+'</div>'
+    +'<div class="opt-text"><div class="opt-title">Trash</div></div>'
+    +'<span class="ab" id="ab2" style="margin-left:auto;display:'+(trashN?'inline-flex':'none')+'">'+trashN+'</span>'
+    +'</div>'
     +'</div>';
 
   var refill=DB.data.settings.todayRefill;

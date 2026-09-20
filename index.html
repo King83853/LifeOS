@@ -106,7 +106,7 @@ html[data-theme="light"] .wri input[type=checkbox]{accent-color:#1a1917}
 .wit{font-size:14px;flex:1;line-height:1.4;font-weight:500}
 
 .agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:4px}
-.acard{background:#fff;border:1.5px solid #e8e5e0;border-radius:18px;padding:16px 10px 13px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;transition:transform .12s}
+.acard{background:#fff;border:1.5px solid #e8e5e0;border-radius:18px;padding:12px 10px 9px;width:94%;justify-self:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;transition:transform .12s}
 @media(prefers-color-scheme:dark){.acard{background:#1e1c1a;border-color:#2a2927}}
 html[data-theme="dark"] .acard{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .acard{background:#fff;border-color:#e8e5e0}
@@ -536,14 +536,17 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
    .opt-group are kept. */
 html:not(#x) .acard,html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .calsec,html:not(#x) .archbox,html:not(#x) .el-row,html:not(#x) .opt-row,html:not(#x) .opt-group{border-color:transparent}
 html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
-/* One divider look everywhere: section-header underlines, habit rows,
-   settings groups, trash and tracker lists (1px, --line). A solid color, not
-   a translucent one, so it looks identical on the grey page and on white
-   cards. */
-:root{--line:#e6e3de}
-@media(prefers-color-scheme:dark){:root{--line:#3a3d44}}
-html[data-theme="dark"]{--line:#3a3d44}
-html[data-theme="light"]{--line:#e6e3de}
+/* One divider look everywhere (1px, --line): exactly the page background
+   color, so a divider reads as a gap between rows, as in Settings. */
+:root{--line:#f3f4f6}
+@media(prefers-color-scheme:dark){:root{--line:#1f2937}}
+html[data-theme="dark"]{--line:#1f2937}
+html[data-theme="light"]{--line:#f3f4f6}
+/* dividers inside a card run edge to edge, like in Settings */
+.calsec .sw.h{margin:0 -14px}
+.calsec .sw.h .sw-row{padding:0 14px}
+.calsec .sw.h .sw-act{left:14px}
+.calsec>.cali{margin:0 -14px;padding-left:14px;padding-right:14px}
 html:not(#x) .shdr{border-bottom:1px solid var(--line)}
 html:not(#x) .cali,html:not(#x) .sw.h,html:not(#x) .archi,html:not(#x) .trk-entry{border-bottom-color:var(--line)}
 html:not(#x) .opt-group .opt-row{border-bottom:1px solid var(--line)}
@@ -938,7 +941,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.97';
+var APP_VERSION='Beta 1.98';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1301,6 +1304,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.97',notes:[
     'Task widgets (Today, Tasks tab, project pages, War Room) are slimmer — less padding above and below, same text and tick-off size'
+  ]},
+  {v:'Beta 1.98',notes:[
+    'Dividers now look like the ones in Settings everywhere: exactly the page background color, and running edge to edge inside a card',
+    'Overview: the white category squares are a little smaller (icons and text unchanged)'
   ]}
 ];
 var COLORS={

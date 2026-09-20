@@ -909,7 +909,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.80';
+var APP_VERSION='Beta 1.81';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1212,6 +1212,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.80',notes:[
     'Trash: new Lists tab for tasks completed in a List project (Tasks keeps the others)'
+  ]},
+  {v:'Beta 1.81',notes:[
+    'Consistency rings (Statistics and habit pages) now show skipped days in yellow. The yellow part rounds up and takes its share out of the green, so the total stays the same'
   ]}
 ];
 var COLORS={
@@ -3110,12 +3113,20 @@ function renderBarChart(periods,svgId){
   return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:120px;display:block" id="'+svgId+'">'+bars+labels+'</svg>';
 }
 
-function renderPieChart(pct){
+// The ring shows done + skipped together (pct). Skipped days are drawn in
+// amber on top of that total: the amber share rounds UP and green is what's
+// left, so amber only ever takes away from green, never adds to the total.
+function renderPieChart(pct,skipped,target){
   var r=42,circ=2*Math.PI*r;
-  var dash=(circ*pct/100).toFixed(1);
+  var skipPct=(skipped&&target)?Math.min(pct,Math.ceil(skipped/target*100)):0;
+  var greenPct=pct-skipPct;
+  function arc(p,col){
+    return '<circle cx="50" cy="50" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+(circ*p/100).toFixed(1)+' '+circ.toFixed(1)+'" transform="rotate(-90 50 50)"></circle>';
+  }
   return '<svg viewBox="0 0 100 100" style="width:150px;height:150px">'
     +'<circle class="hd-pie-track" cx="50" cy="50" r="'+r+'" fill="none" stroke-width="10"></circle>'
-    +'<circle cx="50" cy="50" r="'+r+'" fill="none" stroke="#22c55e" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+dash+' '+circ.toFixed(1)+'" transform="rotate(-90 50 50)"></circle>'
+    +(skipPct>0?arc(pct,'#f59e0b'):'')
+    +(greenPct>0?arc(greenPct,'#22c55e'):'')
     +'<text class="hd-pie-pct" x="50" y="57" text-anchor="middle" font-size="24" font-weight="800">'+pct+'%</text>'
     +'</svg>';
 }
@@ -3244,7 +3255,7 @@ var Stats={
   view:'day',
   render:function(){
     var agg=aggHabitConsistency();
-    document.getElementById('stats-pie').innerHTML=renderPieChart(agg.pct);
+    document.getElementById('stats-pie').innerHTML=renderPieChart(agg.pct,agg.skipped,agg.target);
     document.getElementById('stats-pie-text').innerHTML=agg.target
       ?'<b>'+agg.completed+'</b> / <b>'+agg.target+'</b> habits'+(agg.skipped?' \u00b7 '+agg.skipped+' skipped':'')
       :'No scheduled habits yet.';
@@ -3347,7 +3358,7 @@ var HabitDetail={
     var item=DB.data.dailyItems.find(function(x){return x.id===HabitDetail.itemId;});
     if(!item)return;
     var s=habitConsistency(item);
-    document.getElementById('hd-pie').innerHTML=renderPieChart(s.pct);
+    document.getElementById('hd-pie').innerHTML=renderPieChart(s.pct,s.skipped,s.target);
     document.getElementById('hd-streak-text').innerHTML=
       '<b>'+s.completed+'</b> of <b>'+s.target+'</b> scheduled days completed'+(s.skipped?' ('+s.skipped+' skipped)':'');
   }

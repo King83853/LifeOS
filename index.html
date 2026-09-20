@@ -365,8 +365,14 @@ html[data-theme="light"] .opt-radio-dot{background:#1a1917}
 .opt-text{flex:1}
 /* Slimmer rows on the Settings page only */
 #p-settings .opt-row{padding:9px 14px}
-#p-settings .opt-ico{width:26px;height:26px;border-radius:8px}
-#p-settings .opt-ico svg{width:17px;height:17px}
+#p-settings .opt-ico{width:28px;height:28px;border-radius:8px}
+#p-settings .opt-ico svg{width:18px;height:18px}
+/* No outlines on the widgets or the dropdown pills (the html prefix beats
+   the theme-specific border rules) */
+html #p-settings .opt-row,html #p-settings .opt-group{border:none}
+html #p-settings .opt-group .opt-row{border-bottom:1px solid rgba(127,127,127,.16)}
+html #p-settings .opt-group .opt-row:last-child{border-bottom:none}
+html #p-settings .dsel-visual{border:none;background:rgba(127,127,127,.14)}
 #p-settings .addbtn{min-height:44px!important}
 .opt-title{font-size:14px;font-weight:600}
 /* Colored badge behind each settings icon (background set per-instance
@@ -916,7 +922,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.89';
+var APP_VERSION='Beta 1.90';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1253,6 +1259,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.89',notes:[
     'Settings: slimmer rows and buttons, for a cleaner look'
+  ]},
+  {v:'Beta 1.90',notes:[
+    'Settings: no outlines around the widgets or the dropdowns (Language etc.), and slightly bigger icons'
   ]}
 ];
 var COLORS={

@@ -95,7 +95,7 @@ html[data-theme="light"] .wrbd{background:#fff}
 @media(prefers-color-scheme:dark){.wrd{background:#3d1010;color:#fca5a5}}
 html[data-theme="dark"] .wrd{background:#3d1010;color:#fca5a5}
 html[data-theme="light"] .wrd{background:#fef2f2;color:#b91c1c}
-.wri{display:flex;align-items:center;gap:12px;padding:8px 12px;background:#fafaf8;border:1.5px solid #f0ede8;border-radius:12px;margin-bottom:7px;position:relative;overflow:hidden;transition:opacity .3s}
+.wri{display:flex;align-items:center;gap:12px;padding:8px;background:#fafaf8;border:1.5px solid #f0ede8;border-radius:12px;margin-bottom:7px;position:relative;overflow:hidden;transition:opacity .3s}
 @media(prefers-color-scheme:dark){.wri{background:#252320;border-color:#333}}
 html[data-theme="dark"] .wri{background:#252320;border-color:#333}
 html[data-theme="light"] .wri{background:#fafaf8;border-color:#f0ede8}
@@ -105,8 +105,8 @@ html[data-theme="dark"] .wri input[type=checkbox]{accent-color:#e8e6df}
 html[data-theme="light"] .wri input[type=checkbox]{accent-color:#1a1917}
 .wit{font-size:14px;flex:1;line-height:1.4;font-weight:500}
 
-.agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:4px}
-.acard{background:#fff;border:1.5px solid #e8e5e0;border-radius:18px;padding:12px 10px 9px;width:94%;justify-self:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;transition:transform .12s}
+.agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:4px}
+.acard{background:#fff;border:1.5px solid #e8e5e0;border-radius:18px;padding:12px 10px 9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;transition:transform .12s}
 @media(prefers-color-scheme:dark){.acard{background:#1e1c1a;border-color:#2a2927}}
 html[data-theme="dark"] .acard{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .acard{background:#fff;border-color:#e8e5e0}
@@ -154,7 +154,7 @@ html[data-theme="light"] .proj-name-pill{background:#fff;border-color:#1a1917;co
 .proj-name-pill .dtitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17px}
 
 .ti,.wri{position:relative;overflow:hidden}
-.ti{display:flex;align-items:center;gap:12px;padding:8px 14px;background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px;transition:opacity .3s}
+.ti{display:flex;align-items:center;gap:12px;padding:8px;background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px;transition:opacity .3s}
 @media(prefers-color-scheme:dark){.ti{background:#1e1c1a;border-color:#2a2927}}
 html[data-theme="dark"] .ti{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .ti{background:#fff;border-color:#e8e5e0}
@@ -387,8 +387,18 @@ html #p-settings .dsel-visual{border:none;background:transparent}
    padding still contains that overhang so it can't steal taps from a
    neighboring row above/below. */
 .dsel-wrap{position:relative;display:inline-flex;flex:none;margin-left:auto}
-.dsel-visual{display:flex;align-items:center;gap:6px;pointer-events:none}
-.dsel-real{position:absolute;inset:-9px -16px;opacity:0;-webkit-tap-highlight-color:transparent}
+.dsel-visual{display:flex;align-items:center;gap:3px;pointer-events:none}
+.dsel-real{position:absolute;inset:-9px -16px;opacity:0;padding:0;border:none;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+/* The list that opens under a Settings dropdown: fixed just below its row,
+   capped in height (scrolls past that), see DSel. */
+.dsel-menu{position:fixed;z-index:600;min-width:150px;max-width:calc(100vw - 24px);max-height:min(236px,40vh);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#fff;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.18),0 0 0 1px rgba(127,127,127,.15);padding:4px 0}
+@media(prefers-color-scheme:dark){.dsel-menu{background:#26292f}}
+html[data-theme="dark"] .dsel-menu{background:#26292f}
+html[data-theme="light"] .dsel-menu{background:#fff}
+.dsel-opt{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 16px;font-size:15px;cursor:pointer;white-space:nowrap}
+.dsel-opt:active{background:rgba(127,127,127,.14)}
+.dsel-opt.sel{font-weight:700}
+.dsel-opt.sel::after{content:'\2713';font-size:14px}
 
 /* On/off toggle for settings that are just one thing to enable, rather
    than a choice between two named options (those still use the
@@ -551,7 +561,9 @@ html[data-theme="light"]{--line:#eceef1}
 .calsec .sw.h .sw-act{left:15.5px}
 .calsec>.cali{margin:0 -15.5px;padding-left:15.5px;padding-right:15.5px}
 /* the last row already has its own padding, so the card needs less below it */
-#today-daily .calsec,[id^="dp-"] .calsec{padding-bottom:4px}
+#today-daily .calsec,[id^="dp-"] .calsec{padding-bottom:4px;overflow:hidden}
+/* project badge in task rows: a touch slimmer than the default 30px */
+.ti .bdg{height:27px;min-height:27px;display:inline-flex;align-items:center;padding-top:0;padding-bottom:0}
 html:not(#x) .shdr{border-bottom:1.5px solid var(--line)}
 html:not(#x) .cali,html:not(#x) .sw.h,html:not(#x) .archi,html:not(#x) .trk-entry{border-bottom-color:var(--line);border-bottom-width:1.5px}
 html:not(#x) .opt-group .opt-row{border-bottom:1.5px solid var(--line)}
@@ -946,7 +958,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.2';
+var APP_VERSION='Beta 2.3';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1327,6 +1339,13 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.2',notes:[
     'Settings: the dropdowns (Language etc.) no longer have a grey background — just the value and arrow on the white widget'
+  ]},
+  {v:'Beta 2.3',notes:[
+    'Settings dropdowns: the arrow sits closer to the text, and the list opens right under the widget with a maximum height (it scrolls) instead of a full-screen picker',
+    'Overview: the space between the project squares is the same sideways and up/down',
+    'Task widgets: the tick-off square and the colored project badge sit closer to the edge — the same distance from the corners on every side',
+    'Habit widgets: the bottom corners are round again after the dividers were stretched to the edges',
+    'Task widgets: the colored project badge is a tiny bit slimmer (same length)'
   ]}
 ];
 var COLORS={
@@ -2251,12 +2270,70 @@ var ICON_CHEVRON='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" st
 // every renderSettings() anyway.
 function customSelect(opts,current,onchange){
   var sel=opts.filter(function(o){return String(o.value)===String(current);})[0]||opts[0]||{label:''};
-  return '<div class="dsel-wrap">'
+  return '<div class="dsel-wrap" data-opts="'+esc(JSON.stringify(opts))+'" data-cur="'+esc(String(current))+'" data-on="'+esc(onchange)+'">'
     +'<div class="dsel-visual addinp" style="min-height:28px;padding:0 12px;font-size:14px;font-weight:600">'+esc(sel.label)+ICON_CHEVRON+'</div>'
-    +'<select class="dsel-real" onchange="'+onchange+'">'
-    +opts.map(function(o){return '<option value="'+o.value+'"'+(String(o.value)===String(current)?' selected':'')+'>'+esc(o.label)+'</option>';}).join('')
-    +'</select></div>';
+    +'<button type="button" class="dsel-real" aria-label="'+esc(sel.label)+'" onclick="DSel.toggle(this)"></button>'
+    +'</div>';
 }
+// The dropdown list for customSelect(): built on open, placed right under
+// the row that was tapped (above it if there's no room), at most ~236px
+// tall with its own scroll, and closed by picking, tapping elsewhere or
+// scrolling the page. The native <select> couldn't be positioned.
+var DSel=(function(){
+  var menu=null,owner=null;
+  function close(){
+    if(menu){menu.remove();menu=null;}
+    owner=null;
+    document.removeEventListener('click',outside,true);
+    window.removeEventListener('scroll',onScroll,true);
+    window.removeEventListener('resize',close);
+  }
+  // scrolling the list itself must not close it; scrolling the page does
+  function onScroll(e){if(menu&&e.target!==document&&menu.contains(e.target))return;close();}
+  function outside(e){if(menu&&!menu.contains(e.target)&&!(owner&&owner.contains(e.target)))close();}
+  function open(btn){
+    var wrap=btn.closest('.dsel-wrap');if(!wrap)return;
+    var opts=JSON.parse(wrap.getAttribute('data-opts')),cur=wrap.getAttribute('data-cur'),code=wrap.getAttribute('data-on');
+    menu=document.createElement('div');menu.className='dsel-menu';
+    menu.innerHTML=opts.map(function(o,i){
+      return '<div class="dsel-opt'+(String(o.value)===cur?' sel':'')+'" data-i="'+i+'">'+esc(o.label)+'</div>';
+    }).join('');
+    menu.addEventListener('click',function(e){
+      var it=e.target.closest('.dsel-opt');if(!it)return;
+      var v=opts[+it.getAttribute('data-i')].value;
+      close();
+      new Function(code).call({value:String(v)});
+    });
+    document.body.appendChild(menu);
+    owner=wrap;
+    // right under the row (the widget), right-aligned with it
+    var row=wrap.closest('.opt-row')||wrap,r=row.getBoundingClientRect();
+    var mh=menu.offsetHeight,mw=menu.offsetWidth,vh=window.innerHeight;
+    var top=r.bottom+4,below=vh-top-8;
+    if(mh>below){
+      // not enough room below: shrink to fit if it's still a usable size,
+      // otherwise open above the row
+      if(below>=140){menu.style.maxHeight=below+'px';}
+      else{var above=r.top-4-8;menu.style.maxHeight=Math.min(mh,above)+'px';top=r.top-4-Math.min(mh,above);}
+    }
+    menu.style.top=Math.max(8,top)+'px';
+    menu.style.left=Math.max(12,Math.min(r.right-mw,window.innerWidth-mw-12))+'px';
+    var sel=menu.querySelector('.sel');if(sel)menu.scrollTop=Math.max(0,sel.offsetTop-menu.clientHeight/2+sel.offsetHeight/2);
+    setTimeout(function(){
+      document.addEventListener('click',outside,true);
+      window.addEventListener('scroll',onScroll,true);
+      window.addEventListener('resize',close);
+    },0);
+  }
+  return{
+    toggle:function(btn){
+      var same=owner&&owner===btn.closest('.dsel-wrap');
+      close();
+      if(!same)open(btn);
+    },
+    close:close
+  };
+})();
 
 function renderSettings(){
   var vl=document.getElementById('version-btn');if(vl)vl.textContent=APP_VERSION;

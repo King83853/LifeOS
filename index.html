@@ -34,7 +34,7 @@ html[data-theme="light"] .statusbar-blur{background:rgba(243,244,246,.35)}
 html[data-theme="dark"] .tabbar{background:#1f2937;border-color:#2a2927}
 html[data-theme="light"] .tabbar{background:#f3f4f6;border-color:#e8e5e0}
 body.kb-open .tabbar,body.kb-open .fab{display:none!important}
-.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#6b7280;font-size:11px;font-weight:700;font-family:inherit;background:none;border:none;padding:6px 0}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#6b7280;font-size:10.5px;font-weight:600;font-family:inherit;background:none;border:none;padding:6px 0}
 .tab-item.active{color:#1a1917}
 @media(prefers-color-scheme:dark){.tab-item.active{color:#e8e6df}}
 html[data-theme="dark"] .tab-item.active{color:#e8e6df}
@@ -922,7 +922,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.90';
+var APP_VERSION='Beta 1.91';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1262,6 +1262,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.90',notes:[
     'Settings: no outlines around the widgets or the dropdowns (Language etc.), and slightly bigger icons'
+  ]},
+  {v:'Beta 1.91',notes:[
+    'Footer menu: the labels are a little thinner and smaller'
   ]}
 ];
 var COLORS={

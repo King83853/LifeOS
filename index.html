@@ -371,6 +371,8 @@ html[data-theme="light"] .opt-radio-dot{background:#1a1917}
 html #p-settings .opt-row,html #p-settings .opt-group{border:none}
 html #p-settings .dsel-visual{border:none;background:rgba(127,127,127,.14)}
 #p-settings .addbtn{min-height:46px!important;height:46px}
+#p-settings .opt-row,#p-settings .opt-group{margin-bottom:14px}
+#p-settings .opt-group .opt-row{margin-bottom:0}
 #p-settings #update-btn{width:46px!important}
 .opt-title{font-size:14px;font-weight:600}
 /* Colored badge behind each settings icon (background set per-instance
@@ -536,7 +538,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
    .opt-group are kept. */
 html:not(#x) .acard,html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .calsec,html:not(#x) .archbox,html:not(#x) .el-row,html:not(#x) .opt-row,html:not(#x) .opt-group{border-color:transparent}
 html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
-/* One divider look everywhere (1px, --line): exactly the page background
+/* One divider look everywhere (1.5px, --line): exactly the page background
    color, so a divider reads as a gap between rows, as in Settings. */
 :root{--line:#f3f4f6}
 @media(prefers-color-scheme:dark){:root{--line:#1f2937}}
@@ -547,9 +549,9 @@ html[data-theme="light"]{--line:#f3f4f6}
 .calsec .sw.h .sw-row{padding:0 14px}
 .calsec .sw.h .sw-act{left:14px}
 .calsec>.cali{margin:0 -14px;padding-left:14px;padding-right:14px}
-html:not(#x) .shdr{border-bottom:1px solid var(--line)}
-html:not(#x) .cali,html:not(#x) .sw.h,html:not(#x) .archi,html:not(#x) .trk-entry{border-bottom-color:var(--line)}
-html:not(#x) .opt-group .opt-row{border-bottom:1px solid var(--line)}
+html:not(#x) .shdr{border-bottom:1.5px solid var(--line)}
+html:not(#x) .cali,html:not(#x) .sw.h,html:not(#x) .archi,html:not(#x) .trk-entry{border-bottom-color:var(--line);border-bottom-width:1.5px}
+html:not(#x) .opt-group .opt-row{border-bottom:1.5px solid var(--line)}
 html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 </style>
 </head>
@@ -941,7 +943,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.98';
+var APP_VERSION='Beta 1.99';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1308,6 +1310,9 @@ var CHANGELOG=[
   {v:'Beta 1.98',notes:[
     'Dividers now look like the ones in Settings everywhere: exactly the page background color, and running edge to edge inside a card',
     'Overview: the white category squares are a little smaller (icons and text unchanged)'
+  ]},
+  {v:'Beta 1.99',notes:[
+    'Dividers are a tiny bit thicker, and the widgets in Settings have more space between them'
   ]}
 ];
 var COLORS={

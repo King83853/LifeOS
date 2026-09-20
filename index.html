@@ -538,12 +538,12 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
    .opt-group are kept. */
 html:not(#x) .acard,html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .calsec,html:not(#x) .archbox,html:not(#x) .el-row,html:not(#x) .opt-row,html:not(#x) .opt-group{border-color:transparent}
 html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
-/* One divider look everywhere (1.5px, --line): exactly the page background
-   color, so a divider reads as a gap between rows, as in Settings. */
-:root{--line:#f3f4f6}
-@media(prefers-color-scheme:dark){:root{--line:#1f2937}}
-html[data-theme="dark"]{--line:#1f2937}
-html[data-theme="light"]{--line:#f3f4f6}
+/* One divider look everywhere (1.5px, --line): a hair darker than the page
+   background, so it reads as a soft gap between rows, as in Settings. */
+:root{--line:#eceef1}
+@media(prefers-color-scheme:dark){:root{--line:#1a2230}}
+html[data-theme="dark"]{--line:#1a2230}
+html[data-theme="light"]{--line:#eceef1}
 /* dividers inside a card run edge to edge, like in Settings (14px padding
    + the card's 1.5px border) */
 .calsec .sw.h{margin:0 -15.5px}
@@ -1316,7 +1316,8 @@ var CHANGELOG=[
     'Dividers are a tiny bit thicker, and the widgets in Settings have more space between them'
   ]},
   {v:'Beta 2.0',notes:[
-    'Dividers inside cards now reach all the way to both edges of the white widget'
+    'Dividers inside cards now reach all the way to both edges of the white widget',
+    'Dividers are a tiny bit darker'
   ]}
 ];
 var COLORS={

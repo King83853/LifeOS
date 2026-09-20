@@ -369,7 +369,7 @@ html[data-theme="light"] .opt-radio-dot{background:#1a1917}
 /* No outlines on the widgets or the dropdown pills (the html prefix beats
    the theme-specific border rules) */
 html #p-settings .opt-row,html #p-settings .opt-group{border:none}
-html #p-settings .dsel-visual{border:none;background:rgba(127,127,127,.14)}
+html #p-settings .dsel-visual{border:none;background:transparent}
 #p-settings .addbtn{min-height:46px!important;height:46px}
 #p-settings .opt-row,#p-settings .opt-group{margin-bottom:14px}
 #p-settings .opt-group .opt-row{margin-bottom:0}
@@ -946,7 +946,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.1';
+var APP_VERSION='Beta 2.2';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1324,6 +1324,9 @@ var CHANGELOG=[
   {v:'Beta 2.1',notes:[
     'The blur bar at the very top sits higher, so it covers less of the page',
     'Today and Daily: less empty space at the bottom of the white habit widgets'
+  ]},
+  {v:'Beta 2.2',notes:[
+    'Settings: the dropdowns (Language etc.) no longer have a grey background — just the value and arrow on the white widget'
   ]}
 ];
 var COLORS={

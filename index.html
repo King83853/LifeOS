@@ -708,6 +708,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
     <button class="addbtn" id="version-btn" style="flex:1;font-size:14px;min-height:48px;font-weight:700" onclick="VersionHistory.open()"></button>
     <button class="addbtn" id="update-btn" style="width:48px;min-height:48px;flex:none;padding:0" onclick="A.checkForUpdate()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
   </div>
+  <div id="settings-start"></div>
   <div id="settings-complete"></div>
   <div id="settings-theme"></div>
   <div id="settings-language"></div>
@@ -958,7 +959,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.3';
+var APP_VERSION='Beta 2.4';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1346,6 +1347,9 @@ var CHANGELOG=[
     'Task widgets: the tick-off square and the colored project badge sit closer to the edge — the same distance from the corners on every side',
     'Habit widgets: the bottom corners are round again after the dividers were stretched to the edges',
     'Task widgets: the colored project badge is a tiny bit slimmer (same length)'
+  ]},
+  {v:'Beta 2.4',notes:[
+    'Settings > General: new "Open app on" dropdown — choose which tab the app opens on (Today, Overview, Tasks, Stats or Settings)'
   ]}
 ];
 var COLORS={
@@ -1388,7 +1392,7 @@ var DB={
       categories:{}, // {id:{name,icon}}
       categoryOrder:[],      // [catId,...]
       projectOrder:{},       // {catId:[projId,...]}
-      settings:{holdToComplete:false,todayHabitsDisappear:false,dayStartHour:0,lastSeenVersion:APP_VERSION,theme:'system',language:'en',todayTaskCount:3,todayRefill:false}};
+      settings:{holdToComplete:false,todayHabitsDisappear:false,dayStartHour:0,lastSeenVersion:APP_VERSION,theme:'system',language:'en',todayTaskCount:3,todayRefill:false,startTab:'today'}};
   },
   load:function(){
     try{var r=localStorage.getItem(this.KEY);if(r)this.data=JSON.parse(r);}catch(e){}
@@ -1405,6 +1409,7 @@ var DB={
     if(!d.settings.language)d.settings.language='en';
     if(!d.settings.todayTaskCount)d.settings.todayTaskCount=3;
     if(d.settings.todayRefill===undefined)d.settings.todayRefill=false;
+    if(!d.settings.startTab)d.settings.startTab='today';
     // Missing entirely = a pre-existing install from before this system
     // existed — leave it unset (falsy) so the "what's new" sheet
     // correctly treats it as needing to catch up, once.
@@ -1714,7 +1719,7 @@ var I18N=(function(){
     'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
-    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Open app on':'App öffnen mit','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
     '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
@@ -2253,6 +2258,7 @@ function renderEditLayout(){
 var ICON_SYSTEM='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg>';
 var ICON_SUN='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
 var ICON_MOON='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+var ICON_HOME='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>';
 var ICON_GLOBE='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
 function trashSvg(sz,stroke){return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+stroke+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';}
 // Light green used for skipped days (charts and rings); the Skip swipe action and
@@ -2348,6 +2354,12 @@ function renderSettings(){
       +'<div class="opt-text"><div class="opt-title">'+o.title+'</div></div>'
       +'<div class="opt-radio" style="margin-left:auto"><div class="opt-radio-dot"></div></div></div>';
   }).join('')+'</div>';
+  document.getElementById('settings-start').innerHTML=
+    '<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-ico" style="background:#14b8a6">'+ICON_HOME+'</div>'
+    +'<div class="opt-text"><div class="opt-title">Open app on</div></div>'
+    +customSelect([{value:'today',label:'Today'},{value:'overview',label:'Overview'},{value:'lockedin',label:'Tasks'},{value:'stats',label:'Stats'},{value:'settings',label:'Settings'}],DB.data.settings.startTab||'today','A.setStartTab(this.value)')
+    +'</div>';
   var lang=DB.data.settings.language||'en';
   // Only English exists so far — this just gives the setting a home to
   // live in ahead of time. Add more <option>s here once real
@@ -2696,6 +2708,10 @@ var A={
   setTheme:function(val){
     DB.data.settings.theme=val;DB.save();
     applyTheme();renderSettings();
+  },
+  setStartTab:function(val){
+    DB.data.settings.startTab=val;DB.save();
+    renderSettings();
   },
   setLanguage:function(val){
     DB.data.settings.language=val;DB.save();
@@ -4794,6 +4810,8 @@ renderWar();
 renderGrids();
 renderToday();
 TabBar.updateActive();
+// open on the tab chosen in Settings > Open app on
+(function(){var st=DB.data.settings.startTab;if(st&&st!=='today'&&document.getElementById('p-'+st))TabBar.go(st);})();
 setTimeout(function(){WhatsNew.checkAndShow();},400);
 
 // T is a snapshot taken at load time — if the app stays open across a day

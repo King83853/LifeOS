@@ -370,8 +370,6 @@ html[data-theme="light"] .opt-radio-dot{background:#1a1917}
 /* No outlines on the widgets or the dropdown pills (the html prefix beats
    the theme-specific border rules) */
 html #p-settings .opt-row,html #p-settings .opt-group{border:none}
-html #p-settings .opt-group .opt-row{border-bottom:1px solid rgba(127,127,127,.16)}
-html #p-settings .opt-group .opt-row:last-child{border-bottom:none}
 html #p-settings .dsel-visual{border:none;background:rgba(127,127,127,.14)}
 #p-settings .addbtn{min-height:46px!important;height:46px}
 #p-settings #update-btn{width:46px!important}
@@ -539,7 +537,13 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
    .opt-group are kept. */
 html:not(#x) .acard,html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .calsec,html:not(#x) .archbox,html:not(#x) .el-row,html:not(#x) .opt-row,html:not(#x) .opt-group{border-color:transparent}
 html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
-html:not(#x) .opt-group .opt-row{border-bottom-color:rgba(127,127,127,.16)}
+/* One divider look everywhere: section-header underlines, habit rows,
+   settings groups, trash and tracker lists (1px, --line). */
+:root{--line:rgba(127,127,127,.18)}
+html:not(#x) .shdr{border-bottom:1px solid var(--line)}
+html:not(#x) .cali,html:not(#x) .sw.h,html:not(#x) .archi,html:not(#x) .trk-entry{border-bottom-color:var(--line)}
+html:not(#x) .opt-group .opt-row{border-bottom:1px solid var(--line)}
+html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 </style>
 </head>
 <body>
@@ -930,7 +934,7 @@ html:not(#x) .opt-group .opt-row{border-bottom-color:rgba(127,127,127,.16)}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.94';
+var APP_VERSION='Beta 1.95';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1284,6 +1288,9 @@ var CHANGELOG=[
   {v:'Beta 1.94',notes:[
     'No more grey outlines around the white cards and rows anywhere in the app (the red War Room outline stays)',
     'War Room: the tick-off squares are the same size as the others'
+  ]},
+  {v:'Beta 1.95',notes:[
+    'All the thin grey dividers (under Tasks/Habits headings, between habits, in Settings, Trash and tracker lists) now look exactly the same'
   ]}
 ];
 var COLORS={

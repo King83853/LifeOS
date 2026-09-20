@@ -76,7 +76,7 @@ html[data-theme="light"] .menu-panel{background:#f3f4f6}
 html[data-theme="dark"] .menu-item:active{background:#252320}
 html[data-theme="light"] .menu-item:active{background:#f0ede8}
 
-.ab{background:#e24b4a;color:#fff;border-radius:99px;min-width:26px;height:26px;padding:0 8px;font-size:14px;font-weight:700;margin-left:auto;display:none;align-items:center;justify-content:center}
+.ab{background:#e24b4a;color:#fff;border-radius:99px;min-width:22px;height:22px;padding:0 7px;font-size:12px;font-weight:700;margin-left:auto;display:none;align-items:center;justify-content:center}
 
 .shdr{font-size:10px;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:.1em;margin:22px 0 10px;padding-bottom:7px;border-bottom:1.5px solid #e8e5e0;display:flex;align-items:center;gap:6px}
 @media(prefers-color-scheme:dark){.shdr{border-color:#2a2927;color:#444}}
@@ -373,7 +373,8 @@ html #p-settings .opt-row,html #p-settings .opt-group{border:none}
 html #p-settings .opt-group .opt-row{border-bottom:1px solid rgba(127,127,127,.16)}
 html #p-settings .opt-group .opt-row:last-child{border-bottom:none}
 html #p-settings .dsel-visual{border:none;background:rgba(127,127,127,.14)}
-#p-settings .addbtn{min-height:44px!important}
+#p-settings .addbtn{min-height:46px!important;height:46px}
+#p-settings #update-btn{width:46px!important}
 .opt-title{font-size:14px;font-weight:600}
 /* Colored badge behind each settings icon (background set per-instance
    inline) instead of a flat gray glyph — flat currentColor read as low
@@ -922,7 +923,7 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 1.92';
+var APP_VERSION='Beta 1.93';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1268,6 +1269,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 1.92',notes:[
     'Task check-off squares are now the same size as the habit ones (Today, Tasks tab and project pages)'
+  ]},
+  {v:'Beta 1.93',notes:[
+    'Settings: the number on Reset skipped tasks is gone, and the red count on Trash is a bit smaller',
+    'Settings: the buttons are the same height as the other widgets'
   ]}
 ];
 var COLORS={
@@ -2231,8 +2236,6 @@ function renderSettings(){
 
   var refill=DB.data.settings.todayRefill;
   var vanish=DB.data.settings.todayHabitsDisappear;
-  var skippedN=0;
-  for(var sp in DB.data.extraTasks)(DB.data.extraTasks[sp]||[]).forEach(function(t){if(t.skip)skippedN++;});
   document.getElementById('settings-today').innerHTML=
     '<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
@@ -2257,7 +2260,7 @@ function renderSettings(){
     +'</div>'
     +'</div>'
     +'<button class="addbtn" style="width:100%;min-height:48px;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="A.resetSkipped()">'
-    +ICON_RESET+'<span>Reset skipped tasks</span>'+(skippedN?'<span class="ab" style="display:inline-flex;margin-left:0">'+skippedN+'</span>':'')
+    +ICON_RESET+'<span>Reset skipped tasks</span>'
     +'</button>';
 }
 

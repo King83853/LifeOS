@@ -546,7 +546,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   Fix: `_lockBodyScroll` uses `overflow:hidden` on `<html>` (no viewport
   change) when `navigator.standalone===true`, and keeps the original
   `position:fixed` body lock everywhere else. `_lockMode` remembers which
-  was applied so unlock undoes the right one. Trade-off to know about:
+  was applied so unlock undoes the right one. Since 2.19 a document-level non-passive `touchmove` (search "While a
+  sheet is open nothing behind it may scroll") also cancels any drag that
+  would scroll the page (backdrop drags, and sheet drags at a scroll
+  boundary), plus `touch-action:none` on `.sheet-overlay` / `pan-y` on
+  `.sheet`, because overflow:hidden on <html> alone doesn't stop touch
+  scrolling on all iOS versions. Trade-off to know about:
   the fixed lock existed because it stops an already-in-flight iOS
   momentum scroll dead; `overflow:hidden` may not, so background
   scrolling coasting behind a sheet is the thing to check first if that

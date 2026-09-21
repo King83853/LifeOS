@@ -441,11 +441,11 @@ html[data-theme="dark"] #whatsnew-body{color:#aaa}
 html[data-theme="light"] #whatsnew-body{color:#555}
 .wn-item{margin-bottom:10px}
 
-.sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;opacity:0;transition:opacity .13s ease-out}
+.sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;opacity:0;transition:opacity .13s ease-out;touch-action:none}
 .sheet-overlay.on{display:block}
 /* Keyed off .show (like the sheet's slide) so the backdrop fades in sync. */
 .sheet-overlay.on.show{opacity:1}
-.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;max-height:75vh;border-radius:24px 24px 0 0;padding:24px 20px 44px;z-index:501;transform:translateY(100%);transition:transform .13s ease-out}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;touch-action:pan-y;max-height:75vh;border-radius:24px 24px 0 0;padding:24px 20px 44px;z-index:501;transform:translateY(100%);transition:transform .13s ease-out}
 @media(prefers-color-scheme:dark){.sheet{background:#1e1c1a}}
 html[data-theme="dark"] .sheet{background:#1e1c1a}
 html[data-theme="light"] .sheet{background:#fff}
@@ -977,7 +977,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.18';
+var APP_VERSION='Beta 2.19';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1414,6 +1414,9 @@ var CHANGELOG=[
   {v:'Beta 2.18',notes:[
     'Settings dropdowns: the list sits a little higher against its widget, the arrow flips up while it is open, and tapping anywhere else only closes the list (it no longer also presses whatever was underneath)',
     'Settings switches: no more tiny delay (the page no longer redraws when you flip one), and the knob now glides with a slight stretch while pressed'
+  ]},
+  {v:'Beta 2.19',notes:[
+    'While a window like Version history is open, the page behind it can no longer be scrolled at all'
   ]}
 ];
 var COLORS={
@@ -4249,6 +4252,33 @@ window.addEventListener('scroll',function(){
 },{passive:true});
 
 var _overlayCount=0;
+// While a sheet is open nothing behind it may scroll. overflow:hidden on
+// <html> isn't honored for touch scrolling on every iOS version, so this
+// also cancels any drag that would scroll the page: drags on the backdrop,
+// and drags inside a sheet that can't scroll any further in that direction
+// (no chaining into the page). Scrolling a sheet's own content still works.
+(function(){
+  var startY=0;
+  function scroller(el,stop){
+    for(;el&&el!==stop.parentNode;el=el.parentNode){
+      if(el.nodeType!==1)continue;
+      var oy=getComputedStyle(el).overflowY;
+      if((oy==='auto'||oy==='scroll')&&el.scrollHeight>el.clientHeight+1)return el;
+    }
+    return null;
+  }
+  document.addEventListener('touchstart',function(e){startY=e.touches[0].clientY;},{passive:true,capture:true});
+  document.addEventListener('touchmove',function(e){
+    if(_overlayCount<=0)return;
+    var sheet=e.target.closest&&e.target.closest('.sheet');
+    if(!sheet){e.preventDefault();return;}
+    var sc=scroller(e.target,sheet);
+    if(!sc){e.preventDefault();return;}
+    var dy=e.touches[0].clientY-startY;
+    if(dy>0&&sc.scrollTop<=0)e.preventDefault();                              // pulling down at the top
+    else if(dy<0&&sc.scrollTop+sc.clientHeight>=sc.scrollHeight-1)e.preventDefault(); // pushing up at the bottom
+  },{passive:false,capture:true});
+})();
 // Scroll lock while any sheet is open. position:fixed on <body> (top:-scrollY,
 // restored on unlock) stops an already-running iOS momentum scroll dead,
 // which touchmove blocking can't. In the installed iPhone app it shrinks the

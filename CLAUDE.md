@@ -218,8 +218,7 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   `A._hardUpdate()` unregisters the worker, deletes the caches and
   `location.replace`s to `?v=<now>` (localStorage untouched). Auto updates
   (`settings.autoUpdate`) run `checkForUpdate(true)` 1.2s after launch and
-  on resume after 5 min; `settings.autoInfo` records the last result for the
-  App page. Every release must still bump CACHE_NAME (that's what the
+  on resume after 5 min. Every release must still bump CACHE_NAME (that's what the
   comparison keys on).
 
 ## Known gotchas

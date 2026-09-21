@@ -561,7 +561,11 @@ html[data-theme="light"]{--line:#eceef1}
 .calsec .sw.h .sw-act{left:15.5px}
 .calsec>.cali{margin:0 -15.5px;padding-left:15.5px;padding-right:15.5px}
 /* the last row already has its own padding, so the card needs less below it */
-#today-daily .calsec,[id^="dp-"] .calsec{padding-bottom:4px;overflow:hidden}
+/* No (transparent) border on these cards: overflow:hidden clips at the
+   padding edge, so a border would keep the dividers 1.5px short of the
+   card's outer edge. Padding = old 14px + 1.5px border. */
+#today-daily .calsec,[id^="dp-"] .calsec{border:none;padding:13.5px 15.5px 5.5px;overflow:hidden}
+html:not(#x) .archbox{border:none}
 /* project badge in task rows: a touch slimmer than the default 30px */
 .ti .bdg{height:27px;min-height:27px;display:inline-flex;align-items:center;padding-top:0;padding-bottom:0}
 html:not(#x) .shdr{border-bottom:1.5px solid var(--line)}
@@ -952,7 +956,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.5';
+var APP_VERSION='Beta 2.6';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1347,6 +1351,9 @@ var CHANGELOG=[
   {v:'Beta 2.5',notes:[
     'Settings: Open app on, Hold to complete tasks, Language and Trash are now together in one white window below Appearance (Open app on has no icon)',
     'Settings dropdown list sits closer to its widget (smaller gap)'
+  ]},
+  {v:'Beta 2.6',notes:[
+    'Dividers in the habit widgets (Today, Daily) and the Trash list now reach the very edge of the white widget'
   ]}
 ];
 var COLORS={

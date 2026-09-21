@@ -206,18 +206,20 @@ html[data-theme="light"] .addbtn{border-color:#1a1917;background:#fff;color:#1a1
 @media(prefers-color-scheme:dark){.archbox{background:#1e1c1a;border-color:#2a2927}}
 html[data-theme="dark"] .archbox{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .archbox{background:#fff;border-color:#e8e5e0}
-.archi{padding:13px 14px;border-bottom:1px solid #f0ede8;display:flex;align-items:flex-start;gap:10px}
-@media(prefers-color-scheme:dark){.archi{border-color:#2a2927}}
-html[data-theme="dark"] .archi{border-color:#2a2927}
-html[data-theme="light"] .archi{border-color:#f0ede8}
+.archi{padding:11px 15.5px;border-bottom:1.5px solid #f0ede8;display:flex;align-items:center;gap:12px;min-height:58px}
 .archi:last-child{border-bottom:none}
+.archi-txt{flex:1;min-width:0}
+.archi-title{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.archi-sub{font-size:12px;color:#999;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.archi-acts{display:flex;gap:4px;flex-shrink:0}
+.trash-x{color:#dc2626}
+.trash-act,.trash-x{background:none;border:none;font-size:14px;font-weight:600;cursor:pointer;padding:9px 6px;white-space:nowrap;font-family:inherit}
+.trash-act{color:#007aff}
+.trash-act:active,.trash-x:active{opacity:.6}
+html[data-theme="dark"] .trash-act{color:#0a84ff}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]) .trash-act{color:#0a84ff}}
+.hh-btn.hh-txt{width:auto;padding:0 14px;font-size:14px;font-weight:600;white-space:nowrap}
 .seg-btn i{font-style:normal;opacity:.6;margin-left:4px}
-.trash-x{background:none;border:none;color:#dc2626;font-size:13px;font-weight:600;cursor:pointer;padding:9px 6px;white-space:nowrap}
-.rbtn{font-size:13px;font-weight:600;padding:9px 16px;background:#fff;border:1.5px solid #d1cec9;border-radius:14px;cursor:pointer;color:#888;white-space:nowrap}
-@media(prefers-color-scheme:dark){.rbtn{border-color:#444;background:#1e1c1a;color:#777}}
-html[data-theme="dark"] .rbtn{border-color:#444;background:#1e1c1a;color:#777}
-html[data-theme="light"] .rbtn{border-color:#d1cec9;background:#fff;color:#888}
-.rbtn:active{opacity:.7}
 
 .wnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .wlbl{font-size:14px;font-weight:700}
@@ -651,11 +653,14 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 </div>
 
 <div class="page" id="p-archive">
-  <button class="back" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-  <div class="dhdr"><div class="dico">🗑️</div><div style="flex:1"><div class="dtitle">Trash</div></div>
-    <button class="rbtn" onclick="A.trashEmpty()">Empty trash</button>
+  <div class="hh">
+    <div class="hh-bar">
+      <button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button class="hh-btn hh-txt" style="color:#dc2626" onclick="A.trashEmpty()">Empty trash</button>
+    </div>
+    <div class="hh-title">Trash</div>
   </div>
-  <div class="seg-row" id="trash-tabs" style="margin:4px 0 14px;width:max-content;max-width:100%"></div>
+  <div class="seg-row" id="trash-tabs" style="margin:14px 0 14px;width:max-content;max-width:100%"></div>
   <div id="arch-list"></div>
 </div>
 
@@ -1029,7 +1034,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.41';
+var APP_VERSION='Beta 2.42';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1548,6 +1553,9 @@ var CHANGELOG=[
   {v:'Beta 2.41',notes:[
     'Settings: new "Reset settings" button at the bottom that puts every setting back to the defaults (your data stays)',
     'New defaults for a fresh install: open on Today, all tabs shown, hold to complete on, automatic updates on, English, System appearance, day starts at 3 AM, habits disappear on, skip habits off, 3 tasks shown, refill off, skip tasks on'
+  ]},
+  {v:'Beta 2.42',notes:[
+    'Trash redesigned: the new page header, one white window with divider lines, and plain blue Restore / red Delete text instead of outlined buttons'
   ]}
 ];
 var COLORS={
@@ -2350,26 +2358,24 @@ function renderArchive(){
   }).join('');
   var items=Trash.items(Trash.tab);
   if(!items.length){c.innerHTML='<div class="empty">Nothing here.</div>';return;}
+  function row(title,sub,restore,del){
+    return '<div class="archi"><div class="archi-txt"><div class="archi-title">'+title+'</div><div class="archi-sub">'+sub+'</div></div>'
+      +'<div class="archi-acts"><button class="trash-act" onclick="'+restore+'">Restore</button><button class="trash-x" onclick="'+del+'">Delete</button></div></div>';
+  }
   var h='<div class="archbox">';
   if(Trash.archivedTab(Trash.tab)){
     var wantList=Trash.tab==='lists';
     DB.data.archived.slice().reverse().forEach(function(item,ri){
       if(!!Trash.isList(item)!==wantList)return;
       var idx=DB.data.archived.length-1-ri;
-      h+='<div class="archi"><div style="flex:1"><div style="font-size:14px;font-weight:500">'+esc(item.text)+'</div>'
-        +'<div style="font-size:11px;color:#aaa;margin-top:3px">'+esc(item.section)+' · '+item.date+'</div></div>'
-        +'<button class="rbtn" onclick="A.restore('+idx+')">Restore</button>'
-        +'<button class="trash-x" onclick="A.trashDeleteCompleted('+idx+')">Delete</button></div>';
+      h+=row(esc(item.text),esc(item.section)+' · '+item.date,'A.restore('+idx+')','A.trashDeleteCompleted('+idx+')');
     });
   } else {
     items.slice().reverse().forEach(function(t){
       var when=new Date(t.at).toLocaleDateString('de-CH',{day:'numeric',month:'short',year:'numeric'});
       var icon=t.type==='project'&&t.sub?esc(t.sub)+' ':'';
       var sub=(t.type==='habit'||t.type==='entry')&&t.sub?esc(t.sub)+' · ':'';
-      h+='<div class="archi"><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500">'+icon+esc(t.label)+'</div>'
-        +'<div style="font-size:11px;color:#aaa;margin-top:3px">'+sub+when+'</div></div>'
-        +'<button class="rbtn" onclick="A.trashRestore(\''+t.id+'\')">Restore</button>'
-        +'<button class="trash-x" onclick="A.trashDelete(\''+t.id+'\')">Delete</button></div>';
+      h+=row(icon+esc(t.label),sub+when,"A.trashRestore('"+t.id+"')","A.trashDelete('"+t.id+"')");
     });
   }
   c.innerHTML=h+'</div>';
@@ -4998,7 +5004,7 @@ document.addEventListener('focusout',function(e){
 // the tab bar.
 (function(){
   var TAPPABLE='.tab-item,.fab,.hdr-add,.menu-btn,.menu-item,.acard,.opt-row,'
-    +'.back,.edit-proj-btn,.hh-btn,.hh-title-btn,.rbtn,.addbtn,.el-btn,.type-btn,.pri-pill,'
+    +'.back,.edit-proj-btn,.hh-btn,.hh-title-btn,.trash-act,.trash-x,.addbtn,.el-btn,.type-btn,.pri-pill,'
     +'.cat-choice,.dpill,.sheet-save,.sheet-cancel,.seg-btn';
   var sx=0,sy=0,moved=false,target=null;
   document.addEventListener('touchstart',function(e){

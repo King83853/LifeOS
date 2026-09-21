@@ -977,7 +977,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.19';
+var APP_VERSION='Beta 2.20';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1417,6 +1417,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.19',notes:[
     'While a window like Version history is open, the page behind it can no longer be scrolled at all'
+  ]},
+  {v:'Beta 2.20',notes:[
+    'Swipe to skip only starts when your finger begins to the right of the tick-off square — pressing the square itself never slides the row, so you cannot skip by accident'
   ]}
 ];
 var COLORS={
@@ -3950,7 +3953,11 @@ var Skip=(function(){
     var w=e.target.closest&&e.target.closest('.sw');
     cur=null;mode=0;
     if(!w)return;
-    if(w.classList.contains('h')){var cb=w.querySelector('input[type=checkbox]');if(!cb||cb.checked)return;}
+    var cb=w.querySelector('input[type=checkbox]');
+    if(w.classList.contains('h')&&(!cb||cb.checked))return;
+    // A press that starts on (or left of) the tick-off square never swipes,
+    // so ticking something off with a slightly moving finger can't skip it.
+    if(cb&&e.touches[0].clientX<=cb.getBoundingClientRect().right+4)return;
     cur=w;sx=e.touches[0].clientX;sy=e.touches[0].clientY;dx=0;mode=1;
     THRESH=Math.min(110,w.offsetWidth*.35);
   },{passive:true});

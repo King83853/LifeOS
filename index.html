@@ -1020,7 +1020,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.43';
+var APP_VERSION='Beta 2.44';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1545,6 +1545,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.43',notes:[
     'All slide-up windows now close by pulling them down or tapping the dimmed background — no Cancel / Close buttons any more — and each has a grey handle at the top so that is obvious'
+  ]},
+  {v:'Beta 2.44',notes:[
+    'Settings > Overview: a switch to show or hide the War Room window on Overview (on by default)'
   ]}
 ];
 var COLORS={
@@ -1582,7 +1585,7 @@ var COLOR_NAMES={
 var DEFAULT_SETTINGS={
   startTab:'today',hiddenTabs:[],holdToComplete:true,autoUpdate:true,language:'en',theme:'system',
   dayStartHour:3,todayHabitsDisappear:true,skipHabits:false,
-  todayTaskCount:3,todayRefill:false,skipTasks:true
+  todayTaskCount:3,todayRefill:false,skipTasks:true,showWarRoom:true
 };
 var DB={
   KEY:'lifeos',
@@ -1962,7 +1965,7 @@ var I18N=(function(){
     'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
-    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Show War Room':'War Room anzeigen','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
     '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
@@ -2115,7 +2118,7 @@ function renderWar(){
     });
   }
   var box=document.getElementById('war-box');
-  box.style.display=vis.length?'block':'none';
+  box.style.display=(vis.length&&DB.data.settings.showWarRoom!==false)?'block':'none';
   document.getElementById('wrb').textContent=vis.length+' active';
 
   document.getElementById('war-list').innerHTML=vis.map(function(t){
@@ -2709,6 +2712,11 @@ function renderSettings(){
   var projOpts=[{value:'',label:'Choose…'}];
   DB.data.categoryOrder.forEach(function(cid){(DB.data.projectOrder[cid]||[]).forEach(function(pid){var p=DB.data.projects[pid];if(p)projOpts.push({value:pid,label:(p.icon||'')+' '+p.name});});});
   document.getElementById('settings-overview').innerHTML='<div class="opt-group">'
+    +'<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-text"><div class="opt-title">Show War Room</div></div>'
+    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(DB.data.settings.showWarRoom!==false?'checked':'')+' onchange="A.setShowWarRoom(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div></div>'
+    +'<div class="opt-group">'
     +'<div class="opt-row" onclick="Nav.go(\'editlayout\')">'
     +'<div class="opt-text"><div class="opt-title">Edit layout</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>'
     +'<div class="opt-row" style="cursor:default">'
@@ -3115,6 +3123,7 @@ var A={
       A._refreshAll();renderSettings();renderAppPage();renderAppearance();renderGeneral();
     });
   },
+  setShowWarRoom:function(val){DB.data.settings.showWarRoom=val;DB.save();renderWar();},
   resetSkipped:function(){
     for(var pid in DB.data.extraTasks)(DB.data.extraTasks[pid]||[]).forEach(function(t){delete t.skip;});
     DB.save();renderSettings();renderToday();

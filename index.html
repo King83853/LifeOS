@@ -812,8 +812,6 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 <div class="page sp" id="p-settings">
   <div class="dhdr"><div class="dico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><div><div class="dtitle">Settings</div></div></div>
   <div class="sl">General</div>
-  <div id="settings-version"></div>
-  <div id="settings-theme"></div>
   <div id="settings-main"></div>
   <div id="settings-nav"></div>
 </div>
@@ -1041,7 +1039,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.26';
+var APP_VERSION='Beta 2.27';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1507,6 +1505,9 @@ var CHANGELOG=[
   {v:'Beta 2.26',notes:[
     'Habit pages: the pencil (or tapping the name) now opens Edit habit, where you can change the name and the days the habit repeats on. Past check-offs are kept',
     'Hold to complete tasks moved into General'
+  ]},
+  {v:'Beta 2.27',notes:[
+    'Settings: the first white widget now holds General, App, Language, Appearance, Data and Trash; Today, Overview and Statistics are in the one below'
   ]}
 ];
 var COLORS={
@@ -2461,6 +2462,7 @@ var ICON_SYSTEM='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" str
 var ICON_SUN='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
 var ICON_MOON='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 var ICON_HOME='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>';
+var ICON_PHONE='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2.5"/><line x1="12" y1="18" x2="12" y2="18"/></svg>';
 var ICON_GLOBE='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
 function trashSvg(sz,stroke){return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+stroke+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';}
 // Light green used for skipped days (charts and rings); the Skip swipe action and
@@ -2602,21 +2604,21 @@ function renderSettings(){
   var themeLbl={light:'Light',dark:'Dark',system:'System'};
   var chev='<span style="display:inline-flex;transform:rotate(-90deg);margin-left:-2px">'+ICON_CHEVRON+'</span>';
   var rowVal='margin-left:auto;font-size:14px;font-weight:600;color:#999';
-  document.getElementById('settings-version').innerHTML=
-    '<div class="opt-row" onclick="Nav.go(\'app\')">'
+  var appRow='<div class="opt-row" onclick="Nav.go(\'app\')">'
+    +'<div class="opt-ico" style="background:#3b82f6">'+ICON_PHONE+'</div>'
     +'<div class="opt-text"><div class="opt-title">App</div></div>'
     +'<span style="'+rowVal+'">'+esc(APP_VERSION)+'</span>'+chev+'</div>';
-  document.getElementById('settings-theme').innerHTML=
-    '<div class="opt-row" onclick="Nav.go(\'appearance\')">'
+  var appearanceRow='<div class="opt-row" onclick="Nav.go(\'appearance\')">'
     +'<div class="opt-ico" style="background:#f59e0b">'+ICON_SUN+'</div>'
     +'<div class="opt-text"><div class="opt-title">Appearance</div></div>'
     +'<span style="'+rowVal+'">'+themeLbl[DB.data.settings.theme||'system']+'</span>'+chev+'</div>';
   // Today / Overview / Statistics / Data each open their own page
   var tabIco=function(t){var e=document.querySelector('.tab-item[data-tab="'+t+'"] svg');return e?e.outerHTML:'';};
   var dataIco='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>';
+  var dataRow='<div class="opt-row" onclick="Nav.go(\'data\')"><div class="opt-ico" style="background:#71717a">'+dataIco+'</div><div class="opt-text"><div class="opt-title">Data</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>';
   document.getElementById('settings-nav').innerHTML='<div class="opt-group">'+[
     ['settoday','Today','#6366f1',tabIco('today')],['setoverview','Overview','#a855f7',tabIco('overview')],
-    ['setstats','Statistics','#22c55e',tabIco('stats')],['data','Data','#71717a',dataIco]
+    ['setstats','Statistics','#22c55e',tabIco('stats')]
   ].map(function(r){
     return '<div class="opt-row" onclick="Nav.go(\''+r[0]+'\')"><div class="opt-ico" style="background:'+r[2]+'">'+r[3]+'</div>'
       +'<div class="opt-text"><div class="opt-title">'+r[1]+'</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>';
@@ -2639,7 +2641,7 @@ function renderSettings(){
     +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(hold?'checked':'')+' onchange="A.setHoldMode(this.checked)"><span class="switch-slider"></span></label>'
     +'</div>'
     +'</div>';
-  // One white window: General, language, trash.
+  // First white window: General, App, Language, Appearance, Data, Trash.
   var lang=DB.data.settings.language||'en',hold=DB.data.settings.holdToComplete,trashN=Trash.total();
   document.getElementById('settings-main').innerHTML='<div class="opt-group">'
     +'<div class="opt-row" onclick="Nav.go(\'general\')">'
@@ -2647,11 +2649,14 @@ function renderSettings(){
     +'<div class="opt-text"><div class="opt-title">General</div></div>'
     +'<span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto">'+ICON_CHEVRON+'</span>'
     +'</div>'
+    +appRow
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-ico" style="background:#3b82f6">'+ICON_GLOBE+'</div>'
     +'<div class="opt-text"><div class="opt-title">Language</div></div>'
     +customSelect([{value:'en',label:'English'},{value:'de',label:'Deutsch'}],lang,'A.setLanguage(this.value)')
     +'</div>'
+    +appearanceRow
+    +dataRow
     +'<div class="opt-row" onclick="Nav.go(\'archive\')">'
     +'<div class="opt-ico" style="background:#71717a">'+trashSvg(20,'currentColor')+'</div>'
     +'<div class="opt-text"><div class="opt-title">Trash</div></div>'

@@ -344,16 +344,8 @@ html[data-theme="light"] .opt-group{background:#fff;border-color:#e8e5e0}
 html[data-theme="dark"] .opt-group .opt-row{border-bottom-color:#2a2927}
 html[data-theme="light"] .opt-group .opt-row{border-bottom-color:#e8e5e0}
 .opt-group .opt-row:last-child{border-bottom:none}
-.opt-radio{width:22px;height:22px;border-radius:50%;border:1.5px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.opt-row.active .opt-radio{border-color:#1a1917}
-@media(prefers-color-scheme:dark){.opt-row.active .opt-radio{border-color:#e8e6df}}
-html[data-theme="dark"] .opt-row.active .opt-radio{border-color:#e8e6df}
-html[data-theme="light"] .opt-row.active .opt-radio{border-color:#1a1917}
-.opt-radio-dot{width:12px;height:12px;border-radius:50%;background:#1a1917;display:none}
-@media(prefers-color-scheme:dark){.opt-radio-dot{background:#e8e6df}}
-html[data-theme="dark"] .opt-radio-dot{background:#e8e6df}
-html[data-theme="light"] .opt-radio-dot{background:#1a1917}
-.opt-row.active .opt-radio-dot{display:block}
+/* the chosen option in a list of choices: a plain tick, like the selected item in a dropdown */
+.opt-tick{margin-left:auto;font-size:15px;font-weight:700}
 .opt-text{flex:1}
 /* Slimmer rows on the Settings page only */
 .sp .opt-row{padding:0 14px;height:46px;min-height:46px;box-sizing:border-box}
@@ -1046,7 +1038,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.37';
+var APP_VERSION='Beta 2.38';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1549,6 +1541,9 @@ var CHANGELOG=[
     'Settings > Today: Skip habits sits in the habits widget and Skip tasks in the tasks widget, instead of a separate one',
     'Reset skipped tasks is the last row of the tasks widget',
     'App: removed the "Last check" line'
+  ]},
+  {v:'Beta 2.38',notes:[
+    'Appearance: the selected option is marked with a tick, like in the dropdowns, instead of a dot'
   ]}
 ];
 var COLORS={
@@ -2618,7 +2613,7 @@ function renderAppearance(){
   ].map(function(o){
     return '<div class="opt-row'+(theme===o.v?' active':'')+'" onclick="A.setTheme(\''+o.v+'\')">'
       +'<div class="opt-text"><div class="opt-title">'+o.title+'</div></div>'
-      +'<div class="opt-radio" style="margin-left:auto"><div class="opt-radio-dot"></div></div></div>';
+      +(theme===o.v?'<span class="opt-tick">\u2713</span>':'')+'</div>';
   }).join('')+'</div>';
 }
 // App page: current version, automatic updates, manual check, history

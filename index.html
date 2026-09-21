@@ -803,6 +803,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
   <div class="dhdr"><div class="dico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><div><div class="dtitle">Settings</div></div></div>
   <div id="settings-main"></div>
   <div id="settings-nav"></div>
+  <div id="settings-reset"></div>
 </div>
 
 <div class="page proj-page" id="p-habits">
@@ -1028,7 +1029,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.40';
+var APP_VERSION='Beta 2.41';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1543,6 +1544,10 @@ var CHANGELOG=[
   {v:'Beta 2.40',notes:[
     'Settings > General: the menu tabs are right there under a "Menu" title, as switches in one white window (no separate Menu page)',
     'General: Open app on and Hold to complete tasks are separate windows'
+  ]},
+  {v:'Beta 2.41',notes:[
+    'Settings: new "Reset settings" button at the bottom that puts every setting back to the defaults (your data stays)',
+    'New defaults for a fresh install: open on Today, all tabs shown, hold to complete on, automatic updates on, English, System appearance, day starts at 3 AM, habits disappear on, skip habits off, 3 tasks shown, refill off, skip tasks on'
   ]}
 ];
 var COLORS={
@@ -1575,6 +1580,13 @@ var COLOR_NAMES={
 };
 
 // ── DB ────────────────────────────────────────────────────
+// Settings a fresh install starts with, and what "Reset settings" restores
+// (lastSeenVersion is bookkeeping and is never reset).
+var DEFAULT_SETTINGS={
+  startTab:'today',hiddenTabs:[],holdToComplete:true,autoUpdate:true,language:'en',theme:'system',
+  dayStartHour:3,todayHabitsDisappear:true,skipHabits:false,
+  todayTaskCount:3,todayRefill:false,skipTasks:true
+};
 var DB={
   KEY:'lifeos',
   data:null,
@@ -1585,7 +1597,7 @@ var DB={
       categories:{}, // {id:{name,icon}}
       categoryOrder:[],      // [catId,...]
       projectOrder:{},       // {catId:[projId,...]}
-      settings:{holdToComplete:false,todayHabitsDisappear:false,dayStartHour:0,lastSeenVersion:APP_VERSION,theme:'system',language:'en',todayTaskCount:3,todayRefill:false,startTab:'today'}};
+      settings:Object.assign({lastSeenVersion:APP_VERSION},JSON.parse(JSON.stringify(DEFAULT_SETTINGS)))};
   },
   load:function(){
     try{var r=localStorage.getItem(this.KEY);if(r)this.data=JSON.parse(r);}catch(e){}
@@ -1595,18 +1607,13 @@ var DB={
     if(!d.categories)d.categories={};
     if(!d.categoryOrder)d.categoryOrder=[];
     if(!d.projectOrder)d.projectOrder={};
-    if(!d.settings)d.settings={holdToComplete:false,todayHabitsDisappear:false};
-    if(d.settings.todayHabitsDisappear===undefined)d.settings.todayHabitsDisappear=false;
-    if(d.settings.dayStartHour===undefined)d.settings.dayStartHour=0;
-    if(!d.settings.theme)d.settings.theme='system';
-    if(!d.settings.language)d.settings.language='en';
-    if(typeof d.settings.todayTaskCount!=='number')d.settings.todayTaskCount=3;
-    if(d.settings.todayRefill===undefined)d.settings.todayRefill=false;
-    if(!d.settings.startTab)d.settings.startTab='today';
-    if(d.settings.autoUpdate===undefined)d.settings.autoUpdate=false;
-    if(d.settings.skipTasks===undefined)d.settings.skipTasks=true;
-    if(d.settings.skipHabits===undefined)d.settings.skipHabits=true;
-    if(!Array.isArray(d.settings.hiddenTabs))d.settings.hiddenTabs=[];
+    if(!d.settings)d.settings={};
+    // any setting this install doesn't have yet gets its default
+    Object.keys(DEFAULT_SETTINGS).forEach(function(k){
+      var v=d.settings[k];
+      if(v===undefined||v===null||v===''||(k==='todayTaskCount'&&typeof v!=='number')||(k==='hiddenTabs'&&!Array.isArray(v)))
+        d.settings[k]=JSON.parse(JSON.stringify(DEFAULT_SETTINGS[k]));
+    });
     // Missing entirely = a pre-existing install from before this system
     // existed — leave it unset (falsy) so the "what's new" sheet
     // correctly treats it as needing to catch up, once.
@@ -1958,7 +1965,7 @@ var I18N=(function(){
     'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
-    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
     '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
@@ -2671,6 +2678,7 @@ function renderSettings(){
   var tabIco=function(t){var e=document.querySelector('.tab-item[data-tab="'+t+'"] svg');return e?e.outerHTML:'';};
   var dataIco='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>';
   var dataRow='<div class="opt-row" onclick="Nav.go(\'data\')"><div class="opt-ico" style="background:#71717a">'+dataIco+'</div><div class="opt-text"><div class="opt-title">Data</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>';
+  document.getElementById('settings-reset').innerHTML='<div class="opt-group"><div class="opt-row btn-row" onclick="A.resetSettings()"><div class="opt-text"><div class="opt-title">Reset settings</div></div></div></div>';
   document.getElementById('settings-nav').innerHTML='<div class="opt-group">'+[
     ['settoday','Today','#6366f1',tabIco('today')],['setoverview','Overview','#a855f7',tabIco('overview')],
     ['setstats','Statistics','#22c55e',tabIco('stats')]
@@ -3101,6 +3109,17 @@ var A={
   // Swipe-to-skip on/off (Settings > Today): Today's rows are rebuilt without the swipe wrapper
   setSkipTasks:function(val){DB.data.settings.skipTasks=val;DB.save();renderToday();},
   setSkipHabits:function(val){DB.data.settings.skipHabits=val;DB.save();renderToday();},
+  // Puts every setting back to DEFAULT_SETTINGS (your data is untouched)
+  resetSettings:function(){
+    ConfirmSheet.show('Reset all settings to the defaults? Your data stays.',function(){
+      var keep=DB.data.settings.lastSeenVersion;
+      DB.data.settings=Object.assign({},JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),{lastSeenVersion:keep});
+      DB.data.todaySet=null;DB.save();
+      recomputeT();Nav.sd=0;
+      applyHoldMode();applyTheme();I18N.set(DB.data.settings.language);TabBar.applyTabs();
+      A._refreshAll();renderSettings();renderAppPage();renderAppearance();renderGeneral();
+    });
+  },
   resetSkipped:function(){
     for(var pid in DB.data.extraTasks)(DB.data.extraTasks[pid]||[]).forEach(function(t){delete t.skip;});
     DB.save();renderSettings();renderToday();

@@ -83,18 +83,11 @@ html[data-theme="light"] .menu-item:active{background:#f0ede8}
 html[data-theme="dark"] .shdr{border-color:#2a2927;color:#444}
 html[data-theme="light"] .shdr{border-color:#e8e5e0;color:#bbb}
 
-.wr{border:1.5px solid #e24b4a;border-radius:20px;overflow:hidden;margin:10px 0 4px}
-.wrhdr{background:#e24b4a;padding:11px 16px;display:flex;align-items:center;justify-content:space-between}
-.wrt{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#fff}
-.wrb{background:rgba(255,255,255,.25);color:#fff;font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px}
-.wrbd{padding:12px 14px;background:#fff}
-@media(prefers-color-scheme:dark){.wrbd{background:#1e1c1a}}
-html[data-theme="dark"] .wrbd{background:#1e1c1a}
-html[data-theme="light"] .wrbd{background:#fff}
-.wrd{font-size:12px;color:#b91c1c;margin:0 0 10px;padding:9px 12px;background:#fef2f2;border-radius:10px;line-height:1.5}
-@media(prefers-color-scheme:dark){.wrd{background:#3d1010;color:#fca5a5}}
-html[data-theme="dark"] .wrd{background:#3d1010;color:#fca5a5}
-html[data-theme="light"] .wrd{background:#fef2f2;color:#b91c1c}
+.wr{border-radius:16px;overflow:hidden;margin:10px 0 4px;background:var(--card)}
+.wrhdr{background:#e24b4a;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.wrt{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#fff}
+.wrd{font-size:11.5px;color:rgba(255,255,255,.85);margin-top:3px;line-height:1.35}
+.wrb{background:rgba(255,255,255,.25);color:#fff;font-size:12px;font-weight:700;padding:4px 11px;border-radius:99px;flex-shrink:0;white-space:nowrap}
 .wri{display:flex;align-items:center;gap:12px;padding:8px;background:#fafaf8;border:1.5px solid #f0ede8;border-radius:12px;margin-bottom:7px;position:relative;overflow:hidden;transition:opacity .3s}
 @media(prefers-color-scheme:dark){.wri{background:#252320;border-color:#333}}
 html[data-theme="dark"] .wri{background:#252320;border-color:#333}
@@ -554,10 +547,7 @@ html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
 @media(prefers-color-scheme:dark){:root{--line:#1a2230;--pg:#1f2937;--card:#1e1c1a}}
 html[data-theme="dark"]{--line:#1a2230;--pg:#1f2937;--card:#1e1c1a}
 html[data-theme="light"]{--line:#eceef1;--pg:#f3f4f6;--card:#fff}
-/* War Room list: the same white window as on Today, rows split by dividers */
-html:not(#x) .wrbd{background:var(--card);padding:0}
-html:not(#x) .wrd{margin:10px 10px 4px}
-#war-list{background:transparent}
+/* War Room rows: same look as Today's list, split by dividers */
 html:not(#x) .wri{background:transparent;border:none;border-bottom:1.5px solid var(--line);border-radius:0;margin:0;padding:8px 10px}
 html:not(#x) .wri:last-child{border-bottom:none}
 .wri .bdg{height:27px;min-height:27px;padding-top:0;padding-bottom:0}
@@ -608,13 +598,13 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
   </div>
   <div class="wr" id="war-box" style="display:none">
     <div class="wrhdr">
-      <div class="wrt">⚠️ War Room</div>
+      <div>
+        <div class="wrt">⚠️ War Room</div>
+        <div class="wrd">Nothing else matters until the War Room is clear.</div>
+      </div>
       <span class="wrb" id="wrb">0 active</span>
     </div>
-    <div class="wrbd">
-      <p class="wrd">Nothing else matters until the War Room is clear.</p>
-      <div id="war-list"></div>
-    </div>
+    <div class="wrbd"><div id="war-list"></div></div>
   </div>
   <div id="overview-grid"></div>
 </div>
@@ -963,7 +953,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.13';
+var APP_VERSION='Beta 2.14';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1383,6 +1373,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.13',notes:[
     'War Room: the red frame sits directly around the white window — no grey space in between'
+  ]},
+  {v:'Beta 2.14',notes:[
+    'War Room redesigned to look cleaner: one white card with a red header (title, the reminder line and the count), and the tasks below it with divider lines'
   ]}
 ];
 var COLORS={

@@ -887,8 +887,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 <div class="sheet-overlay" id="whatsnew-overlay" onclick="if(event.target===this)WhatsNew.close()">
   <div class="sheet">
     <div class="sheet-title" id="whatsnew-title">What's new</div>
-    <div id="whatsnew-body" style="margin-bottom:20px"></div>
-    <button class="sheet-save" style="width:100%" onclick="WhatsNew.next()">Got it</button>
+    <div id="whatsnew-body" style="margin-bottom:10px"></div>
   </div>
 </div>
 
@@ -1043,7 +1042,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.51';
+var APP_VERSION='Beta 2.52';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1598,6 +1597,9 @@ var CHANGELOG=[
   {v:'Beta 2.51',notes:[
     'Every sub title and category heading now looks exactly like the ones in Settings (same size, colour and spacing) — no more divider lines under them',
     'No more emojis on categories or section titles'
+  ]},
+  {v:'Beta 2.52',notes:[
+    'The "What\'s new" window after an update has no "Got it" button anymore — pull it down or tap outside to close it'
   ]}
 ];
 var COLORS={
@@ -4827,10 +4829,8 @@ var UpdateOverlay={
   }
 };
 var WhatsNew={
-  // Queues every CHANGELOG entry newer than the last-seen version and steps
-  // through them one screen at a time, so skipped versions aren't lost.
-  _queue:[],
-  _idx:0,
+  // Every CHANGELOG entry newer than the last-seen version, so skipped
+  // versions aren't lost.
   _pending:function(){
     var seen=DB.data.settings.lastSeenVersion;
     var i=CHANGELOG.findIndex(function(e){return e.v===seen;});
@@ -4842,32 +4842,19 @@ var WhatsNew={
     return pending.length?pending:[CHANGELOG[CHANGELOG.length-1]];
   },
   open:function(){
-    this._queue=this._pending();
-    this._idx=0;
-    this._render();
+    this._render(this._pending());
     _overlayOpen('whatsnew-overlay');
   },
-  _render:function(){
-    var entry=this._queue[this._idx];
-    document.getElementById('whatsnew-title').textContent="What's new in "+entry.v;
-    document.getElementById('whatsnew-body').innerHTML=entry.notes.map(function(n){
-      return '<div class="wn-item">• '+esc(n)+'</div>';
+  // Every version you missed, newest first, in one scrolling sheet; closing
+  // it (pull down or tap outside) marks you as caught up.
+  _render:function(list){
+    var one=list.length===1;
+    document.getElementById('whatsnew-title').textContent=one?"What's new in "+list[0].v:"What's new";
+    document.getElementById('whatsnew-body').innerHTML=list.slice().reverse().map(function(e){
+      return (one?'':'<div class="sl" style="margin-top:12px">'+esc(e.v)+'</div>')
+        +e.notes.map(function(n){return '<div class="wn-item">• '+esc(n)+'</div>';}).join('');
     }).join('');
   },
-  // "Got it" — advance to the next queued version, or close once the
-  // last one's been acknowledged.
-  next:function(){
-    DB.data.settings.lastSeenVersion=this._queue[this._idx].v;DB.save();
-    if(this._idx<this._queue.length-1){
-      this._idx++;
-      this._render();
-    } else {
-      _overlayClose('whatsnew-overlay');
-    }
-  },
-  // Dismissing via the backdrop skips straight to "fully caught up"
-  // instead of leaving you stuck re-seeing the same first entry next
-  // launch — same as tapping "Got it" through every remaining one.
   close:function(){
     _overlayClose('whatsnew-overlay');
     DB.data.settings.lastSeenVersion=APP_VERSION;DB.save();

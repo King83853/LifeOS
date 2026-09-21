@@ -564,6 +564,10 @@ html[data-theme="dark"] .btn-row .opt-title{color:#0a84ff}
 .soon-ico{width:64px;height:64px;border-radius:20px;background:#ef444422;color:#ef4444;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
 .soon-t{font-size:20px;font-weight:800}
 .soon-s{font-size:13px;color:#999;max-width:260px;line-height:1.5}
+/* Daily: a past day of a habit whose stats were reset — visible but locked */
+.cali.locked{opacity:.4}
+.cali.locked input{cursor:not-allowed}
+.cali.locked label{cursor:default}
 /* Dark mode: keep colors calm — muted War Room header (project colors use a
    soft tint, see tintStyle); settings icon badges keep their colors */
 @media(prefers-color-scheme:dark){
@@ -1045,7 +1049,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.47';
+var APP_VERSION='Beta 2.48';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1585,6 +1589,10 @@ var CHANGELOG=[
   {v:'Beta 2.47',notes:[
     'New Blocker tab (red): for now just the title and "Coming soon" — also as a page in Settings. It is switched off in the bottom menu by default; turn it on under Settings > General > Menu',
     'Update screen: it just says "Downloading new version…" the whole time and lets the bar fill completely — no text or icon change at the end'
+  ]},
+  {v:'Beta 2.48',notes:[
+    'Daily: a new habit is no longer shown on days before it was created; after "Reset all statistics" the earlier days are still shown but greyed out with a lock and cannot be ticked',
+    'Settings: the Tasks icon uses the same blue as the others'
   ]}
 ];
 var COLORS={
@@ -1861,7 +1869,7 @@ var DB={
     var ids=d.dailyItems.filter(function(it){return !it.trackerPid&&(!id||it.id===id);}).map(function(it){return it.id;});
     ids.forEach(function(hid){for(var ds in d.dailyChecks){delete d.dailyChecks[ds][hid];}});
     for(var ds in d.dailyChecks){if(!Object.keys(d.dailyChecks[ds]).length)delete d.dailyChecks[ds];}
-    d.dailyItems.forEach(function(it){if(ids.indexOf(it.id)!==-1)it.created=today;});
+    d.dailyItems.forEach(function(it){if(ids.indexOf(it.id)!==-1){it.created=today;it.wasReset=true;}});
     this.save();
     return ids.length;
   },
@@ -2721,7 +2729,7 @@ function renderSettings(){
   document.getElementById('settings-reset').innerHTML='<div class="opt-group"><div class="opt-row btn-row" onclick="A.resetSettings()"><div class="opt-text"><div class="opt-title">Reset settings</div></div></div></div>';
   document.getElementById('settings-nav').innerHTML='<div class="opt-group">'+[
     ['settoday','Today','#6366f1',tabIco('today')],['setoverview','Overview','#a855f7',tabIco('overview')],
-    ['settasks','Tasks','#14b8a6',tabIco('lockedin')],['setstats','Statistics','#22c55e',tabIco('stats')],['setblocker','Blocker','#ef4444',tabIco('blocker')]
+    ['settasks','Tasks','#3b82f6',tabIco('lockedin')],['setstats','Statistics','#22c55e',tabIco('stats')],['setblocker','Blocker','#ef4444',tabIco('blocker')]
   ].map(function(r){
     return '<div class="opt-row" onclick="Nav.go(\''+r[0]+'\')"><div class="opt-ico" style="background:'+r[2]+'">'+r[3]+'</div>'
       +'<div class="opt-text"><div class="opt-title">'+r[1]+'</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>';
@@ -3193,6 +3201,8 @@ var A={
   toggleDailyItemFor:function(cb,dayIdx){
     var id=cb.getAttribute('data-id');
     var ds=pDate(dayIdx);
+    var hab=DB.data.dailyItems.find(function(x){return x.id===id;});
+    if(hab&&ds<habitCreatedDs(hab)){cb.checked=false;return;} // before the habit existed / was reset: locked
     DB.toggleDailyCheck(id,ds,cb.checked);
     paintCheck(cb,cb.checked);
     if(Nav.cur==='today'&&DB.data.settings.todayHabitsDisappear&&cb.checked){
@@ -3620,10 +3630,11 @@ function ci(itemId,text,dayIdx){
     +'<input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'" onchange="A.toggleDailyItemFor(this,'+dayIdx+')">'
     +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label></div>';
 }
-function ciEdit(itemId,text,dayIdx){
-  return '<div class="cali" data-id="'+itemId+'">'
-    +'<input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'" onchange="A.toggleDailyItemFor(this,'+dayIdx+')">'
-    +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label>'
+var LOCK_SVG='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.6"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>';
+function ciEdit(itemId,text,dayIdx,locked){
+  return '<div class="cali'+(locked?' locked':'')+'" data-id="'+itemId+'">'
+    +'<input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'"'+(locked?' disabled':'')+' onchange="A.toggleDailyItemFor(this,'+dayIdx+')">'
+    +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label>'+(locked?LOCK_SVG:'')
     +'<button class="trk-del" onclick="A.deleteDailyItem(event,\''+itemId+'\')">'+trashSvg(18,'currentColor')+'</button></div>';
 }
 // The most recent tracker entry actually logged on calendar date `ds`
@@ -4115,7 +4126,13 @@ function buildPanels(){
         var items=DB.data.dailyItems.filter(function(it){return it.catId===cat.id&&it.days.indexOf(wi)!==-1;});
         h+='<div class="calsec"><div class="caltitle">'+cat.icon+' '+esc(cat.name)+'</div>';
         if(!items.length)h+='<div style="font-size:12px;color:#ccc;padding:4px 0 2px">No tasks</div>';
-        items.forEach(function(it){h+=it.trackerPid?ciTracker(it,pi,true):ciEdit(it.id,it.text,pi);});
+        items.forEach(function(it){
+          // Days before a habit existed: a new habit simply isn't there; a
+          // habit whose stats were reset is shown but locked (grey, can't be ticked).
+          var before=ds<habitCreatedDs(it);
+          if(before&&!it.wasReset)return;
+          h+=it.trackerPid?ciTracker(it,pi,true):ciEdit(it.id,it.text,pi,before);
+        });
         h+='</div>';
       });
     }

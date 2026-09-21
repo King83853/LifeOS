@@ -835,9 +835,9 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
   <div class="hh">
     <div class="hh-bar">
       <button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-      <button class="hh-btn" onclick="HabitDetail.rename()"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+      <button class="hh-btn" onclick="HabitDetail.edit()"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
     </div>
-    <div class="hh-title" id="hd-title" onclick="HabitDetail.rename()">Habit</div>
+    <div class="hh-title" id="hd-title" onclick="HabitDetail.edit()">Habit</div>
     <div class="hh-sub" id="hd-sub"></div>
   </div>
   <div class="calsec" style="padding:12px 14px 10px">
@@ -1041,7 +1041,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.25';
+var APP_VERSION='Beta 2.26';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1503,6 +1503,9 @@ var CHANGELOG=[
     'Appearance: the three theme options are now one widget that opens their own page',
     'Tasks shown: you can now pick anything from 0 to 20',
     'Update screen: the progress animation is slower and stays on screen longer, so you can actually see it'
+  ]},
+  {v:'Beta 2.26',notes:[
+    'Habit pages: the pencil (or tapping the name) now opens Edit habit, where you can change the name and the days the habit repeats on. Past check-offs are kept'
   ]}
 ];
 var COLORS={
@@ -1916,7 +1919,7 @@ var I18N=(function(){
     'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
-    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
     '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
@@ -3872,6 +3875,7 @@ var HabitDetail={
     });
     this.renderChart();
   },
+  edit:function(){DailyItemSheet.openEdit(HabitDetail.itemId);},
   rename:function(){
     var item=DB.data.dailyItems.find(function(x){return x.id===HabitDetail.itemId;});
     if(!item)return;
@@ -4225,7 +4229,7 @@ var DailyCatSheet={
 };
 
 var DailyItemSheet={
-  catId:null,selectedDays:[],trackerPid:null,
+  catId:null,selectedDays:[],trackerPid:null,editId:null,
   // trackerPid, when passed, switches this same sheet into "schedule an
   // existing tracker" mode: the free-text name input (there's nothing to
   // type — the tracker already has a name) is swapped for a plain label
@@ -4233,6 +4237,7 @@ var DailyItemSheet={
   // standalone habit. Everything else (days picker, quick buttons) is
   // shared as-is.
   open:function(catId,defaultDay,trackerPid){
+    this.editId=null;
     this.catId=catId;
     this.trackerPid=trackerPid||null;
     this.selectedDays=(defaultDay===undefined||defaultDay===null)?[]:[defaultDay];
@@ -4255,6 +4260,24 @@ var DailyItemSheet={
     _overlayOpen('daily-item-sheet-overlay');
     if(!this.trackerPid)setTimeout(function(){document.getElementById('daily-item-inp').focus();},300);
   },
+  // Edit an existing habit: its name and the days it repeats on. Past
+  // check-offs are kept, so the score just follows the new schedule.
+  openEdit:function(itemId){
+    var it=DB.data.dailyItems.find(function(x){return x.id===itemId;});if(!it)return;
+    this.editId=itemId;this.catId=it.catId;this.trackerPid=it.trackerPid||null;
+    this.selectedDays=(it.days||[]).slice();
+    var inp=document.getElementById('daily-item-inp'),lbl=document.getElementById('daily-item-tracker-lbl');
+    document.getElementById('daily-item-sheet-title').textContent='Edit habit';
+    if(this.trackerPid){
+      var p=DB.data.projects[this.trackerPid];
+      inp.style.display='none';lbl.style.display='';
+      lbl.textContent='Tracking: '+(p?(p.icon||'📈')+' '+p.name:'');
+    } else {
+      inp.style.display='';lbl.style.display='none';inp.value=it.text||'';
+    }
+    this.renderDays();
+    _overlayOpen('daily-item-sheet-overlay');
+  },
   renderDays:function(){
     var c=document.getElementById('daily-item-days');
     var self=this;
@@ -4273,6 +4296,23 @@ var DailyItemSheet={
   },
   save:function(){
     if(!this.selectedDays.length||!this.catId)return;
+    if(this.editId){
+      var it=DB.data.dailyItems.find(function(x){return x.id===DailyItemSheet.editId;});
+      if(it){
+        if(!it.trackerPid){
+          var nm=document.getElementById('daily-item-inp').value.trim();
+          if(!nm)return;
+          it.text=nm;
+        }
+        it.days=this.selectedDays.slice().sort();
+        DB.save();
+      }
+      this.editId=null;
+      _overlayClose('daily-item-sheet-overlay');
+      if(Nav.cur==='habit-detail')HabitDetail.render();
+      buildPanels();restoreChecks(Nav.sd);renderToday();
+      return;
+    }
     if(this.trackerPid){
       DB.addTrackerDailyItem(this.catId,this.trackerPid,this.selectedDays.slice());
     } else {

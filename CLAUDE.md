@@ -192,6 +192,20 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   English. To find gaps, switch to German and walk every page/sheet
   listing text nodes that lack `__en`.
 
+- Settings is a LIST of widgets that each open their own full page (no
+  sheets): App (version, "Update automatically" switch = `settings.autoUpdate`,
+  manual "Check for updates", version history), Appearance (theme), General
+  (Open app on + Menu), then Today / Overview / Statistics / Data, plus
+  Hold-to-complete / Language / Trash on the main list. Sub-pages are plain
+  `.page.sp` elements listed in `SETTINGS_SUBPAGES` (back returns to
+  Settings, the Settings tab stays lit; Menu's back goes to General);
+  `renderSettings()` fills all their containers, so a new setting only needs
+  its markup in the right container. The `.sp` class carries the slim
+  no-outline settings styling (it used to be `#p-settings`). The old Version
+  history / Menu bottom sheets were removed. Auto update = a silent
+  `A.checkForUpdate(true)` at launch and on resume after 30 min; it only
+  speaks up (progress overlay, then reload) when an update exists.
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

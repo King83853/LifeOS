@@ -719,6 +719,8 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
   <div id="settings-today"></div>
   <div class="sl" style="margin-top:28px">Overview</div>
   <div id="settings-overview"></div>
+  <div class="sl" style="margin-top:28px">Statistics</div>
+  <div id="settings-stats"></div>
   <div class="sl" style="margin-top:28px">Data</div>
   <div style="display:flex;gap:10px;margin-top:4px">
     <button class="addbtn" style="flex:1;font-size:14px;min-height:48px" onclick="A.exportData()">Export</button>
@@ -954,7 +956,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.8';
+var APP_VERSION='Beta 2.9';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1359,6 +1361,9 @@ var CHANGELOG=[
   {v:'Beta 2.8',notes:[
     'Settings > Overview: new "Reset a project" — pick a project and everything in it goes to the Trash (tasks for To-do and List projects, entries for trackers like Weight, and habits with their categories for Daily)',
     'Restoring a task whose project is gone now tells you instead of silently dropping it'
+  ]},
+  {v:'Beta 2.9',notes:[
+    'Settings: new Statistics section — reset the history (and score) of one habit or all habits, and reset the completed-tasks statistics'
   ]}
 ];
 var COLORS={
@@ -1616,6 +1621,23 @@ var DB={
   // Empties a project into the Trash: tasks (To-do/List) -> Trash > Tasks/
   // Lists, tracker entries -> Entries, Daily -> its habits (Habits) and its
   // categories are removed. Returns how many things were moved.
+  // Statistics reset: wipes a habit's check-off history (all habits when id
+  // is null) and starts its score again from today.
+  resetHabitStats:function(id){
+    var d=this.data,today=dStr(new Date());
+    var ids=d.dailyItems.filter(function(it){return !it.trackerPid&&(!id||it.id===id);}).map(function(it){return it.id;});
+    ids.forEach(function(hid){for(var ds in d.dailyChecks){delete d.dailyChecks[ds][hid];}});
+    for(var ds in d.dailyChecks){if(!Object.keys(d.dailyChecks[ds]).length)delete d.dailyChecks[ds];}
+    d.dailyItems.forEach(function(it){if(ids.indexOf(it.id)!==-1)it.created=today;});
+    this.save();
+    return ids.length;
+  },
+  // Completed-tasks statistics: forgets when tasks were completed (the
+  // entries themselves stay in the Trash).
+  resetTaskStats:function(){
+    this.data.archived.forEach(function(a){delete a.dateISO;});
+    this.save();
+  },
   resetProject:function(pid){
     var d=this.data,p=d.projects[pid],self=this,n=0;
     if(!p)return 0;
@@ -1753,7 +1775,7 @@ var I18N=(function(){
     'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
-    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset habit stats':'Gewohnheits-Statistik zurücksetzen','Reset task stats':'Aufgaben-Statistik zurücksetzen','All habits':'Alle Gewohnheiten','Reset the completed-tasks statistics? The Trash is not touched.':'Statistik der erledigten Aufgaben zurücksetzen? Der Papierkorb bleibt unberührt.','Delete the history of all habits? Their scores and charts start over.':'Verlauf aller Gewohnheiten löschen? Ihre Werte und Diagramme beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
     '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
@@ -1801,6 +1823,7 @@ var I18N=(function(){
     [/^scheduled days completed \((\d+) skipped\)$/,'geplante Tage erledigt ($1 übersprungen)'],
     [/ \((\d+) skipped\)/g,' ($1 übersprungen)'],
     [/^Tracking: (.*)$/,'Verfolge: $1'],
+    [/^Delete the history of "(.*)"\? Its score and charts start over\.$/,'Verlauf von „$1“ löschen? Wert und Diagramme beginnen von vorn.'],
     [/^Move all (habits and categories|entries|tasks) of "(.*)" to the Trash\?$/,function(m,w,n){return 'Alle '+({'habits and categories':'Gewohnheiten und Kategorien','entries':'Einträge','tasks':'Aufgaben'})[w]+' von „'+n+'“ in den Papierkorb legen?';}],
     [/^Current streak: (\d+)$/,'Aktuelle Serie: $1'],
     [/^What's new in (.*)$/,'Neuigkeiten in $1'],
@@ -2425,6 +2448,20 @@ function renderSettings(){
     +customSelect(projOpts,'','A.resetProject(this.value)')
     +'</div></div>';
 
+  // Statistics section
+  var habitOpts=[{value:'',label:'Choose…'},{value:'__all',label:'All habits'}];
+  DB.data.dailyItems.forEach(function(it){if(!it.trackerPid)habitOpts.push({value:it.id,label:it.text});});
+  document.getElementById('settings-stats').innerHTML='<div class="opt-group">'
+    +'<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-ico" style="background:#22c55e">'+ICON_RESET+'</div>'
+    +'<div class="opt-text"><div class="opt-title">Reset habit stats</div></div>'
+    +customSelect(habitOpts,'','A.resetHabitStats(this.value)')
+    +'</div>'
+    +'<div class="opt-row" onclick="A.resetTaskStats()">'
+    +'<div class="opt-ico" style="background:#3b82f6">'+ICON_RESET+'</div>'
+    +'<div class="opt-text"><div class="opt-title">Reset task stats</div></div>'
+    +'</div></div>';
+
   var refill=DB.data.settings.todayRefill;
   var vanish=DB.data.settings.todayHabitsDisappear;
   document.getElementById('settings-today').innerHTML=
@@ -2753,6 +2790,21 @@ var A={
     ConfirmSheet.show('Move all '+what+' of "'+p.name+'" to the Trash?',function(){
       DB.resetProject(pid);
       A._refreshAll();renderSettings();
+    });
+  },
+  resetHabitStats:function(id){
+    if(!id)return;
+    var all=id==='__all',it=DB.data.dailyItems.find(function(x){return x.id===id;});
+    if(!all&&!it)return;
+    ConfirmSheet.show(all?'Delete the history of all habits? Their scores and charts start over.':'Delete the history of "'+it.text+'"? Its score and charts start over.',function(){
+      DB.resetHabitStats(all?null:id);
+      A._refreshAll();renderSettings();
+    });
+  },
+  resetTaskStats:function(){
+    ConfirmSheet.show('Reset the completed-tasks statistics? The Trash is not touched.',function(){
+      DB.resetTaskStats();
+      renderSettings();
     });
   },
   resetSkipped:function(){

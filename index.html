@@ -891,7 +891,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
   <div class="sheet" style="padding:24px 20px 40px">
     <div id="confirm-msg" style="font-size:16px;font-weight:600;margin-bottom:20px;text-align:center"></div>
     <div style="display:flex;gap:10px">
-      <button class="sheet-save" style="flex:1;background:#dc2626;border-color:#dc2626;color:#fff" onclick="ConfirmSheet.confirm()">Delete</button>
+      <button class="sheet-save" style="flex:1;background:#dc2626;border-color:#dc2626;color:#fff" id="confirm-ok" onclick="ConfirmSheet.confirm()">Delete</button>
     </div>
   </div>
 </div>
@@ -1558,7 +1558,8 @@ var CHANGELOG=[
     'Settings > Overview: a switch to show or hide the War Room window on Overview (on by default)'
   ]},
   {v:'Beta 2.45',notes:[
-    'Settings: new Tasks page (between Overview and Statistics) — no options in it yet'
+    'Settings: new Tasks page (between Overview and Statistics) — no options in it yet',
+    'Confirm windows: the red button says what it does (Reset settings, Reset, Move to Trash, Empty trash) instead of always saying Delete'
   ]}
 ];
 var COLORS={
@@ -2850,7 +2851,7 @@ var A={
       if(Trash.archivedTab(Trash.tab))DB.data.archived=DB.data.archived.filter(function(a){return items.indexOf(a)===-1;});
       else{var ids=items.map(function(t){return t.id;});DB.data.trash=DB.data.trash.filter(function(t){return ids.indexOf(t.id)===-1;});}
       DB.save();renderGrids();renderArchive();
-    });
+    },'Empty trash');
   },
   newCategory:function(){
     InputSheet.show('Category name','e.g. Business',function(name){
@@ -2899,7 +2900,7 @@ var A={
       }
       DB.data.trackerEntries[pid]=DB.data.trackerEntries[pid].filter(function(e){return e.ts!==ts;});
       DB.save();renderTracker(pid);
-    });
+    },'Move to Trash');
   },
   exportData:function(){
     var data=localStorage.getItem('lifeos');
@@ -3110,7 +3111,7 @@ var A={
     ConfirmSheet.show('Move all '+what+' of "'+p.name+'" to the Trash?',function(){
       DB.resetProject(pid);
       A._refreshAll();renderSettings();
-    });
+    },'Move to Trash');
   },
   // Settings > Statistics: wipes every habit's history and the completed-tasks numbers
   resetAllStats:function(){
@@ -3118,7 +3119,7 @@ var A={
       DB.resetHabitStats(null);
       DB.resetTaskStats();
       A._refreshAll();renderSettings();
-    });
+    },'Reset');
   },
   // Swipe-to-skip on/off (Settings > Today): Today's rows are rebuilt without the swipe wrapper
   setSkipTasks:function(val){DB.data.settings.skipTasks=val;DB.save();renderToday();},
@@ -3132,7 +3133,7 @@ var A={
       recomputeT();Nav.sd=0;
       applyHoldMode();applyTheme();I18N.set(DB.data.settings.language);TabBar.applyTabs();
       A._refreshAll();renderSettings();renderAppPage();renderAppearance();renderGeneral();
-    });
+    },'Reset settings');
   },
   setShowWarRoom:function(val){DB.data.settings.showWarRoom=val;DB.save();renderWar();},
   resetSkipped:function(){
@@ -3184,7 +3185,7 @@ var A={
     ConfirmSheet.show('Move this habit to the Trash?',function(){
       DB.deleteDailyItem(id);
       buildPanels();restoreChecks(Nav.sd);
-    });
+    },'Move to Trash');
   },
   toggleOnceInline:function(cb,id){
     if(!cb.checked)return;
@@ -4346,7 +4347,7 @@ var DailyCatSheet={
     ConfirmSheet.show('Delete this category? Its habits move to the Trash.',function(){
       DB.deleteDailyCat(id);
       DailyCatSheet.render();buildPanels();restoreChecks(Nav.sd);renderGrids();
-    });
+    },'Delete');
   },
   close:function(){_overlayClose('daily-cat-sheet-overlay');}
 };
@@ -4857,9 +4858,11 @@ var InputSheet={
 
 var ConfirmSheet={
   _cb:null,
-  show:function(msg,cb){
+  // label: text of the red action button (default "Delete")
+  show:function(msg,cb,label){
     this._cb=cb;
     document.getElementById('confirm-msg').textContent=msg;
+    document.getElementById('confirm-ok').textContent=label||'Delete';
     _overlayOpen('confirm-overlay');
   },
   confirm:function(){

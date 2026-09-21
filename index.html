@@ -347,8 +347,9 @@ html[data-theme="light"] .opt-group .opt-row{border-bottom-color:#e8e5e0}
 .sp .opt-row{padding:0 14px;height:46px;min-height:46px;box-sizing:border-box}
 .sp .opt-text{min-width:0}
 .sp .opt-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sp .opt-ico{width:28px;height:28px;border-radius:8px}
-.sp .opt-ico svg{width:18px;height:18px}
+.sp .opt-ico{width:30px;height:30px;border-radius:8px}
+.sp .opt-ico svg{width:19px;height:19px}
+.sp .opt-title{font-size:15px}
 /* No outlines on the widgets or the dropdown pills (the html prefix beats
    the theme-specific border rules) */
 html .sp .opt-row,html .sp .opt-group{border:none}
@@ -1043,7 +1044,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.53';
+var APP_VERSION='Beta 2.54';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1604,6 +1605,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.53',notes:[
     'Today: the "Habits" title is gone, and each habit category\'s title now sits above its white window instead of inside it'
+  ]},
+  {v:'Beta 2.54',notes:[
+    'Settings: icons and text a tiny bit bigger'
   ]}
 ];
 var COLORS={
@@ -2687,7 +2691,7 @@ function renderAppPage(){
   main.innerHTML='<div class="opt-group" style="margin-top:8px">'
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Version</div></div>'
-    +'<span style="margin-left:auto;font-size:14px;font-weight:600;color:#999">'+esc(APP_VERSION)+'</span></div>'
+    +'<span style="margin-left:auto;font-size:15px;font-weight:600;color:#999">'+esc(APP_VERSION)+'</span></div>'
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Update automatically</div></div>'
     +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(DB.data.settings.autoUpdate?'checked':'')+' onchange="A.setAutoUpdate(this.checked)"><span class="switch-slider"></span></label>'
@@ -2720,7 +2724,7 @@ function renderGeneralTop(){
 function renderGeneral(){renderGeneralTop();MenuPage.render();}
 function renderSettings(){
   var chev='<span style="display:inline-flex;transform:rotate(-90deg);margin-left:-2px">'+ICON_CHEVRON+'</span>';
-  var rowVal='margin-left:auto;font-size:14px;font-weight:600;color:#999';
+  var rowVal='margin-left:auto;font-size:15px;font-weight:600;color:#999';
   var appRow='<div class="opt-row" onclick="Nav.go(\'app\')">'
     +'<div class="opt-ico" style="background:#3b82f6">'+ICON_PHONE+'</div>'
     +'<div class="opt-text"><div class="opt-title">App</div></div>'

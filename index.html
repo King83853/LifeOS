@@ -542,8 +542,6 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
    .opt-group are kept. */
 html:not(#x) .acard,html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .calsec,html:not(#x) .archbox,html:not(#x) .el-row,html:not(#x) .opt-row,html:not(#x) .opt-group{border-color:transparent}
 html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
-#p-menu .opt-ico{background:transparent!important;color:inherit;width:26px;height:26px}
-#p-menu .opt-ico svg{width:22px;height:22px}
 /* Header of the habit pages (Daily and a single habit): a row of two soft
    buttons, then a large title with a muted line under it — same soft,
    outline-free look as Settings */
@@ -666,7 +664,9 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
     <div class="hh-bar"><button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button></div>
     <div class="hh-title">General</div>
   </div>
-  <div id="settings-general" style="margin-top:8px"></div>
+  <div id="general-top" style="margin-top:8px"></div>
+  <div class="sl">Menu</div>
+  <div id="general-menu"></div>
 </div>
 
 <div class="page sp" id="p-appearance">
@@ -675,15 +675,6 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
     <div class="hh-title">Appearance</div>
   </div>
   <div id="appearance-list" style="margin-top:8px"></div>
-</div>
-
-<div class="page sp" id="p-menu">
-  <div class="hh">
-    <div class="hh-bar"><button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button></div>
-    <div class="hh-title">Menu</div>
-  </div>
-  <div class="hh-sub" style="margin:-8px 0 16px">Choose which tabs show in the bottom menu. Settings always stays.</div>
-  <div id="menu-tabs-list"></div>
 </div>
 
 <div class="page sp" id="p-app">
@@ -1037,7 +1028,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.38';
+var APP_VERSION='Beta 2.40';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1545,6 +1536,13 @@ var CHANGELOG=[
     'Appearance: the selected option is marked with a tick, like in the dropdowns, instead of a dot',
     'Appearance: the three options have their icons again (the one settings page with icons)',
     'Settings dropdowns: tapping anywhere on the row opens the list, not just the value'
+  ]},
+  {v:'Beta 2.39',notes:[
+    'Settings > Today: small "Habits" and "Tasks" titles above the two widgets, like the Version history title'
+  ]},
+  {v:'Beta 2.40',notes:[
+    'Settings > General: the menu tabs are right there under a "Menu" title, as switches in one white window (no separate Menu page)',
+    'General: Open app on and Hold to complete tasks are separate windows'
   ]}
 ];
 var COLORS={
@@ -2637,6 +2635,24 @@ function renderAppPage(){
       +'</div>';
   }).join('')+'</div>';
 }
+// General page: which tab to open on + hold to complete, then the footer menu
+function renderGeneralTop(){
+  var el=document.getElementById('general-top');if(!el)return;
+  var hidden=DB.data.settings.hiddenTabs||[],hold=DB.data.settings.holdToComplete;
+  var startOpts=[{value:'today',label:'Today'},{value:'overview',label:'Overview'},{value:'lockedin',label:'Tasks'},{value:'stats',label:'Stats'},{value:'settings',label:'Settings'}].filter(function(o){return o.value==='settings'||hidden.indexOf(o.value)===-1;});
+  el.innerHTML='<div class="opt-group">'
+    +'<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-text"><div class="opt-title">Open app on</div></div>'
+    +customSelect(startOpts,TabBar.startTab(),'A.setStartTab(this.value)')
+    +'</div></div>'
+    +'<div class="opt-group">'
+    +'<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-text"><div class="opt-title">Hold to complete tasks</div></div>'
+    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(hold?'checked':'')+' onchange="A.setHoldMode(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div>'
+    +'</div>';
+}
+function renderGeneral(){renderGeneralTop();MenuPage.render();}
 function renderSettings(){
   var chev='<span style="display:inline-flex;transform:rotate(-90deg);margin-left:-2px">'+ICON_CHEVRON+'</span>';
   var rowVal='margin-left:auto;font-size:14px;font-weight:600;color:#999';
@@ -2662,24 +2678,7 @@ function renderSettings(){
     return '<div class="opt-row" onclick="Nav.go(\''+r[0]+'\')"><div class="opt-ico" style="background:'+r[2]+'">'+r[3]+'</div>'
       +'<div class="opt-text"><div class="opt-title">'+r[1]+'</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>';
   }).join('')+'</div>';
-  var hiddenT=DB.data.settings.hiddenTabs||[];
-  var startOpts=[{value:'today',label:'Today'},{value:'overview',label:'Overview'},{value:'lockedin',label:'Tasks'},{value:'stats',label:'Stats'},{value:'settings',label:'Settings'}].filter(function(o){return o.value==='settings'||hiddenT.indexOf(o.value)===-1;});
-  var hold=DB.data.settings.holdToComplete;
-  // General page: which tab to open on + the footer menu
-  document.getElementById('settings-general').innerHTML='<div class="opt-group">'
-    +'<div class="opt-row" style="cursor:default">'
-    +'<div class="opt-text"><div class="opt-title">Open app on</div></div>'
-    +customSelect(startOpts,TabBar.startTab(),'A.setStartTab(this.value)')
-    +'</div>'
-    +'<div class="opt-row" onclick="Nav.go(\'menu\')">'
-    +'<div class="opt-text"><div class="opt-title">Menu</div></div>'
-    +'<span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto">'+ICON_CHEVRON+'</span>'
-    +'</div>'
-    +'<div class="opt-row" style="cursor:default">'
-    +'<div class="opt-text"><div class="opt-title">Hold to complete tasks</div></div>'
-    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(hold?'checked':'')+' onchange="A.setHoldMode(this.checked)"><span class="switch-slider"></span></label>'
-    +'</div>'
-    +'</div>';
+  renderGeneral();
   // First white window: General, App, Language, Appearance, Data, Trash.
   var lang=DB.data.settings.language||'en',hold=DB.data.settings.holdToComplete,trashN=Trash.total();
   document.getElementById('settings-main').innerHTML='<div class="opt-group">'
@@ -2721,7 +2720,8 @@ function renderSettings(){
   var refill=DB.data.settings.todayRefill;
   var vanish=DB.data.settings.todayHabitsDisappear;
   document.getElementById('settings-today').innerHTML=
-    '<div class="opt-group">'
+    '<div class="sl" style="margin-top:0">Habits</div>'
+    +'<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Day starts at</div></div>'
     +customSelect(HOUR_OPTS.map(function(h){return{value:h,label:hourLabel(h)};}),DB.data.settings.dayStartHour,'A.setDayStartHour(this.value)')
@@ -2735,6 +2735,7 @@ function renderSettings(){
     +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(DB.data.settings.skipHabits!==false?'checked':'')+' onchange="A.setSkipHabits(this.checked)"><span class="switch-slider"></span></label>'
     +'</div>'
     +'</div>'
+    +'<div class="sl">Tasks</div>'
     +'<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Tasks shown</div></div>'
@@ -3258,9 +3259,9 @@ function _renderPage(id){
   if(id==='stats')Stats.render();
   if(id==='editlayout')renderEditLayout();
   if(id==='appearance')renderAppearance();
-  if(id==='menu')MenuPage.render();
   if(id==='app')renderAppPage();
-  if(['settoday','setoverview','setstats','general'].indexOf(id)!==-1)renderSettings();
+  if(['settoday','setoverview','setstats'].indexOf(id)!==-1)renderSettings();
+  if(id==='general')renderGeneral();
   if(id==='settings')renderSettings();
   if(id==='habits')renderHabits();
   if(id==='today')renderToday();
@@ -3301,10 +3302,9 @@ function navSwitch(id){
 // back button (navBack with no arg) and the swipe-back gesture get the
 // right target without each call site needing to know about it.
 // Pages opened from the Settings list (back returns there; the Settings tab stays lit)
-var SETTINGS_SUBPAGES=['editlayout','archive','app','menu','general','appearance','data','settoday','setoverview','setstats'];
+var SETTINGS_SUBPAGES=['editlayout','archive','app','general','appearance','data','settoday','setoverview','setstats'];
 function _backTarget(){
   var cur=document.querySelector('.page.active');
-  if(cur&&cur.id==='p-menu')return 'general'; // the Menu page is opened from General
   if(cur&&cur.id==='p-habit-detail')return HabitDetail.origin||'overview';
   // Edit layout and Completed Tasks are only ever opened from Settings
   // (their opt-rows there), never from Overview — back should return
@@ -4259,7 +4259,8 @@ var MenuPage={
   TABS:[['today','Today'],['overview','Overview'],['lockedin','Tasks'],['stats','Stats']],
   render:function(){
     var hidden=DB.data.settings.hiddenTabs||[];
-    document.getElementById('menu-tabs-list').innerHTML='<div class="opt-group">'+this.TABS.map(function(t){
+    var el=document.getElementById('general-menu');if(!el)return;
+    el.innerHTML='<div class="opt-group">'+this.TABS.map(function(t){
       return '<div class="opt-row" style="cursor:default">'
         +'<div class="opt-text"><div class="opt-title">'+t[1]+'</div></div>'
         +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(hidden.indexOf(t[0])===-1?'checked':'')+' onchange="MenuPage.toggle(\''+t[0]+'\',this.checked)"><span class="switch-slider"></span></label>'
@@ -4271,7 +4272,7 @@ var MenuPage={
     if(!on)h.push(id);
     DB.data.settings.hiddenTabs=h;DB.save();
     TabBar.applyTabs();
-    renderSettings(); // the "Open app on" list only offers tabs that are shown
+    renderGeneralTop(); // the "Open app on" list only offers tabs that are shown (the switches here stay put)
   }
 };
 

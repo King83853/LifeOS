@@ -356,7 +356,9 @@ html[data-theme="light"] .opt-radio-dot{background:#1a1917}
 .opt-row.active .opt-radio-dot{display:block}
 .opt-text{flex:1}
 /* Slimmer rows on the Settings page only */
-.sp .opt-row{padding:9px 14px}
+.sp .opt-row{padding:0 14px;height:46px;min-height:46px;box-sizing:border-box}
+.sp .opt-text{min-width:0}
+.sp .opt-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sp .opt-ico{width:28px;height:28px;border-radius:8px}
 .sp .opt-ico svg{width:18px;height:18px}
 /* No outlines on the widgets or the dropdown pills (the html prefix beats
@@ -1044,7 +1046,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.35';
+var APP_VERSION='Beta 2.36';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1539,6 +1541,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.35',notes:[
     'Settings > Today: switches for "Skip tasks" and "Skip habits" — turn one off and that swipe-to-skip gesture is gone on Today'
+  ]},
+  {v:'Beta 2.36',notes:[
+    'Settings: every widget row on every settings page has exactly the same height'
   ]}
 ];
 var COLORS={

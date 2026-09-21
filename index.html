@@ -548,6 +548,9 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
    .opt-group are kept. */
 html:not(#x) .acard,html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .calsec,html:not(#x) .archbox,html:not(#x) .el-row,html:not(#x) .opt-row,html:not(#x) .opt-group{border-color:transparent}
 html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
+#menu-tabs-overlay .opt-group{background:var(--pg)}
+#menu-tabs-overlay .opt-ico{background:transparent!important;color:inherit;width:26px;height:26px}
+#menu-tabs-overlay .opt-ico svg{width:22px;height:22px}
 /* Dark mode: keep colors calm — muted War Room header and settings icon
    badges (project colors use a soft tint, see tintStyle) */
 @media(prefers-color-scheme:dark){
@@ -788,6 +791,15 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
   </div>
 </div>
 
+<div class="sheet-overlay" id="menu-tabs-overlay" onclick="if(event.target===this)MenuSheet.close()">
+  <div class="sheet">
+    <div class="sheet-title">Menu</div>
+    <div class="opt-hint" style="font-size:13px;color:#999;margin:-6px 0 14px">Choose which tabs show in the bottom menu. Settings always stays.</div>
+    <div id="menu-tabs-list"></div>
+    <button class="sheet-save" style="width:100%;margin-top:6px" onclick="MenuSheet.close()">Close</button>
+  </div>
+</div>
+
 <div class="update-overlay" id="update-overlay">
   <div class="update-slot">
     <div class="update-check" id="update-check">✓</div>
@@ -974,7 +986,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.21';
+var APP_VERSION='Beta 2.22';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1420,6 +1432,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.21',notes:[
     'Settings: the version and update buttons are now one normal widget — "Version" with the current version; tap it for the history, where the "Check for updates" button lives'
+  ]},
+  {v:'Beta 2.22',notes:[
+    'Settings: new Menu widget — switch tabs on or off to choose what shows in the bottom menu (Settings always stays). Open app on only offers the tabs that are shown'
   ]}
 ];
 var COLORS={
@@ -1480,6 +1495,7 @@ var DB={
     if(!d.settings.todayTaskCount)d.settings.todayTaskCount=3;
     if(d.settings.todayRefill===undefined)d.settings.todayRefill=false;
     if(!d.settings.startTab)d.settings.startTab='today';
+    if(!Array.isArray(d.settings.hiddenTabs))d.settings.hiddenTabs=[];
     // Missing entirely = a pre-existing install from before this system
     // existed — leave it unset (falsy) so the "what's new" sheet
     // correctly treats it as needing to catch up, once.
@@ -1831,7 +1847,7 @@ var I18N=(function(){
     'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
-    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
     '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
@@ -2495,10 +2511,16 @@ function renderSettings(){
   }).join('')+'</div>';
   // One white window: start tab, hold to complete, language, trash.
   var lang=DB.data.settings.language||'en',hold=DB.data.settings.holdToComplete,trashN=Trash.total();
+  var hiddenT=DB.data.settings.hiddenTabs||[];
+  var startOpts=[{value:'today',label:'Today'},{value:'overview',label:'Overview'},{value:'lockedin',label:'Tasks'},{value:'stats',label:'Stats'},{value:'settings',label:'Settings'}].filter(function(o){return o.value==='settings'||hiddenT.indexOf(o.value)===-1;});
   document.getElementById('settings-main').innerHTML='<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Open app on</div></div>'
-    +customSelect([{value:'today',label:'Today'},{value:'overview',label:'Overview'},{value:'lockedin',label:'Tasks'},{value:'stats',label:'Stats'},{value:'settings',label:'Settings'}],DB.data.settings.startTab||'today','A.setStartTab(this.value)')
+    +customSelect(startOpts,TabBar.startTab(),'A.setStartTab(this.value)')
+    +'</div>'
+    +'<div class="opt-row" onclick="MenuSheet.open()">'
+    +'<div class="opt-text"><div class="opt-title">Menu</div></div>'
+    +'<span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto">'+ICON_CHEVRON+'</span>'
     +'</div>'
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Hold to complete tasks</div></div>'
@@ -4015,6 +4037,30 @@ var Skip=(function(){
   return{go:go};
 })();
 
+var MenuSheet={
+  TABS:[['today','Today'],['overview','Overview'],['lockedin','Tasks'],['stats','Stats']],
+  open:function(){this.render();_overlayOpen('menu-tabs-overlay');},
+  close:function(){_overlayClose('menu-tabs-overlay');},
+  render:function(){
+    var hidden=DB.data.settings.hiddenTabs||[];
+    document.getElementById('menu-tabs-list').innerHTML='<div class="opt-group">'+this.TABS.map(function(t){
+      var btn=document.querySelector('.tab-item[data-tab="'+t[0]+'"] svg');
+      return '<div class="opt-row" style="cursor:default">'
+        +'<div class="opt-ico">'+(btn?btn.outerHTML:'')+'</div>'
+        +'<div class="opt-text"><div class="opt-title">'+t[1]+'</div></div>'
+        +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(hidden.indexOf(t[0])===-1?'checked':'')+' onchange="MenuSheet.toggle(\''+t[0]+'\',this.checked)"><span class="switch-slider"></span></label>'
+        +'</div>';
+    }).join('')+'</div>';
+  },
+  toggle:function(id,on){
+    var h=(DB.data.settings.hiddenTabs||[]).filter(function(x){return x!==id;});
+    if(!on)h.push(id);
+    DB.data.settings.hiddenTabs=h;DB.save();
+    TabBar.applyTabs();
+    renderSettings(); // the "Open app on" list only offers tabs that are shown
+  }
+};
+
 var DailyCatSheet={
   open:function(){
     this.render();
@@ -4688,6 +4734,23 @@ var TaskSheet={
 };
 
 var TabBar={
+  // Hides the footer tabs switched off in Settings > Menu (Settings itself
+  // can't be hidden).
+  applyTabs:function(){
+    var h=DB.data.settings.hiddenTabs||[];
+    document.querySelectorAll('.tab-item').forEach(function(el){
+      var id=el.getAttribute('data-tab');
+      el.style.display=(id!=='settings'&&h.indexOf(id)!==-1)?'none':'';
+    });
+  },
+  // the tab to open on: the chosen start tab, or the first one still shown
+  startTab:function(){
+    var h=DB.data.settings.hiddenTabs||[],st=DB.data.settings.startTab||'today';
+    if(st==='settings'||h.indexOf(st)===-1)return st;
+    var order=['today','overview','lockedin','stats'];
+    for(var i=0;i<order.length;i++)if(h.indexOf(order[i])===-1)return order[i];
+    return 'settings';
+  },
   go:function(id){
     if(Nav.cur===id)return;
     navSwitch(id);
@@ -5025,7 +5088,8 @@ renderGrids();
 renderToday();
 TabBar.updateActive();
 // open on the tab chosen in Settings > Open app on
-(function(){var st=DB.data.settings.startTab;if(st&&st!=='today'&&document.getElementById('p-'+st))TabBar.go(st);})();
+TabBar.applyTabs();
+(function(){var st=TabBar.startTab();if(st&&st!=='today'&&document.getElementById('p-'+st))TabBar.go(st);})();
 setTimeout(function(){WhatsNew.checkAndShow();},400);
 
 // T is a snapshot taken at load time — if the app stays open across a day

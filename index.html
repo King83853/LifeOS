@@ -1030,7 +1030,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.45';
+var APP_VERSION='Beta 2.46';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1563,6 +1563,9 @@ var CHANGELOG=[
     'Settings: new Tasks page (between Overview and Statistics) — no options in it yet',
     'Confirm windows: the red button says what it does (Reset settings, Reset, Move to Trash, Empty trash) instead of always saying Delete',
     'Slide-up windows: the grey handle is at exactly the same distance from the top in every window (the task window was different)'
+  ]},
+  {v:'Beta 2.46',notes:[
+    'Settings: the Tasks icon is teal'
   ]}
 ];
 var COLORS={
@@ -2694,7 +2697,7 @@ function renderSettings(){
   document.getElementById('settings-reset').innerHTML='<div class="opt-group"><div class="opt-row btn-row" onclick="A.resetSettings()"><div class="opt-text"><div class="opt-title">Reset settings</div></div></div></div>';
   document.getElementById('settings-nav').innerHTML='<div class="opt-group">'+[
     ['settoday','Today','#6366f1',tabIco('today')],['setoverview','Overview','#a855f7',tabIco('overview')],
-    ['settasks','Tasks','#ef4444',tabIco('lockedin')],['setstats','Statistics','#22c55e',tabIco('stats')]
+    ['settasks','Tasks','#14b8a6',tabIco('lockedin')],['setstats','Statistics','#22c55e',tabIco('stats')]
   ].map(function(r){
     return '<div class="opt-row" onclick="Nav.go(\''+r[0]+'\')"><div class="opt-ico" style="background:'+r[2]+'">'+r[3]+'</div>'
       +'<div class="opt-text"><div class="opt-title">'+r[1]+'</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>';

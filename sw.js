@@ -3,7 +3,7 @@
 // round-trip and works fully offline. New code only reaches the device
 // when the user taps "Check for updates" in Settings (see A.checkForUpdate
 // in index.html).
-var CACHE_NAME = 'lifeos-cache-v161';
+var CACHE_NAME = 'lifeos-cache-v163';
 var SCOPE_URL = self.registration.scope;
 var SHELL_URL = SCOPE_URL + 'index.html';
 var ASSETS = [
@@ -56,6 +56,11 @@ self.addEventListener('activate', function (e) {
 
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
+
+  // Never serve sw.js from the cache: the page compares the server's copy
+  // with what it runs (see A._latestInstalled in index.html), and the
+  // browser's own update check must always reach the network for it.
+  if (new URL(e.request.url).pathname.endsWith('/sw.js')) return;
 
   // Navigation requests (the standalone home-screen app launching, or any
   // full-page load) always resolve to the app shell — regardless of which

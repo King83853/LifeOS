@@ -206,6 +206,22 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   `A.checkForUpdate(true)` at launch and on resume after 30 min; it only
   speaks up (progress overlay, then reload) when an update exists.
 
+- Update detection (2.28): the service-worker events (`updatefound`,
+  `controllerchange`) are not trustworthy on iOS, and worse, the page's own
+  `fetch('sw.js')` used to be answered from the SW's cache-first handler
+  with a STALE stored copy — so "compare with the server" was comparing the
+  device with itself. sw.js now returns early for its own URL (never cached
+  or intercepted), and `A._latestInstalled()` fetches `sw.js?c=<now>`,
+  reads `CACHE_NAME` and checks `caches.keys()` for it: a missing cache
+  means a newer release exists regardless of what the events said. If the
+  normal flow reports "no update" but that check says outdated,
+  `A._hardUpdate()` unregisters the worker, deletes the caches and
+  `location.replace`s to `?v=<now>` (localStorage untouched). Auto updates
+  (`settings.autoUpdate`) run `checkForUpdate(true)` 1.2s after launch and
+  on resume after 5 min; `settings.autoInfo` records the last result for the
+  App page. Every release must still bump CACHE_NAME (that's what the
+  comparison keys on).
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

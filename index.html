@@ -1505,7 +1505,8 @@ var CHANGELOG=[
     'Update screen: the progress animation is slower and stays on screen longer, so you can actually see it'
   ]},
   {v:'Beta 2.26',notes:[
-    'Habit pages: the pencil (or tapping the name) now opens Edit habit, where you can change the name and the days the habit repeats on. Past check-offs are kept'
+    'Habit pages: the pencil (or tapping the name) now opens Edit habit, where you can change the name and the days the habit repeats on. Past check-offs are kept',
+    'Hold to complete tasks moved into General'
   ]}
 ];
 var COLORS={
@@ -2622,6 +2623,7 @@ function renderSettings(){
   }).join('')+'</div>';
   var hiddenT=DB.data.settings.hiddenTabs||[];
   var startOpts=[{value:'today',label:'Today'},{value:'overview',label:'Overview'},{value:'lockedin',label:'Tasks'},{value:'stats',label:'Stats'},{value:'settings',label:'Settings'}].filter(function(o){return o.value==='settings'||hiddenT.indexOf(o.value)===-1;});
+  var hold=DB.data.settings.holdToComplete;
   // General page: which tab to open on + the footer menu
   document.getElementById('settings-general').innerHTML='<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
@@ -2631,18 +2633,19 @@ function renderSettings(){
     +'<div class="opt-row" onclick="Nav.go(\'menu\')">'
     +'<div class="opt-text"><div class="opt-title">Menu</div></div>'
     +'<span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto">'+ICON_CHEVRON+'</span>'
-    +'</div></div>';
-  // One white window: General, hold to complete, language, trash.
+    +'</div>'
+    +'<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-text"><div class="opt-title">Hold to complete tasks</div></div>'
+    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(hold?'checked':'')+' onchange="A.setHoldMode(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div>'
+    +'</div>';
+  // One white window: General, language, trash.
   var lang=DB.data.settings.language||'en',hold=DB.data.settings.holdToComplete,trashN=Trash.total();
   document.getElementById('settings-main').innerHTML='<div class="opt-group">'
     +'<div class="opt-row" onclick="Nav.go(\'general\')">'
     +'<div class="opt-ico" style="background:#6b7280"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></div>'
     +'<div class="opt-text"><div class="opt-title">General</div></div>'
     +'<span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto">'+ICON_CHEVRON+'</span>'
-    +'</div>'
-    +'<div class="opt-row" style="cursor:default">'
-    +'<div class="opt-text"><div class="opt-title">Hold to complete tasks</div></div>'
-    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(hold?'checked':'')+' onchange="A.setHoldMode(this.checked)"><span class="switch-slider"></span></label>'
     +'</div>'
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-ico" style="background:#3b82f6">'+ICON_GLOBE+'</div>'

@@ -556,28 +556,22 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   momentum scroll dead; `overflow:hidden` may not, so background
   scrolling coasting behind a sheet is the thing to check first if that
   old report comes back on the installed app.
-  Also kept, per explicit request ("no bottom bar when something slides
-  up"): the tab bar is `display:none` while any sheet is open, restored
-  through `TabBar.updateActive()` (project/Habits pages hide it
-  regardless). Things that did NOT help and were removed: extending the
+  Things that did NOT help and were removed: extending the
   sheet/backdrop past the bottom edge, recoloring `<html>` to the sheet's
   color, making Version history taller. Lesson: also read an annotated
   screenshot literally — one of those guesses came from picking the
   easiest reading of a circled region.
 
-- Tab bar show/hide is timed around slides (`TabBar.applyVisibility` /
-  `wantVisible`), not flipped at the start: hiding it first and then
-  sliding looked unfinished. Rule: SHOWING is always immediate (so it's
-  already there when a page slides back in, or as a sheet starts to
-  leave); HIDING is deferred until the sliding thing has covered it
-  (`Nav.go` 190ms, sheets `SHEET_ANIM_MS+40` via `_tabSheetHide`). Swipe-
-  back shows it when the drag starts and re-applies the current page's
-  state if the drag is cancelled. Any new slide animation that changes
-  whether the bar should be visible needs to go through these, not set
-  `.tabbar` display directly. Testing note: the preview pane throttles
-  requestAnimationFrame when hidden (`document.visibilityState`), so a
-  page slide may never finish and `Nav.cur` stays stale — front the tab
-  first or test sheets from a settled tab page.
+- The footer tab bar is ALWAYS visible now (it used to hide on project
+  pages / Daily and while a sheet was open, with a timed show/hide dance
+  around slides — all removed in 2.23 at the user's request "for now").
+  Only `body.kb-open` (keyboard) hides it. Project pages therefore have the
+  normal 118px bottom padding, and `TabBar.current()` decides which tab is
+  lit on pages that aren't tabs. Tabs can also be switched off in Settings
+  > Menu (`settings.hiddenTabs`, `TabBar.applyTabs`). If hiding is ever
+  wanted again, don't resurrect the timers blindly: hiding before a slide
+  looked unfinished, so it has to be deferred until the moving page covers
+  the bar and shown immediately when something slides back.
 
 ## Definition of "done" for a change
 0. If index.html (or any other cached asset) changed, bump `CACHE_NAME` in

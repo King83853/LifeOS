@@ -131,9 +131,9 @@ html[data-theme="light"] .dico{background:#f3f4f6;color:#1a1917}
 .dtitle{font-size:20px;font-weight:800}
 .dsub{font-size:12px;color:#999;margin-top:3px}
 /* Project detail pages: back button, title/desc and the add-task "+"
-   button all sit in one header row (no bottom tab bar, no floating FAB
-   — see TabBar.updateActive() / TabPlus.tap()) */
-.proj-page{padding-bottom:calc(env(safe-area-inset-bottom) + 32px)}
+   button all sit in one header row (no floating FAB — see
+   TabPlus.tap()); the bottom tab bar stays visible */
+.proj-page{padding-bottom:118px}
 .proj-hdr .back{margin-bottom:0}
 /* Back button, name pill and edit/add buttons all share one 52px-tall
    row — same height, same border/bg tokens as .back — so nothing in
@@ -986,7 +986,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.22';
+var APP_VERSION='Beta 2.23';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1435,6 +1435,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.22',notes:[
     'Settings: new Menu widget — switch tabs on or off to choose what shows in the bottom menu (Settings always stays). Open app on only offers the tabs that are shown'
+  ]},
+  {v:'Beta 2.23',notes:[
+    'The bottom menu is now always visible — it no longer hides on project pages, Daily or while a window is open'
   ]}
 ];
 var COLORS={
@@ -3111,7 +3114,6 @@ function navBack(targetId){
   ov.scrollTop=savedY;
   _fixPage(ov,-100);
   _renderPage(targetId);
-  TabBar.applyVisibility(targetId,200);
   _slideUnit(cur,ov,0,100,180,function(){
     _unfix(cur);cur.classList.remove('active');
     _unfix(ov);
@@ -3153,7 +3155,6 @@ function navBack(targetId){
       ov.style.display='block';
       _fixPage(ov,-100);
       ov.scrollTop=savedY;
-      TabBar.applyVisibility(backTarget,400);
     }
     e.preventDefault();
     curDx=Math.max(0,dx); // used for release threshold only
@@ -3189,7 +3190,6 @@ function navBack(targetId){
         Nav.cur=backTarget;TabBar.updateActive();
       });
     } else {
-      TabBar.applyVisibility(Nav.cur);
       _slideUnit(cur,ov,pct,0,120,function(){
         document.body.style.overflow='';
         _unfix(ov);ov.style.display='';
@@ -3206,7 +3206,7 @@ var Nav={cur:'today',sd:0,
     if(id===DB.data.habitsProjectId)id='habits';
     navForward(id);
     this.cur=id;
-    TabBar.updateActive(190);
+    TabBar.updateActive();
   }
 };
 
@@ -4363,16 +4363,6 @@ function _unlockBodyScroll(){
     window.scrollTo(0,_bodyLockY);
   }
 }
-// The tab bar is hidden while a sheet is open, but only once the sheet has
-// finished sliding up (hiding first looked unfinished); on close it comes
-// back at the start of the slide down. _tabSheetHide is read by
-// TabBar.wantVisible().
-var _tabSheetHide=false,_tabSheetTimer=null;
-function _tabBarBack(){
-  clearTimeout(_tabSheetTimer);
-  _tabSheetHide=false;
-  TabBar.applyVisibility(Nav.cur);
-}
 // Kept in sync with .sheet's "transition:transform .13s" — the close path
 // waits this long for the slide to finish before hiding the sheet.
 var SHEET_ANIM_MS=130;
@@ -4384,10 +4374,6 @@ function _overlayOpen(id){
   _overlayCount++;
   if(_overlayCount===1){
     _lockBodyScroll();
-    clearTimeout(_tabSheetTimer);
-    _tabSheetTimer=setTimeout(function(){
-      if(_overlayCount>0){_tabSheetHide=true;TabBar.applyVisibility(Nav.cur);}
-    },SHEET_ANIM_MS+40);
   }
   // .show starts the slide-up and must land in a LATER paint than the
   // display flip above, or there is no "before" frame to transition from
@@ -4408,7 +4394,6 @@ function _overlayClose(id,instant){
   if(ov._closeTimer){clearTimeout(ov._closeTimer);ov._closeTimer=null;}
   ov.classList.remove('show');
   _overlayCount=Math.max(0,_overlayCount-1);
-  if(_overlayCount===0)_tabBarBack();
   if(instant){
     ov.classList.remove('on');
     if(_overlayCount===0)_unlockBodyScroll();
@@ -4561,7 +4546,6 @@ var VersionHistory={
       el.style.transform='translateY('+sheetH+'px)';
       ov.style.transition='opacity '+SHEET_ANIM_MS+'ms cubic-bezier(.25,.46,.45,.94)';
       ov.style.opacity='0';
-      if(_overlayCount<=1)_tabBarBack();
       setTimeout(function(){
         // instant: this gesture already animated the sheet away itself.
         VersionHistory.close(true);
@@ -4757,9 +4741,20 @@ var TabBar={
     Nav.cur=id;
     TabBar.updateActive();
   },
-  updateActive:function(deferHideMs){
+  // Which footer tab lights up: the page itself if it is a tab, otherwise
+  // the tab it belongs to (projects and Daily -> Overview, Edit layout and
+  // Trash -> Settings, a habit page -> where it was opened from).
+  current:function(){
+    var cur=Nav.cur;
+    if(['today','overview','lockedin','stats','settings'].indexOf(cur)!==-1)return cur;
+    if(cur==='editlayout'||cur==='archive')return 'settings';
+    if(cur==='habit-detail')return HabitDetail.origin==='today'?'today':'overview';
+    return 'overview';
+  },
+  updateActive:function(){
+    var lit=TabBar.current();
     document.querySelectorAll('.tab-item').forEach(function(el){
-      el.classList.toggle('active',el.getAttribute('data-tab')===Nav.cur);
+      el.classList.toggle('active',el.getAttribute('data-tab')===lit);
     });
     var fab=document.getElementById('fab');
     if(fab){
@@ -4770,25 +4765,6 @@ var TabBar={
       // ripping out along with it.
       fab.classList.remove('show');
     }
-    this.applyVisibility(Nav.cur,deferHideMs);
-  },
-  // Whether the bar should show on `pageId` (project + Habits pages hide
-  // it; so does an open sheet, once it's fully up — see _overlayOpen).
-  wantVisible:function(pageId){
-    return !_tabSheetHide&&!(DB.data.projects[pageId]||pageId==='habits');
-  },
-  // Showing is always immediate. Hiding can be deferred by `deferHideMs`:
-  // when something slides and the bar is about to disappear (open a
-  // project, open a sheet), it has to stay until the sliding window has
-  // covered/replaced it — hiding it first, then sliding, looks unfinished.
-  // The flip side, showing it at the START of a slide back, means it's
-  // already there when the page slides in.
-  applyVisibility:function(pageId,deferHideMs){
-    var tb=document.querySelector('.tabbar');if(!tb)return;
-    clearTimeout(this._tbTimer);
-    if(this.wantVisible(pageId)){tb.style.display='';return;}
-    if(deferHideMs){this._tbTimer=setTimeout(function(){tb.style.display='none';},deferHideMs);}
-    else tb.style.display='none';
   }
 };
 

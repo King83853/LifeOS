@@ -705,6 +705,11 @@ html:not(#x) .ts-notes{height:auto;min-height:34vh}
 .cal-none{font-size:13px;font-weight:500;color:#bbb;padding:12px 0 14px}
 .wdays{scrollbar-width:none}.wdays::-webkit-scrollbar{display:none}
 input,textarea,select{font-family:inherit}
+/* lighter weights: text 500 (was 600), titles and labels 700 (was 800) */
+html:not(#x) .opt-title,html:not(#x) .tt,html:not(#x) .cali label,html:not(#x) .wit,html:not(#x) .el-name,html:not(#x) .trk-entry-val,html:not(#x) .archi-title,html:not(#x) .cat-choice,html:not(#x) .color-field-label,html:not(#x) .wlbl,html:not(#x) .albl,html:not(#x) .bdg,html:not(#x) .pri-pill,html:not(#x) .wrb,html:not(#x) .wrt,html:not(#x) .seg-btn,html:not(#x) .trash-act,html:not(#x) .trash-x,html:not(#x) .hh-btn.hh-txt,html:not(#x) .sheet-save,html:not(#x) .type-btn,html:not(#x) .sheet-inp,html:not(#x) .addinp,html:not(#x) .trk-addinp,html:not(#x) .row-num,html:not(#x) #cat-btn-list .type-btn,html:not(#x) .dsel-opt,html:not(#x) .tlbl,html:not(#x) .trk-daily-val{font-weight:500}
+html:not(#x) .dsel-opt.sel{font-weight:600}
+.dtitle,.hh-title,.sheet-title,.ts-title,.soon-t,.trk-val{font-weight:700}
+html:not(#x) .sl,html:not(#x) .shdr,html:not(#x) .caltitle,html:not(#x) .el-grp,html:not(#x) .sheet-label{font-weight:700}
 /* tracker rows and entries */
 .trk-entry{padding:12px 0}
 </style>
@@ -1145,7 +1150,7 @@ input,textarea,select{font-family:inherit}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.55';
+var APP_VERSION='Beta 2.56';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1715,6 +1720,9 @@ var CHANGELOG=[
     'Tasks, lists and one-time tasks sit in one white card per group; the priority picker is four equal buttons',
     'Slide-up windows have a grey background with white fields and rows; the buttons are white rows with blue text like in Settings',
     'Project pages and Edit layout use the same header as the other pages (soft back and add buttons, big title)'
+  ]},
+  {v:'Beta 2.56',notes:[
+    'Lighter font everywhere: text is medium instead of semi-bold, titles and small headings are bold instead of extra bold'
   ]}
 ];
 var COLORS={
@@ -2692,7 +2700,7 @@ var ICON_CHEVRON='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" st
 function customSelect(opts,current,onchange){
   var sel=opts.filter(function(o){return String(o.value)===String(current);})[0]||opts[0]||{label:''};
   return '<div class="dsel-wrap" data-opts="'+esc(JSON.stringify(opts))+'" data-cur="'+esc(String(current))+'" data-on="'+esc(onchange)+'">'
-    +'<div class="dsel-visual" style="min-height:28px;font-size:14px;font-weight:600"><span style="color:#999">'+esc(sel.label)+'</span><span class="dsel-arrow" style="margin-left:-2px">'+ICON_CHEVRON+'</span></div>'
+    +'<div class="dsel-visual" style="min-height:28px;font-size:15px;font-weight:500"><span style="color:#999">'+esc(sel.label)+'</span><span class="dsel-arrow" style="margin-left:-2px">'+ICON_CHEVRON+'</span></div>'
     +'<button type="button" class="dsel-real" aria-label="'+esc(sel.label)+'" onclick="DSel.toggle(this)"></button>'
     +'</div>';
 }
@@ -2798,7 +2806,7 @@ function renderAppPage(){
   main.innerHTML='<div class="opt-group" style="margin-top:8px">'
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Version</div></div>'
-    +'<span style="margin-left:auto;font-size:15px;font-weight:600;color:#999">'+esc(APP_VERSION)+'</span></div>'
+    +'<span style="margin-left:auto;font-size:15px;font-weight:500;color:#999">'+esc(APP_VERSION)+'</span></div>'
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Update automatically</div></div>'
     +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(DB.data.settings.autoUpdate?'checked':'')+' onchange="A.setAutoUpdate(this.checked)"><span class="switch-slider"></span></label>'
@@ -2806,7 +2814,7 @@ function renderAppPage(){
     +'</div>'
     +'<div class="opt-group"><div class="opt-row btn-row" id="update-btn" onclick="A.checkForUpdate()"><div class="opt-text"><div class="opt-title">Check for updates</div></div></div></div>';
   document.getElementById('app-history').innerHTML='<div class="calsec" style="padding:14px 15.5px 2px">'+CHANGELOG.slice().reverse().map(function(entry){
-    return '<div style="margin-bottom:18px"><div style="font-weight:800;font-size:15px;margin-bottom:6px">'+esc(entry.v)+'</div>'
+    return '<div style="margin-bottom:18px"><div style="font-weight:700;font-size:15px;margin-bottom:6px">'+esc(entry.v)+'</div>'
       +entry.notes.map(function(n){return '<div class="wn-item">• '+esc(n)+'</div>';}).join('')
       +'</div>';
   }).join('')+'</div>';
@@ -2831,7 +2839,7 @@ function renderGeneralTop(){
 function renderGeneral(){renderGeneralTop();MenuPage.render();}
 function renderSettings(){
   var chev='<span style="display:inline-flex;transform:rotate(-90deg);margin-left:-2px">'+ICON_CHEVRON+'</span>';
-  var rowVal='margin-left:auto;font-size:15px;font-weight:600;color:#999';
+  var rowVal='margin-left:auto;font-size:15px;font-weight:500;color:#999';
   var appRow='<div class="opt-row" onclick="Nav.go(\'app\')">'
     +'<div class="opt-ico" style="background:#3b82f6">'+ICON_PHONE+'</div>'
     +'<div class="opt-text"><div class="opt-title">App</div></div>'

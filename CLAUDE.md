@@ -235,10 +235,11 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
 - Design system (2.55, the "DESIGN SYSTEM" block at the end of the CSS): the
   Settings look is the look of the whole app. Cards are `var(--card)` on
   `var(--pg)`, radius 14, NO outlines, 1.5px `var(--line)` dividers, rows 46px.
-  Text roles: page title 20/800 (26/800 on pushed pages via `.hh`), row text
-  15/600, secondary 12/500 grey, paragraph 13/500 grey, uppercase label
-  (`.sl`/`.shdr`/`.caltitle`/`.el-grp`/`.sheet-label`) 11/800, buttons 15/600,
-  badges/pills 12/600. Groups of rows live in ONE card (`.card-list` for task
+  Text roles (weights lightened in 2.56 — the "lighter weights" rule at the end of the
+  block wins): page title 20/700 (26/700 on pushed pages via `.hh`), row text
+  15/500, secondary 12/500 grey, paragraph 13/500 grey, uppercase label
+  (`.sl`/`.shdr`/`.caltitle`/`.el-grp`/`.sheet-label`) 11/700, buttons 15/500,
+  badges/pills 12/500. Groups of rows live in ONE card (`.card-list` for task
   rows, `.opt-group`, `.el-card`, `.calsec`), not one card per row. Header
   buttons are soft 40px squares (`.hh-btn`, and `.hdr-add/.menu-btn/.back/
   .edit-proj-btn` are restyled to match); pushed pages (project pages, Edit

@@ -88,10 +88,6 @@ html[data-theme="light"] .menu-item:active{background:#f0ede8}
 @media(prefers-color-scheme:dark){.wri{background:#252320;border-color:#333}}
 html[data-theme="dark"] .wri{background:#252320;border-color:#333}
 html[data-theme="light"] .wri{background:#fafaf8;border-color:#f0ede8}
-.wri input[type=checkbox]{accent-color:#1a1917;width:28px;height:28px;flex-shrink:0;cursor:pointer}
-@media(prefers-color-scheme:dark){.wri input[type=checkbox]{accent-color:#e8e6df}}
-html[data-theme="dark"] .wri input[type=checkbox]{accent-color:#e8e6df}
-html[data-theme="light"] .wri input[type=checkbox]{accent-color:#1a1917}
 .wit{font-size:14px;flex:1;line-height:1.4;font-weight:500}
 
 .agrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:4px}
@@ -148,10 +144,6 @@ html[data-theme="light"] .proj-name-pill{background:#fff;border-color:#1a1917;co
 html[data-theme="dark"] .ti{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .ti{background:#fff;border-color:#e8e5e0}
 html .ti[data-pri="bu"]{border:1.5px solid #e24b4a}
-.ti input[type=checkbox]{accent-color:#1a1917;width:28px;height:28px;flex-shrink:0;cursor:pointer}
-@media(prefers-color-scheme:dark){.ti input[type=checkbox]{accent-color:#e8e6df}}
-html[data-theme="dark"] .ti input[type=checkbox]{accent-color:#e8e6df}
-html[data-theme="light"] .ti input[type=checkbox]{accent-color:#1a1917}
 .tt{font-size:14px;flex:1;line-height:1.4}
 .ts{font-size:11px;color:#999;margin-top:3px}
 .bdg{font-size:11px;font-weight:700;padding:5px 10px;border-radius:99px;flex-shrink:0;white-space:nowrap;min-height:30px;display:inline-flex;align-items:center}
@@ -273,7 +265,7 @@ html[data-theme="dark"] .sw.h{border-color:#252320}
 html[data-theme="light"] .sw.h{border-color:#f5f3ef}
 .sw.h:last-child{border-bottom:none}
 .sw.h .cali{border-bottom:none}
-.sw-act{position:absolute;top:0;bottom:0;left:0;width:calc(max(var(--x,0) - 8, 0) * 1px);overflow:hidden;white-space:nowrap;background:#86efac;color:#000;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:400;visibility:hidden}
+.sw-act{position:absolute;top:0;bottom:0;left:0;width:calc(max(var(--x,0) - 8, 0) * 1px);overflow:hidden;white-space:nowrap;background:#a7f3c0;color:#000;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:400;visibility:hidden}
 .sw.anim .sw-act{transition:width .2s ease-out}
 .sw.on .sw-act{visibility:visible}
 .sw-act span{display:flex;align-items:center;justify-content:center;gap:6px;opacity:var(--p,0)}
@@ -284,11 +276,9 @@ html[data-theme="light"] .sw.h{border-color:#f5f3ef}
 @media(prefers-color-scheme:dark){.sw.h .sw-row{background:#1e1c1a}}
 html[data-theme="dark"] .sw.h .sw-row{background:#1e1c1a}
 html[data-theme="light"] .sw.h .sw-row{background:#fff}
-.cali.skipped input[type=checkbox]{accent-color:#86efac}
-.cali.skipped label::after{content:' \00b7 skipped';color:#4ade80;font-size:12px;font-weight:700}
+.cali.skipped label::after{content:' \00b7 skipped';color:#30d158;font-size:12px;font-weight:600}
 html[lang="de"] .cali.skipped label::after{content:' \00b7 übersprungen'}
 .cali label{font-size:14px;flex:1;cursor:pointer}
-.cali input[type=checkbox]{accent-color:#22c55e;width:28px;height:28px;cursor:pointer;flex-shrink:0}
 /* Status dot for a tracker linked into Daily (see ciTracker()) — not a
    checkbox, since a tracker's "done today" isn't a toggle a tap can
    flip, it's whatever value (if any) was logged today on the tracker's
@@ -710,6 +700,18 @@ html:not(#x) .opt-title,html:not(#x) .tt,html:not(#x) .cali label,html:not(#x) .
 html:not(#x) .dsel-opt.sel{font-weight:600}
 .dtitle,.hh-title,.sheet-title,.ts-title,.soon-t,.trk-val{font-weight:700}
 html:not(#x) .sl,html:not(#x) .shdr,html:not(#x) .caltitle,html:not(#x) .el-grp,html:not(#x) .sheet-label{font-weight:700}
+/* Tick boxes: soft grey tile that fills with colour (tasks: ink, habits: green,
+   skipped: light green with a double arrow); locked rows are dimmed by .cali.locked */
+:root{--box:#eceef1;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");--go:#30d158;--go-skip:#a7f3c0}
+@media(prefers-color-scheme:dark){:root{--box:#34322f;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%231a1917' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}}
+html[data-theme="dark"]{--box:#34322f;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%231a1917' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html[data-theme="light"]{--box:#eceef1;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html:not(#x) .ti input[type=checkbox],html:not(#x) .wri input[type=checkbox],html:not(#x) .cali input[type=checkbox]{-webkit-appearance:none;appearance:none;width:26px;height:26px;margin:0;border:none;border-radius:8px;background-color:var(--box);background-repeat:no-repeat;background-position:center;background-size:17px;flex-shrink:0;cursor:pointer;transition:background-color .18s ease}
+html:not(#x) .ti input[type=checkbox]:checked,html:not(#x) .wri input[type=checkbox]:checked{background-color:var(--ink);background-image:var(--tick-ink)}
+html:not(#x) .cali input[type=checkbox]:checked{background-color:var(--go);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html:not(#x) .cali.skipped input[type=checkbox]:checked{background-color:var(--go-skip);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 6l6 6-6 6M12.5 6l6 6-6 6' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html:not(#x) .trk-daily-dot{width:26px;height:26px;margin:0;border:none;border-radius:8px;background:var(--box) center/17px no-repeat}
+html:not(#x) .trk-daily-dot.done{background-color:var(--go);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 /* tracker rows and entries */
 .trk-entry{padding:12px 0}
 </style>
@@ -1150,7 +1152,7 @@ html:not(#x) .sl,html:not(#x) .shdr,html:not(#x) .caltitle,html:not(#x) .el-grp,
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.56';
+var APP_VERSION='Beta 2.57';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1723,6 +1725,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.56',notes:[
     'Lighter font everywhere: text is medium instead of semi-bold, titles and small headings are bold instead of extra bold'
+  ]},
+  {v:'Beta 2.57',notes:[
+    'New tick boxes: a soft grey tile that fills in when ticked — black for tasks, green for habits, light green with a double arrow for skipped'
   ]}
 ];
 var COLORS={
@@ -2688,7 +2693,7 @@ var ICON_GLOBE='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stro
 function trashSvg(sz,stroke){return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+stroke+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';}
 // Light green used for skipped days (charts and rings); the Skip swipe action and
 // skipped-habit label use the same value in CSS.
-var SKIP_COLOR='#86efac';
+var SKIP_COLOR='#a7f3c0';
 var ICON_CHEVRON='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>';
 
 // Renders a dropdown whose visible pill stays the normal small size while
@@ -3925,12 +3930,12 @@ function renderBarChart(periods,svgId){
       var skH=Math.max(3,Math.round(barH*sk/p.completed)),cid=svgId+'-c'+i;
       bars+='<clipPath id="'+cid+'"><rect '+shape+' rx="'+rx.toFixed(1)+'"></rect></clipPath>'
         +'<g clip-path="url(#'+cid+')">'
-        +'<rect '+shape+' fill="#22c55e" data-i="'+i+'"></rect>'
+        +'<rect '+shape+' fill="#30d158" data-i="'+i+'"></rect>'
         +'<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+skH+'" fill="'+SKIP_COLOR+'" data-i="'+i+'"></rect></g>';
     } else {
       // all skipped = all light green
       bars+='<rect '+shape+' rx="'+rx.toFixed(1)+'"'
-        +(p.completed>0?' fill="'+(sk===p.completed?SKIP_COLOR:'#22c55e')+'"':' class="hd-bar-empty"')+' data-i="'+i+'"></rect>';
+        +(p.completed>0?' fill="'+(sk===p.completed?SKIP_COLOR:'#30d158')+'"':' class="hd-bar-empty"')+' data-i="'+i+'"></rect>';
     }
     // 100% line: follows what could have been done in THIS period (it moves
     // as habits are added or removed); a gap where nothing was scheduled yet
@@ -3961,7 +3966,7 @@ function renderPieChart(pct,skipped,target){
   return '<svg viewBox="0 0 100 100" style="width:150px;height:150px">'
     +'<circle class="hd-pie-track" cx="50" cy="50" r="'+r+'" fill="none" stroke-width="10"></circle>'
     +(skipPct>0?arc(pct,SKIP_COLOR):'')
-    +(greenPct>0?arc(greenPct,'#22c55e'):'')
+    +(greenPct>0?arc(greenPct,'#30d158'):'')
     +'<text class="hd-pie-pct" x="50" y="57" text-anchor="middle" font-size="24" font-weight="800">'+pct+'%</text>'
     +'</svg>';
 }

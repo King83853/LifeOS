@@ -591,12 +591,14 @@ html:not(#x) .wri:last-child{border-bottom:none}
 .calsec .sw.h .sw-row{padding:0 10px}
 .calsec .sw.h .sw-act{left:10px}
 .calsec>.cali{margin:0 -15.5px;padding-left:10px;padding-right:10px}
-#today-daily .caltitle,[id^="dp-"] .caltitle{margin-left:-5.5px}
+[id^="dp-"] .caltitle{margin-left:-5.5px}
 /* the last row already has its own padding, so the card needs less below it */
 /* No (transparent) border on these cards: overflow:hidden clips at the
    padding edge, so a border would keep the dividers 1.5px short of the
    card's outer edge. Padding = old 14px + 1.5px border. */
 #today-daily .calsec,[id^="dp-"] .calsec{border:none;padding:13.5px 15.5px 2px;overflow:hidden}
+/* Today: the category title sits above its white card, not inside it */
+#today-daily .calsec{padding-top:2px}
 html:not(#x) .archbox{border:none}
 /* project badge in task rows: a touch slimmer than the default 30px */
 .ti .bdg{height:27px;min-height:27px;display:inline-flex;align-items:center;padding-top:0;padding-bottom:0}
@@ -757,7 +759,6 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
   </div>
   <div class="shdr" id="today-tasks-hdr">Tasks</div>
   <div id="today-priorities"></div>
-  <div class="shdr" id="today-habits-hdr">Habits</div>
   <div id="today-daily"></div>
   <div class="empty" id="today-none" style="display:none">Nothing to do today.</div>
 </div>
@@ -1042,7 +1043,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.52';
+var APP_VERSION='Beta 2.53';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1600,6 +1601,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.52',notes:[
     'The "What\'s new" window after an update has no "Got it" button anymore — pull it down or tap outside to close it'
+  ]},
+  {v:'Beta 2.53',notes:[
+    'Today: the "Habits" title is gone, and each habit category\'s title now sits above its white window instead of inside it'
   ]}
 ];
 var COLORS={
@@ -4171,9 +4175,6 @@ function syncTodaySections(){
   var hasH=!!document.getElementById('today-daily').innerHTML;
   document.getElementById('today-tasks-hdr').style.display=hasT?'':'none';
   document.getElementById('today-priorities').style.display=hasT?'':'none';
-  var hh=document.getElementById('today-habits-hdr');
-  hh.style.display=hasH?'':'none';
-  hh.style.marginTop=hasT?'22px':'';
   document.getElementById('today-none').style.display=(hasT||hasH)?'none':'';
 }
 function renderToday(){
@@ -4227,7 +4228,7 @@ function renderToday(){
   // Overdue one-time tasks consolidate under today, same as the Daily page.
   var onceToday=DB.data.dailyOnce.filter(function(o){return o.date<=ds;});
   if(onceToday.length){
-    h+='<div class="calsec"><div class="caltitle">One-time</div>';
+    h+='<div class="caltitle">One-time</div><div class="calsec">';
     onceToday.forEach(function(o){h+=onceRow(o);});
     h+='</div>';
   }
@@ -4240,7 +4241,7 @@ function renderToday(){
       return !done;
     });
     if(!items.length)return;
-    h+='<div class="calsec"><div class="caltitle">'+esc(cat.name)+'</div>';
+    h+='<div class="caltitle">'+esc(cat.name)+'</div><div class="calsec">';
     items.forEach(function(it){h+=it.trackerPid?ciTracker(it,0,false):swipeWrap('h',ci(it.id,it.text,0));});
     h+='</div>';
   });

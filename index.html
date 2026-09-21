@@ -366,7 +366,6 @@ html #p-settings .dsel-visual{border:none;background:transparent}
 #p-settings .addbtn{min-height:46px!important;height:46px}
 #p-settings .opt-row,#p-settings .opt-group{margin-bottom:14px}
 #p-settings .opt-group .opt-row{margin-bottom:0}
-#p-settings #update-btn{width:46px!important}
 .opt-title{font-size:14px;font-weight:600}
 /* Colored badge behind each settings icon (background set per-instance
    inline) instead of a flat gray glyph — flat currentColor read as low
@@ -728,10 +727,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 <div class="page" id="p-settings">
   <div class="dhdr"><div class="dico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><div><div class="dtitle">Settings</div></div></div>
   <div class="sl">General</div>
-  <div style="display:flex;gap:10px;margin-bottom:16px">
-    <button class="addbtn" id="version-btn" style="flex:1;font-size:14px;min-height:48px;font-weight:700" onclick="VersionHistory.open()"></button>
-    <button class="addbtn" id="update-btn" style="width:48px;min-height:48px;flex:none;padding:0" onclick="A.checkForUpdate()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
-  </div>
+  <div id="settings-version"></div>
   <div id="settings-theme"></div>
   <div id="settings-main"></div>
   <div class="sl" style="margin-top:28px">Today</div>
@@ -812,6 +808,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
   <div class="sheet">
     <div class="sheet-drag-handle"></div>
     <div class="sheet-title">Version history</div>
+    <button class="sheet-save" id="update-btn" style="width:100%;margin-bottom:18px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="A.checkForUpdate()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg><span>Check for updates</span></button>
     <div id="verhist-body"></div>
   </div>
 </div>
@@ -977,7 +974,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.20';
+var APP_VERSION='Beta 2.21';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1420,6 +1417,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.20',notes:[
     'Swipe to skip only starts when your finger begins to the right of the tick-off square — pressing the square itself never slides the row, so you cannot skip by accident'
+  ]},
+  {v:'Beta 2.21',notes:[
+    'Settings: the version and update buttons are now one normal widget — "Version" with the current version; tap it for the history, where the "Check for updates" button lives'
   ]}
 ];
 var COLORS={
@@ -1831,7 +1831,7 @@ var I18N=(function(){
     'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
-    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
     '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
@@ -2476,7 +2476,12 @@ var DSel=(function(){
 })();
 
 function renderSettings(){
-  var vl=document.getElementById('version-btn');if(vl)vl.textContent=APP_VERSION;
+  document.getElementById('settings-version').innerHTML=
+    '<div class="opt-row" onclick="VersionHistory.open()">'
+    +'<div class="opt-text"><div class="opt-title">Version</div></div>'
+    +'<span style="margin-left:auto;font-size:14px;font-weight:600;color:#999">'+esc(APP_VERSION)+'</span>'
+    +'<span style="display:inline-flex;transform:rotate(-90deg);margin-left:-2px">'+ICON_CHEVRON+'</span>'
+    +'</div>';
   var theme=DB.data.settings.theme||'system';
   document.getElementById('settings-theme').innerHTML='<div class="opt-group">'+[
     {v:'light',icon:ICON_SUN,title:'Light',bg:'#f59e0b'},

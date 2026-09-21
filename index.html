@@ -718,10 +718,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
   <div class="sl" style="margin-top:28px">Today</div>
   <div id="settings-today"></div>
   <div class="sl" style="margin-top:28px">Overview</div>
-  <div class="opt-row" onclick="Nav.go('editlayout')">
-    <div class="opt-ico" style="background:#a855f7"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div>
-    <div class="opt-text"><div class="opt-title">Edit layout</div></div>
-  </div>
+  <div id="settings-overview"></div>
   <div class="sl" style="margin-top:28px">Data</div>
   <div style="display:flex;gap:10px;margin-top:4px">
     <button class="addbtn" style="flex:1;font-size:14px;min-height:48px" onclick="A.exportData()">Export</button>
@@ -957,7 +954,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.7';
+var APP_VERSION='Beta 2.8';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1358,6 +1355,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.7',notes:[
     'Habit tick-off squares in Today and Daily sit the same distance from the edges as the ones on task widgets'
+  ]},
+  {v:'Beta 2.8',notes:[
+    'Settings > Overview: new "Reset a project" — pick a project and everything in it goes to the Trash (tasks for To-do and List projects, entries for trackers like Weight, and habits with their categories for Daily)',
+    'Restoring a task whose project is gone now tells you instead of silently dropping it'
   ]}
 ];
 var COLORS={
@@ -1597,21 +1598,46 @@ var DB={
       this.data.extraTasks[pid]=this.data.extraTasks[pid].filter(function(t){return t.key!==key;});
     this.save();
   },
+  // Puts a completed (or reset-away) task back into its project (found by
+  // name). Returns '' or a message when it can't.
   restoreTask:function(idx){
-    var item=this.data.archived[idx];if(!item)return;
-    this.data.archived.splice(idx,1);
-    this.data.doneKeys=this.data.doneKeys.filter(function(k){return k!==item.key;});
-    // find project by name
+    var item=this.data.archived[idx];if(!item)return '';
     var pid=null;
     for(var id in this.data.projects){if(this.data.projects[id].name===item.section){pid=id;break;}}
-    if(pid){
-      if(!this.data.extraTasks[pid])this.data.extraTasks[pid]=[];
-      var nk='t'+Date.now();
-      this.data.extraTasks[pid].push({key:nk,text:item.text,pri:item.pri||'bs'});
-      this._sortTasks(pid);
+    if(!pid)return 'Restore the project first.';
+    this.data.archived.splice(idx,1);
+    this.data.doneKeys=this.data.doneKeys.filter(function(k){return k!==item.key;});
+    if(!this.data.extraTasks[pid])this.data.extraTasks[pid]=[];
+    this.data.extraTasks[pid].push({key:'t'+Date.now()+Math.random().toString(36).slice(2),text:item.text,pri:item.pri||'bs',desc:item.desc||''});
+    this._sortTasks(pid);
+    this.save();
+    return '';
+  },
+  // Empties a project into the Trash: tasks (To-do/List) -> Trash > Tasks/
+  // Lists, tracker entries -> Entries, Daily -> its habits (Habits) and its
+  // categories are removed. Returns how many things were moved.
+  resetProject:function(pid){
+    var d=this.data,p=d.projects[pid],self=this,n=0;
+    if(!p)return 0;
+    if(pid===d.habitsProjectId){
+      d.dailyCats.slice().forEach(function(c){n+=d.dailyItems.filter(function(i){return i.catId===c.id;}).length;self.deleteDailyCat(c.id);});
+    } else if(p.type==='tracker'){
+      ((d.trackerEntries&&d.trackerEntries[pid])||[]).forEach(function(e){
+        self._trash('entry',e.val+' '+(p.unit||''),(p.icon||'')+' '+p.name,{pid:pid,entry:e});n++;
+      });
+      if(d.trackerEntries)d.trackerEntries[pid]=[];
+    } else {
+      var isList=p.type==='list',when=new Date().toLocaleDateString('de-CH',{day:'numeric',month:'short',year:'numeric'});
+      (d.extraTasks[pid]||[]).forEach(function(t){
+        // no dateISO: these were removed, not completed, so they stay out of the completed-per-day stats
+        d.archived.push({key:t.key,text:t.text,section:p.name,list:isList,pri:t.pri,desc:t.desc,date:when,removed:true});n++;
+      });
+      d.extraTasks[pid]=[];
     }
     this.save();
+    return n;
   },
+
   _sortTasks:function(pid){
     if(!this.data.extraTasks[pid])return;
     var o={bu:0,bs:1,bp:2,bl:3};
@@ -1727,7 +1753,7 @@ var I18N=(function(){
     'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
-    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Open app on':'App öffnen mit','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
     '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
@@ -1775,6 +1801,7 @@ var I18N=(function(){
     [/^scheduled days completed \((\d+) skipped\)$/,'geplante Tage erledigt ($1 übersprungen)'],
     [/ \((\d+) skipped\)/g,' ($1 übersprungen)'],
     [/^Tracking: (.*)$/,'Verfolge: $1'],
+    [/^Move all (habits and categories|entries|tasks) of "(.*)" to the Trash\?$/,function(m,w,n){return 'Alle '+({'habits and categories':'Gewohnheiten und Kategorien','entries':'Einträge','tasks':'Aufgaben'})[w]+' von „'+n+'“ in den Papierkorb legen?';}],
     [/^Current streak: (\d+)$/,'Aktuelle Serie: $1'],
     [/^What's new in (.*)$/,'Neuigkeiten in $1'],
     [/^📁 Category: (.*)$/,'📁 Kategorie: $1'],
@@ -2385,6 +2412,19 @@ function renderSettings(){
     +'</div>'
     +'</div>';
 
+  // Overview section: Edit layout + reset one project into the Trash
+  var projOpts=[{value:'',label:'Choose…'}];
+  DB.data.categoryOrder.forEach(function(cid){(DB.data.projectOrder[cid]||[]).forEach(function(pid){var p=DB.data.projects[pid];if(p)projOpts.push({value:pid,label:(p.icon||'')+' '+p.name});});});
+  document.getElementById('settings-overview').innerHTML='<div class="opt-group">'
+    +'<div class="opt-row" onclick="Nav.go(\'editlayout\')">'
+    +'<div class="opt-ico" style="background:#a855f7"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div>'
+    +'<div class="opt-text"><div class="opt-title">Edit layout</div></div></div>'
+    +'<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-ico" style="background:#ef4444">'+ICON_RESET+'</div>'
+    +'<div class="opt-text"><div class="opt-title">Reset a project</div></div>'
+    +customSelect(projOpts,'','A.resetProject(this.value)')
+    +'</div></div>';
+
   var refill=DB.data.settings.todayRefill;
   var vanish=DB.data.settings.todayHabitsDisappear;
   document.getElementById('settings-today').innerHTML=
@@ -2454,7 +2494,8 @@ var A={
     var fab=document.getElementById('fab');if(fab)fab.style.display='';
   },
   restore:function(idx){
-    DB.restoreTask(idx);
+    var msg=DB.restoreTask(idx);
+    if(msg){alert(t(msg));return;}
     renderArchive();renderWar();renderGrids();
     for(var pid in DB.data.projects)renderProj(pid);
   },
@@ -2705,6 +2746,15 @@ var A={
     renderSettings();renderToday();
   },
   // Un-skips every skipped task so they all show on Today again.
+  // Settings > Overview > Reset a project: everything in it goes to the Trash
+  resetProject:function(pid){
+    var d=DB.data,p=d.projects[pid];if(!p)return;
+    var what=pid===d.habitsProjectId?'habits and categories':(p.type==='tracker'?'entries':'tasks');
+    ConfirmSheet.show('Move all '+what+' of "'+p.name+'" to the Trash?',function(){
+      DB.resetProject(pid);
+      A._refreshAll();renderSettings();
+    });
+  },
   resetSkipped:function(){
     for(var pid in DB.data.extraTasks)(DB.data.extraTasks[pid]||[]).forEach(function(t){delete t.skip;});
     DB.save();renderSettings();renderToday();

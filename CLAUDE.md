@@ -168,7 +168,11 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   still `DB.data.archived` and are the first tab (labelled Tasks). A NEW delete path must
   push to trash too (use `DB._trash`, and `_takeProject`/`_putProject`
   for projects) — grep `filter(` on dailyItems/dailyCats/projects when
-  adding one. One-time tasks have no delete path (completing one just
+  adding one. Settings > Overview > "Reset a project" (`DB.resetProject`) empties one
+  project into the Trash: To-do/List tasks become `archived` entries with
+  `removed:true` (no `dateISO`, so they don't count as completed in the
+  stats), tracker entries become `entry` trash items, Daily's habits become
+  `habit` items and its categories are removed. One-time tasks have no delete path (completing one just
   removes it), so they aren't in the Trash.
 
 - Language (Settings > Language, `I18N` in index.html): English is the

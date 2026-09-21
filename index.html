@@ -99,12 +99,12 @@ html[data-theme="light"] .wri input[type=checkbox]{accent-color:#1a1917}
 .wit{font-size:14px;flex:1;line-height:1.4;font-weight:500}
 
 .agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:4px}
-.acard{background:#fff;border:1.5px solid #e8e5e0;border-radius:18px;padding:12px 10px 9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;transition:transform .12s}
+.acard{background:#fff;border:1.5px solid #e8e5e0;border-radius:18px;padding:12px 10px 9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;transition:transform .12s}
 @media(prefers-color-scheme:dark){.acard{background:#1e1c1a;border-color:#2a2927}}
 html[data-theme="dark"] .acard{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .acard{background:#fff;border-color:#e8e5e0}
 .acard:active{transform:scale(0.95)}
-.aico{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;background:#f3f4f6;color:#374151}
+.aico{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:27px;background:#f3f4f6;color:#374151}
 @media(prefers-color-scheme:dark){.aico{background:#1f2937;color:#9ca3af}}
 html[data-theme="dark"] .aico{background:#1f2937;color:#9ca3af}
 html[data-theme="light"] .aico{background:#f3f4f6;color:#374151}
@@ -958,7 +958,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.15';
+var APP_VERSION='Beta 2.16';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1384,6 +1384,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.15',notes:[
     'Update screen: it sits lower, and when the update finishes the check mark fades in where the bar was — nothing jumps anymore'
+  ]},
+  {v:'Beta 2.16',notes:[
+    'Overview: the project squares have a bigger icon with less space between the icon, the name and the task count'
   ]}
 ];
 var COLORS={

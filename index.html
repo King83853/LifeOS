@@ -415,14 +415,11 @@ html[data-theme="dark"] .update-overlay{background:rgba(26,25,23,.97)}
 html[data-theme="light"] .update-overlay{background:rgba(243,244,246,.97)}
 .update-overlay.on{display:flex}
 .update-slot{position:relative;width:160px;height:36px;display:flex;align-items:center;justify-content:center}
-.update-check{position:absolute;font-size:34px;line-height:1;opacity:0;transform:scale(.7);transition:opacity .25s ease,transform .25s ease}
-.update-check.on{opacity:1;transform:none}
 .update-text{font-size:15px;font-weight:700;color:#1a1917}
 @media(prefers-color-scheme:dark){.update-text{color:#e8e6df}}
 html[data-theme="dark"] .update-text{color:#e8e6df}
 html[data-theme="light"] .update-text{color:#1a1917}
 .update-bar-track{width:160px;height:6px;border-radius:99px;background:#e8e5e0;overflow:hidden;transition:opacity .25s ease}
-.update-bar-track.off{opacity:0}
 @media(prefers-color-scheme:dark){.update-bar-track{background:#333}}
 html[data-theme="dark"] .update-bar-track{background:#333}
 html[data-theme="light"] .update-bar-track{background:#e8e5e0}
@@ -562,6 +559,11 @@ html[data-theme="light"] .hh-btn{color:#1a1917}
 html[data-theme="dark"] .btn-row .opt-title{color:#0a84ff}
 @media(prefers-color-scheme:dark){html:not([data-theme="light"]) .btn-row .opt-title{color:#0a84ff}}
 .btn-row.spinning{opacity:.45;pointer-events:none}
+/* "Coming soon" placeholder (Blocker) */
+.soon{display:flex;flex-direction:column;align-items:center;text-align:center;padding:64px 24px 0;gap:8px}
+.soon-ico{width:64px;height:64px;border-radius:20px;background:#ef444422;color:#ef4444;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.soon-t{font-size:20px;font-weight:800}
+.soon-s{font-size:13px;color:#999;max-width:260px;line-height:1.5}
 /* Dark mode: keep colors calm — muted War Room header (project colors use a
    soft tint, see tintStyle); settings icon badges keep their colors */
 @media(prefers-color-scheme:dark){
@@ -614,6 +616,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
   <button class="tab-item" data-tab="overview" onclick="TabBar.go('overview')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Overview</span></button>
   <button class="tab-item" data-tab="lockedin" onclick="TabBar.go('lockedin')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><polyline points="8 12.2 10.8 15 16 9.2"/></svg><span>Tasks</span></button>
   <button class="tab-item" data-tab="stats" onclick="TabBar.go('stats')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="11"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg><span>Stats</span></button>
+  <button class="tab-item" data-tab="blocker" onclick="TabBar.go('blocker')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l7.5 2.8v5.6c0 4.5-3.1 7.9-7.5 9.2-4.4-1.3-7.5-4.7-7.5-9.2V6z"/></svg><span>Blocker</span></button>
   <button class="tab-item" data-tab="settings" onclick="TabBar.go('settings')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3.5" y1="7" x2="6.5" y2="7"/><circle cx="9" cy="7" r="2.5"/><line x1="11.5" y1="7" x2="20.5" y2="7"/><line x1="3.5" y1="17" x2="12.5" y2="17"/><circle cx="15" cy="17" r="2.5"/><line x1="17.5" y1="17" x2="20.5" y2="17"/></svg><span>Settings</span></button>
 </div>
 
@@ -723,6 +726,19 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
     <div class="hh-title">Tasks</div>
   </div>
   <div id="settings-tasks" style="margin-top:8px"></div>
+</div>
+
+<div class="page" id="p-blocker">
+  <div class="dhdr"><div><div class="dtitle">Blocker</div></div></div>
+  <div class="soon"><div class="soon-ico"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l7.5 2.8v5.6c0 4.5-3.1 7.9-7.5 9.2-4.4-1.3-7.5-4.7-7.5-9.2V6z"/></svg></div><div class="soon-t">Coming soon</div><div class="soon-s">App and website blocker: limits, warnings, screen time and app usage.</div></div>
+</div>
+
+<div class="page sp" id="p-setblocker">
+  <div class="hh">
+    <div class="hh-bar"><button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button></div>
+    <div class="hh-title">Blocker</div>
+  </div>
+  <div class="soon"><div class="soon-ico"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l7.5 2.8v5.6c0 4.5-3.1 7.9-7.5 9.2-4.4-1.3-7.5-4.7-7.5-9.2V6z"/></svg></div><div class="soon-t">Coming soon</div><div class="soon-s">App and website blocker: limits, warnings, screen time and app usage.</div></div>
 </div>
 
 <div class="page sp" id="p-setstats">
@@ -865,10 +881,9 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 
 <div class="update-overlay" id="update-overlay">
   <div class="update-slot">
-    <div class="update-check" id="update-check">✓</div>
     <div class="update-bar-track" id="update-bar-track"><div class="update-bar-fill" id="update-bar-fill"></div></div>
   </div>
-  <div class="update-text" id="update-text">Updating…</div>
+  <div class="update-text" id="update-text">Downloading new version…</div>
 </div>
 
 <div class="sheet-overlay" id="whatsnew-overlay" onclick="if(event.target===this)WhatsNew.close()">
@@ -1030,7 +1045,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.46';
+var APP_VERSION='Beta 2.47';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1566,6 +1581,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.46',notes:[
     'Settings: the Tasks icon is teal'
+  ]},
+  {v:'Beta 2.47',notes:[
+    'New Blocker tab (red): for now just the title and "Coming soon" — also as a page in Settings. It is switched off in the bottom menu by default; turn it on under Settings > General > Menu',
+    'Update screen: it just says "Downloading new version…" the whole time and lets the bar fill completely — no text or icon change at the end'
   ]}
 ];
 var COLORS={
@@ -1601,7 +1620,7 @@ var COLOR_NAMES={
 // Settings a fresh install starts with, and what "Reset settings" restores
 // (lastSeenVersion is bookkeeping and is never reset).
 var DEFAULT_SETTINGS={
-  startTab:'today',hiddenTabs:[],holdToComplete:true,autoUpdate:true,language:'en',theme:'system',
+  startTab:'today',hiddenTabs:['blocker'],holdToComplete:true,autoUpdate:true,language:'en',theme:'system',
   dayStartHour:3,todayHabitsDisappear:true,skipHabits:false,
   todayTaskCount:3,todayRefill:false,skipTasks:true,showWarRoom:true
 };
@@ -1615,7 +1634,7 @@ var DB={
       categories:{}, // {id:{name,icon}}
       categoryOrder:[],      // [catId,...]
       projectOrder:{},       // {catId:[projId,...]}
-      settings:Object.assign({lastSeenVersion:APP_VERSION},JSON.parse(JSON.stringify(DEFAULT_SETTINGS)))};
+      settings:Object.assign({lastSeenVersion:APP_VERSION,blockerSeeded:true},JSON.parse(JSON.stringify(DEFAULT_SETTINGS)))};
   },
   load:function(){
     try{var r=localStorage.getItem(this.KEY);if(r)this.data=JSON.parse(r);}catch(e){}
@@ -1632,6 +1651,12 @@ var DB={
       if(v===undefined||v===null||v===''||(k==='todayTaskCount'&&typeof v!=='number')||(k==='hiddenTabs'&&!Array.isArray(v)))
         d.settings[k]=JSON.parse(JSON.stringify(DEFAULT_SETTINGS[k]));
     });
+    // The Blocker tab ships switched off: installs from before it existed get
+    // it hidden once (after that it's their choice in Settings > General).
+    if(!d.settings.blockerSeeded){
+      if(d.settings.hiddenTabs.indexOf('blocker')===-1)d.settings.hiddenTabs.push('blocker');
+      d.settings.blockerSeeded=true;
+    }
     // Missing entirely = a pre-existing install from before this system
     // existed — leave it unset (falsy) so the "what's new" sheet
     // correctly treats it as needing to catch up, once.
@@ -1983,7 +2008,7 @@ var I18N=(function(){
     'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
-    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Show War Room':'War Room anzeigen','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Blocker':'Blocker','Coming soon':'Demnächst verfügbar','App and website blocker: limits, warnings, screen time and app usage.':'App- und Website-Blocker: Limits, Warnungen, Bildschirmzeit und App-Nutzung.','Show War Room':'War Room anzeigen','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
     '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
@@ -2012,7 +2037,7 @@ var I18N=(function(){
     'habits':'Gewohnheiten','of':'von','scheduled days completed':'geplante Tage erledigt',
     'average one-time tasks completed per day (':'durchschnittlich erledigte einmalige Aufgaben pro Tag (','total)':'gesamt)',
     // updates
-    'Updating…':'Aktualisiere…','Downloading…':'Lade herunter…','Installing…':'Installiere…','Almost there…':'Fast geschafft…','Update ready — reloading…':'Update bereit — lade neu…',
+    'Downloading new version…':'Neue Version wird geladen…',
     'Nothing to update yet — close and reopen the app once first.':'Noch nichts zu aktualisieren — schließe die App einmal und öffne sie erneut.',
     'Update failed — try again later. Nothing was changed.':'Update fehlgeschlagen — versuche es später erneut. Es wurde nichts geändert.',
     // confirms / alerts
@@ -2035,7 +2060,6 @@ var I18N=(function(){
     [/^Current streak: (\d+)$/,'Aktuelle Serie: $1'],
     [/^What's new in (.*)$/,'Neuigkeiten in $1'],
     [/^📁 Category: (.*)$/,'📁 Kategorie: $1'],
-    [/^✓ Updated to (.*)$/,'✓ Aktualisiert auf $1'],
     [/^Delete all (\d+) items in this tab forever\?$/,'Alle $1 Einträge in diesem Tab endgültig löschen?'],
     [/^Delete category "(.*)"\? Its projects move to the Trash\.$/,'Kategorie „$1“ löschen? Ihre Projekte kommen in den Papierkorb.'],
     [/^Move project "(.*)" and all its tasks to the Trash\?$/,'Projekt „$1“ und alle seine Aufgaben in den Papierkorb legen?']
@@ -2662,7 +2686,7 @@ function renderAppPage(){
 function renderGeneralTop(){
   var el=document.getElementById('general-top');if(!el)return;
   var hidden=DB.data.settings.hiddenTabs||[],hold=DB.data.settings.holdToComplete;
-  var startOpts=[{value:'today',label:'Today'},{value:'overview',label:'Overview'},{value:'lockedin',label:'Tasks'},{value:'stats',label:'Stats'},{value:'settings',label:'Settings'}].filter(function(o){return o.value==='settings'||hidden.indexOf(o.value)===-1;});
+  var startOpts=[{value:'today',label:'Today'},{value:'overview',label:'Overview'},{value:'lockedin',label:'Tasks'},{value:'stats',label:'Stats'},{value:'blocker',label:'Blocker'},{value:'settings',label:'Settings'}].filter(function(o){return o.value==='settings'||hidden.indexOf(o.value)===-1;});
   el.innerHTML='<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Open app on</div></div>'
@@ -2697,7 +2721,7 @@ function renderSettings(){
   document.getElementById('settings-reset').innerHTML='<div class="opt-group"><div class="opt-row btn-row" onclick="A.resetSettings()"><div class="opt-text"><div class="opt-title">Reset settings</div></div></div></div>';
   document.getElementById('settings-nav').innerHTML='<div class="opt-group">'+[
     ['settoday','Today','#6366f1',tabIco('today')],['setoverview','Overview','#a855f7',tabIco('overview')],
-    ['settasks','Tasks','#14b8a6',tabIco('lockedin')],['setstats','Statistics','#22c55e',tabIco('stats')]
+    ['settasks','Tasks','#14b8a6',tabIco('lockedin')],['setstats','Statistics','#22c55e',tabIco('stats')],['setblocker','Blocker','#ef4444',tabIco('blocker')]
   ].map(function(r){
     return '<div class="opt-row" onclick="Nav.go(\''+r[0]+'\')"><div class="opt-ico" style="background:'+r[2]+'">'+r[3]+'</div>'
       +'<div class="opt-text"><div class="opt-title">'+r[1]+'</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>';
@@ -2950,13 +2974,13 @@ var A={
   // didn't take it: drop the worker and its caches (your data in
   // localStorage is untouched) and reload from the network.
   _hardUpdate:function(){
-    UpdateOverlay.show('Updating…');UpdateOverlay.progress(35,'Downloading…');
+    UpdateOverlay.show();UpdateOverlay.progress(35);
     var reg=navigator.serviceWorker.getRegistrations?navigator.serviceWorker.getRegistrations():Promise.resolve([]);
     reg.then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));})
       .then(function(){return caches.keys();})
       .then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k);}));})
       .then(function(){
-        UpdateOverlay.done('✓ Updated');
+        UpdateOverlay.done();
         setTimeout(function(){location.replace(location.pathname+'?v='+Date.now());},2800);
       }).catch(function(){UpdateOverlay.hide();});
   },
@@ -2977,7 +3001,7 @@ var A={
       if(found){
         if(pollTimer)clearInterval(pollTimer);
         settled=true;
-        UpdateOverlay.done('Update ready — reloading…');
+        UpdateOverlay.done();
         setTimeout(function(){location.reload();},2800);
       } else {
         done("Couldn't check for updates — try again later. Nothing was changed.");
@@ -3007,7 +3031,7 @@ var A={
       function finishUpdate(){
         if(settled)return;settled=true;clearTimeout(watchdog);
         if(pollTimer)clearInterval(pollTimer);
-        UpdateOverlay.done('✓ Updated to '+APP_VERSION);
+        UpdateOverlay.done();
         // Keep it on screen a beat even if everything finished instantly —
         // otherwise a fast connection means it flashes by unseen.
         var wait=Math.max(0,3200-(Date.now()-shownAt));
@@ -3022,7 +3046,7 @@ var A={
       reg.addEventListener('updatefound',function(){
         found=true;
         var sw=reg.installing;if(!sw)return;
-        UpdateOverlay.show('Downloading…');
+        UpdateOverlay.show();
         shownAt=Date.now();
         var stageProgress={installing:20,installed:65,activating:85};
         UpdateOverlay.progress(stageProgress[sw.state]||20);
@@ -3042,8 +3066,8 @@ var A={
         },400);
         sw.addEventListener('statechange',function(){
           if(sw.state==='redundant'){done('Update failed — try again later. Nothing was changed.');return;}
-          if(sw.state==='installed')UpdateOverlay.progress(65,'Installing…');
-          else if(sw.state==='activating')UpdateOverlay.progress(85,'Almost there…');
+          if(sw.state==='installed')UpdateOverlay.progress(65);
+          else if(sw.state==='activating')UpdateOverlay.progress(85);
         });
       });
       // reg.update()'s own internal fetch of sw.js is still subject to
@@ -3134,7 +3158,7 @@ var A={
   resetSettings:function(){
     ConfirmSheet.show('Reset all settings to the defaults? Your data stays.',function(){
       var keep=DB.data.settings.lastSeenVersion;
-      DB.data.settings=Object.assign({},JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),{lastSeenVersion:keep});
+      DB.data.settings=Object.assign({},JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),{lastSeenVersion:keep,blockerSeeded:true});
       DB.data.todaySet=null;DB.save();
       recomputeT();Nav.sd=0;
       applyHoldMode();applyTheme();I18N.set(DB.data.settings.language);TabBar.applyTabs();
@@ -3343,7 +3367,7 @@ function navSwitch(id){
 // back button (navBack with no arg) and the swipe-back gesture get the
 // right target without each call site needing to know about it.
 // Pages opened from the Settings list (back returns there; the Settings tab stays lit)
-var SETTINGS_SUBPAGES=['editlayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats'];
+var SETTINGS_SUBPAGES=['editlayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats','setblocker'];
 function _backTarget(){
   var cur=document.querySelector('.page.active');
   if(cur&&cur.id==='p-habit-detail')return HabitDetail.origin||'overview';
@@ -4297,7 +4321,7 @@ var Skip=(function(){
 })();
 
 var MenuPage={
-  TABS:[['today','Today'],['overview','Overview'],['lockedin','Tasks'],['stats','Stats']],
+  TABS:[['today','Today'],['overview','Overview'],['lockedin','Tasks'],['stats','Stats'],['blocker','Blocker']],
   render:function(){
     var hidden=DB.data.settings.hiddenTabs||[];
     var el=document.getElementById('general-menu');if(!el)return;
@@ -4763,27 +4787,19 @@ function _overlayClose(id,instant){
   },SHEET_ANIM_MS);
 }
 
+// The update screen says one thing the whole time ("Downloading new version…")
+// while the bar fills; nothing changes at the end, the app just reloads.
 var UpdateOverlay={
-  show:function(text){
-    document.getElementById('update-text').textContent=text;
-    document.getElementById('update-bar-track').classList.remove('off');
+  show:function(){
+    document.getElementById('update-text').textContent='Downloading new version…';
     document.getElementById('update-bar-fill').style.width='0%';
-    document.getElementById('update-check').classList.remove('on');
     document.getElementById('update-overlay').classList.add('on');
   },
-  progress:function(pct,text){
+  progress:function(pct){
     document.getElementById('update-bar-fill').style.width=pct+'%';
-    if(text)document.getElementById('update-text').textContent=text;
   },
-  done:function(text){
-    document.getElementById('update-text').textContent=text;
+  done:function(){
     document.getElementById('update-bar-fill').style.width='100%';
-    // the bar takes ~1.3s to fill, then the check takes its place
-    setTimeout(function(){
-      // swap in place: the check fades in where the bar was, nothing moves
-      document.getElementById('update-bar-track').classList.add('off');
-      document.getElementById('update-check').classList.add('on');
-    },1450);
   },
   hide:function(){
     document.getElementById('update-overlay').classList.remove('on');
@@ -4996,7 +5012,7 @@ var TabBar={
   startTab:function(){
     var h=DB.data.settings.hiddenTabs||[],st=DB.data.settings.startTab||'today';
     if(st==='settings'||h.indexOf(st)===-1)return st;
-    var order=['today','overview','lockedin','stats'];
+    var order=['today','overview','lockedin','stats','blocker'];
     for(var i=0;i<order.length;i++)if(h.indexOf(order[i])===-1)return order[i];
     return 'settings';
   },
@@ -5011,7 +5027,7 @@ var TabBar={
   // Trash -> Settings, a habit page -> where it was opened from).
   current:function(){
     var cur=Nav.cur;
-    if(['today','overview','lockedin','stats','settings'].indexOf(cur)!==-1)return cur;
+    if(['today','overview','lockedin','stats','blocker','settings'].indexOf(cur)!==-1)return cur;
     if(SETTINGS_SUBPAGES.indexOf(cur)!==-1)return 'settings';
     if(cur==='habit-detail')return HabitDetail.origin==='today'?'today':'overview';
     return 'overview';

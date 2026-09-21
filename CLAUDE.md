@@ -200,7 +200,7 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   `.page.sp` elements listed in `SETTINGS_SUBPAGES` (back returns to
   Settings, the Settings tab stays lit; Menu's back goes to General);
   `renderSettings()` fills all their containers, so a new setting only needs
-  its markup in the right container. The `.sp` class carries the slim
+  its markup in the right container. Sub-pages have NO icons on their rows (only the main list does) — except Appearance, whose Light/Dark/System rows keep theirs by request. The `.sp` class carries the slim
   no-outline settings styling (it used to be `#p-settings`). The old Version
   history / Menu bottom sheets were removed. Auto update = a silent
   `A.checkForUpdate(true)` at launch and on resume after 30 min; it only

@@ -366,18 +366,17 @@ html .sp .dsel-visual{border:none;background:transparent}
    contrast/washed out against the card background. */
 .opt-ico{width:30px;height:30px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff}
 
-/* Custom-sized tap target for a settings dropdown: the visible ".dsel-visual"
-   pill keeps the exact look/size of a normal .addinp select, while the real
-   <select> is invisible and stretched well beyond it (via negative inset)
-   so the actual hit area is much bigger than what's drawn — the row's own
-   padding still contains that overhang so it can't steal taps from a
-   neighboring row above/below. */
-.dsel-wrap{position:relative;display:inline-flex;flex:none;margin-left:auto}
+/* Settings dropdown: the invisible button (.dsel-real) covers the WHOLE row
+   (.opt-row is the nearest positioned ancestor), so a tap anywhere on the row
+   opens the list, like the widgets that open a page. .dsel-visual is just the
+   value and arrow drawn on top (pointer-events:none). */
+.dsel-wrap{display:inline-flex;flex:none;margin-left:auto}
+.opt-row{position:relative}
 .dsel-visual{display:flex;align-items:center;gap:12px;pointer-events:none}
 /* same arrow as the widgets that open a page (pointing right); turns down while the list is open */
 .dsel-arrow{display:inline-flex;transform:rotate(-90deg);transition:transform .2s ease}
 .dsel-wrap.open .dsel-arrow{transform:rotate(0deg)}
-.dsel-real{position:absolute;inset:-9px -16px;opacity:0;padding:0;border:none;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dsel-real{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;opacity:0;padding:0;border:none;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
 /* The list that opens under a Settings dropdown: fixed just below its row,
    capped in height (scrolls past that), see DSel. */
 .dsel-menu{position:fixed;z-index:600;min-width:150px;max-width:calc(100vw - 24px);max-height:min(236px,40vh);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#fff;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.18),0 0 0 1px rgba(127,127,127,.15);padding:4px 0}
@@ -1543,7 +1542,9 @@ var CHANGELOG=[
     'App: removed the "Last check" line'
   ]},
   {v:'Beta 2.38',notes:[
-    'Appearance: the selected option is marked with a tick, like in the dropdowns, instead of a dot'
+    'Appearance: the selected option is marked with a tick, like in the dropdowns, instead of a dot',
+    'Appearance: the three options have their icons again (the one settings page with icons)',
+    'Settings dropdowns: tapping anywhere on the row opens the list, not just the value'
   ]}
 ];
 var COLORS={
@@ -2612,6 +2613,7 @@ function renderAppearance(){
     {v:'system',icon:ICON_SYSTEM,title:'System',bg:'#6b7280'}
   ].map(function(o){
     return '<div class="opt-row'+(theme===o.v?' active':'')+'" onclick="A.setTheme(\''+o.v+'\')">'
+      +'<div class="opt-ico" style="background:'+o.bg+'">'+o.icon+'</div>'
       +'<div class="opt-text"><div class="opt-title">'+o.title+'</div></div>'
       +(theme===o.v?'<span class="opt-tick">\u2713</span>':'')+'</div>';
   }).join('')+'</div>';

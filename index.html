@@ -1037,7 +1037,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.32';
+var APP_VERSION='Beta 2.33';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1523,6 +1523,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.32',notes:[
     'Settings dropdowns use the same arrow, text size and position as the other widgets; the arrow points right and turns down (a quarter turn) while the list is open'
+  ]},
+  {v:'Beta 2.33',notes:[
+    'Settings dropdowns: the arrow now has the same color as the arrows on the other widgets'
   ]}
 ];
 var COLORS={
@@ -2497,7 +2500,7 @@ var ICON_CHEVRON='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" st
 function customSelect(opts,current,onchange){
   var sel=opts.filter(function(o){return String(o.value)===String(current);})[0]||opts[0]||{label:''};
   return '<div class="dsel-wrap" data-opts="'+esc(JSON.stringify(opts))+'" data-cur="'+esc(String(current))+'" data-on="'+esc(onchange)+'">'
-    +'<div class="dsel-visual" style="min-height:28px;font-size:14px;font-weight:600;color:#999">'+esc(sel.label)+'<span class="dsel-arrow" style="margin-left:-2px">'+ICON_CHEVRON+'</span></div>'
+    +'<div class="dsel-visual" style="min-height:28px;font-size:14px;font-weight:600"><span style="color:#999">'+esc(sel.label)+'</span><span class="dsel-arrow" style="margin-left:-2px">'+ICON_CHEVRON+'</span></div>'
     +'<button type="button" class="dsel-real" aria-label="'+esc(sel.label)+'" onclick="DSel.toggle(this)"></button>'
     +'</div>';
 }

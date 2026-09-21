@@ -98,8 +98,8 @@ html[data-theme="dark"] .wri input[type=checkbox]{accent-color:#e8e6df}
 html[data-theme="light"] .wri input[type=checkbox]{accent-color:#1a1917}
 .wit{font-size:14px;flex:1;line-height:1.4;font-weight:500}
 
-.agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:4px}
-.acard{background:#fff;border:1.5px solid #e8e5e0;border-radius:18px;padding:12px 10px 9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;transition:transform .12s}
+.agrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:4px}
+.acard{background:#fff;border:1.5px solid #e8e5e0;border-radius:18px;padding:12px 10px 9px;min-width:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;transition:transform .12s}
 @media(prefers-color-scheme:dark){.acard{background:#1e1c1a;border-color:#2a2927}}
 html[data-theme="dark"] .acard{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .acard{background:#fff;border-color:#e8e5e0}
@@ -108,7 +108,7 @@ html[data-theme="light"] .acard{background:#fff;border-color:#e8e5e0}
 @media(prefers-color-scheme:dark){.aico{background:#1f2937;color:#9ca3af}}
 html[data-theme="dark"] .aico{background:#1f2937;color:#9ca3af}
 html[data-theme="light"] .aico{background:#f3f4f6;color:#374151}
-.albl{font-size:11px;font-weight:700;color:#1a1917;line-height:1.3}
+.albl{font-size:11px;font-weight:700;color:#1a1917;line-height:1.3;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(prefers-color-scheme:dark){.albl{color:#e8e6df}}
 html[data-theme="dark"] .albl{color:#e8e6df}
 html[data-theme="light"] .albl{color:#1a1917}
@@ -381,6 +381,8 @@ html #p-settings .dsel-visual{border:none;background:transparent}
    neighboring row above/below. */
 .dsel-wrap{position:relative;display:inline-flex;flex:none;margin-left:auto}
 .dsel-visual{display:flex;align-items:center;gap:3px;pointer-events:none}
+.dsel-visual svg{transition:transform .2s ease}
+.dsel-wrap.open .dsel-visual svg{transform:rotate(180deg)}
 .dsel-real{position:absolute;inset:-9px -16px;opacity:0;padding:0;border:none;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
 /* The list that opens under a Settings dropdown: fixed just below its row,
    capped in height (scrolls past that), see DSel. */
@@ -398,13 +400,16 @@ html[data-theme="light"] .dsel-menu{background:#fff}
    .opt-row radio pairs above). */
 .switch{position:relative;display:inline-block;width:48px;height:28px;flex-shrink:0}
 .switch input{opacity:0;width:0;height:0;position:absolute}
-.switch-slider{position:absolute;inset:0;background:#d1d1d1;border-radius:999px;transition:background .15s;cursor:pointer}
+.switch-slider{position:absolute;inset:0;background:#d1d1d1;border-radius:999px;transition:background .25s ease;cursor:pointer}
 @media(prefers-color-scheme:dark){.switch-slider{background:#3a3a3a}}
 html[data-theme="dark"] .switch-slider{background:#3a3a3a}
 html[data-theme="light"] .switch-slider{background:#d1d1d1}
-.switch-slider::before{content:'';position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.switch-slider::before{content:'';position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .28s cubic-bezier(.3,1.25,.5,1),width .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .switch input:checked+.switch-slider{background:#3b82f6}
 .switch input:checked+.switch-slider::before{transform:translateX(20px)}
+/* the knob stretches a little while pressed */
+.switch:active .switch-slider::before{width:27px}
+.switch:active input:checked+.switch-slider::before{transform:translateX(15px)}
 
 .sl-count{display:inline-block;margin-left:8px;min-width:18px;padding:1px 6px;border-radius:99px;background:rgba(127,127,127,.18);color:#888;font-size:10px;font-weight:800;letter-spacing:0;text-align:center;vertical-align:1px}
 .sl{font-size:11px;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px}
@@ -544,6 +549,20 @@ html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:
    .opt-group are kept. */
 html:not(#x) .acard,html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .calsec,html:not(#x) .archbox,html:not(#x) .el-row,html:not(#x) .opt-row,html:not(#x) .opt-group{border-color:transparent}
 html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
+/* Dark mode: keep colors calm — muted War Room header and settings icon
+   badges (project colors use a soft tint, see tintStyle) */
+@media(prefers-color-scheme:dark){
+  html:not([data-theme="light"]) .wrhdr{background:#7a2e2d}
+  html:not([data-theme="light"]) .wrb{background:rgba(255,255,255,.14)}
+  html:not([data-theme="light"]) .wrd{color:rgba(255,255,255,.7)}
+  html:not([data-theme="light"]) .opt-ico{filter:saturate(.7) brightness(.82)}
+  html:not([data-theme="light"]) .bu{background:#7a2e2d}
+}
+html[data-theme="dark"] .wrhdr{background:#7a2e2d}
+html[data-theme="dark"] .wrb{background:rgba(255,255,255,.14)}
+html[data-theme="dark"] .wrd{color:rgba(255,255,255,.7)}
+html[data-theme="dark"] .opt-ico{filter:saturate(.7) brightness(.82)}
+html[data-theme="dark"] .bu{background:#7a2e2d}
 /* One divider look everywhere (1.5px, --line): a hair darker than the page
    background, so it reads as a soft gap between rows, as in Settings. */
 :root{--line:#eceef1;--pg:#f3f4f6;--card:#fff}
@@ -958,7 +977,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.16';
+var APP_VERSION='Beta 2.18';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1387,6 +1406,14 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.16',notes:[
     'Overview: the project squares have a bigger icon with less space between the icon, the name and the task count'
+  ]},
+  {v:'Beta 2.17',notes:[
+    'Dark mode: calmer colors — project icons use a soft tint instead of full-strength color, and the War Room header and the settings icons are muted',
+    'Overview: a project name that is too long for its square is cut off with three dots, so it always stays on one line'
+  ]},
+  {v:'Beta 2.18',notes:[
+    'Settings dropdowns: the list sits a little higher against its widget, the arrow flips up while it is open, and tapping anywhere else only closes the list (it no longer also presses whatever was underneath)',
+    'Settings switches: no more tiny delay (the page no longer redraws when you flip one), and the knob now glides with a slight stretch while pressed'
   ]}
 ];
 var COLORS={
@@ -2366,17 +2393,35 @@ function customSelect(opts,current,onchange){
 // tall with its own scroll, and closed by picking, tapping elsewhere or
 // scrolling the page. The native <select> couldn't be positioned.
 var DSel=(function(){
-  var menu=null,owner=null;
+  var menu=null,owner=null,swallowUntil=0;
+  // A tap/click that closes the list must do nothing else: while (and just
+  // after) it's open, the first press outside only closes it.
+  document.addEventListener('click',function(e){
+    if(Date.now()<swallowUntil){e.stopPropagation();e.preventDefault();}
+  },true);
   function close(){
     if(menu){menu.remove();menu=null;}
+    if(owner)owner.classList.remove('open');
     owner=null;
     document.removeEventListener('click',outside,true);
+    document.removeEventListener('touchstart',outsideStart,true);
+    document.removeEventListener('mousedown',outsideStart,true);
     window.removeEventListener('scroll',onScroll,true);
     window.removeEventListener('resize',close);
   }
   // scrolling the list itself must not close it; scrolling the page does
   function onScroll(e){if(menu&&e.target!==document&&menu.contains(e.target))return;close();}
-  function outside(e){if(menu&&!menu.contains(e.target)&&!(owner&&owner.contains(e.target)))close();}
+  function isInside(e){return menu&&(menu.contains(e.target)||(owner&&owner.contains(e.target)));}
+  function outsideStart(e){
+    if(!menu||isInside(e))return;
+    swallowUntil=Date.now()+450; // the click that follows this press is dropped
+    close();
+  }
+  function outside(e){
+    if(!menu||isInside(e))return;
+    e.stopPropagation();e.preventDefault();
+    close();
+  }
   function open(btn){
     var wrap=btn.closest('.dsel-wrap');if(!wrap)return;
     var opts=JSON.parse(wrap.getAttribute('data-opts')),cur=wrap.getAttribute('data-cur'),code=wrap.getAttribute('data-on');
@@ -2391,22 +2436,25 @@ var DSel=(function(){
       new Function(code).call({value:String(v)});
     });
     document.body.appendChild(menu);
-    owner=wrap;
-    // right under the row (the widget), right-aligned with it
+    owner=wrap;wrap.classList.add('open');
+    // right under the row (the widget), right-aligned with it, tucked in a
+    // few px so it visually belongs to it
     var row=wrap.closest('.opt-row')||wrap,r=row.getBoundingClientRect();
     var mh=menu.offsetHeight,mw=menu.offsetWidth,vh=window.innerHeight;
-    var top=r.bottom+1,below=vh-top-8;
+    var top=r.bottom-5,below=vh-top-8;
     if(mh>below){
       // not enough room below: shrink to fit if it's still a usable size,
       // otherwise open above the row
       if(below>=140){menu.style.maxHeight=below+'px';}
-      else{var above=r.top-1-8;menu.style.maxHeight=Math.min(mh,above)+'px';top=r.top-1-Math.min(mh,above);}
+      else{var above=r.top+5-8;menu.style.maxHeight=Math.min(mh,above)+'px';top=r.top+5-Math.min(mh,above);}
     }
     menu.style.top=Math.max(8,top)+'px';
     menu.style.left=Math.max(12,Math.min(r.right-mw,window.innerWidth-mw-12))+'px';
     var sel=menu.querySelector('.sel');if(sel)menu.scrollTop=Math.max(0,sel.offsetTop-menu.clientHeight/2+sel.offsetHeight/2);
     setTimeout(function(){
       document.addEventListener('click',outside,true);
+      document.addEventListener('touchstart',outsideStart,true);
+      document.addEventListener('mousedown',outsideStart,true);
       window.addEventListener('scroll',onScroll,true);
       window.addEventListener('resize',close);
     },0);
@@ -2775,11 +2823,11 @@ var A={
   },
     setHoldMode:function(val){
     DB.data.settings.holdToComplete=val;DB.save();
-    applyHoldMode();renderSettings();
+    applyHoldMode();
   },
   setTodayHabitsDisappear:function(val){
     DB.data.settings.todayHabitsDisappear=val;DB.save();
-    renderSettings();renderToday();
+    renderToday();
   },
   setDayStartHour:function(val){
     DB.data.settings.dayStartHour=parseInt(val,10)||0;DB.save();
@@ -2819,7 +2867,6 @@ var A={
   },
   setTodayRefill:function(val){
     DB.data.settings.todayRefill=val;DB.save();
-    renderSettings();
   },
   setTheme:function(val){
     DB.data.settings.theme=val;DB.save();
@@ -4112,7 +4159,8 @@ function isDarkNow(){
 // dark mode this is a solid chip (full color, white text) instead of a
 // tint, the same treatment the priority badges (.bu/.bs/etc) already use.
 function tintStyle(col){
-  return isDarkNow()?('background:'+col+';color:#fff'):('background:'+col+'20;color:'+col);
+  // dark mode: a soft tint of the color, not the full-strength color
+  return isDarkNow()?('background:'+col+'2e;color:'+col+'d9'):('background:'+col+'20;color:'+col);
 }
 function playClick(){
   try{
@@ -4900,7 +4948,7 @@ var SheetEditor={
       var dico=document.querySelector('#p-'+this.pid+' .dico');
       var dtitle=document.querySelector('#p-'+this.pid+' .dtitle');
       var dsub=document.querySelector('#p-'+this.pid+' .dsub');
-      if(dico){dico.style.background=isDarkNow()?pcol:pcol+'20';dico.style.color=isDarkNow()?'#fff':pcol;dico.textContent=icon;}
+      if(dico){dico.style.background=isDarkNow()?pcol+'2e':pcol+'20';dico.style.color=isDarkNow()?pcol+'d9':pcol;dico.textContent=icon;}
       if(dtitle)dtitle.textContent=name;
       if(dsub)dsub.textContent=desc;
       // The Daily project's live page is #p-habits, not #p-<pid> (Nav.go

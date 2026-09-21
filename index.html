@@ -409,17 +409,20 @@ html[data-theme="light"] .switch-slider{background:#d1d1d1}
 .sl-count{display:inline-block;margin-left:8px;min-width:18px;padding:1px 6px;border-radius:99px;background:rgba(127,127,127,.18);color:#888;font-size:10px;font-weight:800;letter-spacing:0;text-align:center;vertical-align:1px}
 .sl{font-size:11px;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px}
 
-.update-overlay{display:none;position:fixed;inset:0;background:rgba(243,244,246,.97);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.update-overlay{display:none;position:fixed;inset:0;background:rgba(243,244,246,.97);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding-top:22vh}
 @media(prefers-color-scheme:dark){.update-overlay{background:rgba(26,25,23,.97)}}
 html[data-theme="dark"] .update-overlay{background:rgba(26,25,23,.97)}
 html[data-theme="light"] .update-overlay{background:rgba(243,244,246,.97)}
 .update-overlay.on{display:flex}
-.update-check{font-size:34px;line-height:1}
+.update-slot{position:relative;width:160px;height:36px;display:flex;align-items:center;justify-content:center}
+.update-check{position:absolute;font-size:34px;line-height:1;opacity:0;transform:scale(.7);transition:opacity .25s ease,transform .25s ease}
+.update-check.on{opacity:1;transform:none}
 .update-text{font-size:15px;font-weight:700;color:#1a1917}
 @media(prefers-color-scheme:dark){.update-text{color:#e8e6df}}
 html[data-theme="dark"] .update-text{color:#e8e6df}
 html[data-theme="light"] .update-text{color:#1a1917}
-.update-bar-track{width:160px;height:6px;border-radius:99px;background:#e8e5e0;overflow:hidden}
+.update-bar-track{width:160px;height:6px;border-radius:99px;background:#e8e5e0;overflow:hidden;transition:opacity .25s ease}
+.update-bar-track.off{opacity:0}
 @media(prefers-color-scheme:dark){.update-bar-track{background:#333}}
 html[data-theme="dark"] .update-bar-track{background:#333}
 html[data-theme="light"] .update-bar-track{background:#e8e5e0}
@@ -771,8 +774,10 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 </div>
 
 <div class="update-overlay" id="update-overlay">
-  <div class="update-check" id="update-check" style="display:none">✓</div>
-  <div class="update-bar-track" id="update-bar-track"><div class="update-bar-fill" id="update-bar-fill"></div></div>
+  <div class="update-slot">
+    <div class="update-check" id="update-check">✓</div>
+    <div class="update-bar-track" id="update-bar-track"><div class="update-bar-fill" id="update-bar-fill"></div></div>
+  </div>
   <div class="update-text" id="update-text">Updating…</div>
 </div>
 
@@ -953,7 +958,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.14';
+var APP_VERSION='Beta 2.15';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1376,6 +1381,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.14',notes:[
     'War Room redesigned to look cleaner: one white card with a red header (title, the reminder line and the count), and the tasks below it with divider lines'
+  ]},
+  {v:'Beta 2.15',notes:[
+    'Update screen: it sits lower, and when the update finishes the check mark fades in where the bar was — nothing jumps anymore'
   ]}
 ];
 var COLORS={
@@ -4280,9 +4288,9 @@ function _overlayClose(id,instant){
 var UpdateOverlay={
   show:function(text){
     document.getElementById('update-text').textContent=text;
-    document.getElementById('update-bar-track').style.display='';
+    document.getElementById('update-bar-track').classList.remove('off');
     document.getElementById('update-bar-fill').style.width='0%';
-    document.getElementById('update-check').style.display='none';
+    document.getElementById('update-check').classList.remove('on');
     document.getElementById('update-overlay').classList.add('on');
   },
   progress:function(pct,text){
@@ -4293,8 +4301,9 @@ var UpdateOverlay={
     document.getElementById('update-text').textContent=text;
     document.getElementById('update-bar-fill').style.width='100%';
     setTimeout(function(){
-      document.getElementById('update-bar-track').style.display='none';
-      document.getElementById('update-check').style.display='';
+      // swap in place: the check fades in where the bar was, nothing moves
+      document.getElementById('update-bar-track').classList.add('off');
+      document.getElementById('update-check').classList.add('on');
     },250);
   },
   hide:function(){

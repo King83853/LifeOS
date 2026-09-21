@@ -564,6 +564,13 @@ html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
 @media(prefers-color-scheme:dark){.hh-btn{color:#e8e6df}}
 html[data-theme="dark"] .hh-btn{color:#e8e6df}
 html[data-theme="light"] .hh-btn{color:#1a1917}
+/* Buttons on settings pages: a normal white widget row with blue text (no
+   icons on sub-pages; icons stay on the main settings list) */
+.btn-row{cursor:pointer}
+.btn-row .opt-title{color:#007aff}
+html[data-theme="dark"] .btn-row .opt-title{color:#0a84ff}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]) .btn-row .opt-title{color:#0a84ff}}
+.btn-row.spinning{opacity:.45;pointer-events:none}
 /* Dark mode: keep colors calm — muted War Room header (project colors use a
    soft tint, see tintStyle); settings icon badges keep their colors */
 @media(prefers-color-scheme:dark){
@@ -702,8 +709,8 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
     <div class="hh-title">Data</div>
   </div>
   <div class="opt-group" style="margin-top:8px">
-    <div class="opt-row" onclick="A.exportData()"><div class="opt-ico" style="background:#3b82f6"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div><div class="opt-text"><div class="opt-title">Export</div></div></div>
-    <div class="opt-row" onclick="A.importData()"><div class="opt-ico" style="background:#22c55e"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="opt-text"><div class="opt-title">Import</div></div></div>
+    <div class="opt-row btn-row" onclick="A.exportData()"><div class="opt-text"><div class="opt-title">Export</div></div></div>
+    <div class="opt-row btn-row" onclick="A.importData()"><div class="opt-text"><div class="opt-title">Import</div></div></div>
   </div>
 </div>
 
@@ -1037,7 +1044,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.33';
+var APP_VERSION='Beta 2.34';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1526,6 +1533,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.33',notes:[
     'Settings dropdowns: the arrow now has the same color as the arrows on the other widgets'
+  ]},
+  {v:'Beta 2.34',notes:[
+    'Settings pages: every button (Check for updates, Export, Import, Reset skipped tasks, Reset all statistics) is now a normal white widget with blue text, like on iPhone, and the pages inside Settings have no icons — only the main Settings list keeps them'
   ]}
 ];
 var COLORS={
@@ -2487,8 +2497,6 @@ function trashSvg(sz,stroke){return '<svg width="'+sz+'" height="'+sz+'" viewBox
 // Light green used for skipped days (charts and rings); the Skip swipe action and
 // skipped-habit label use the same value in CSS.
 var SKIP_COLOR='#86efac';
-var ICON_RESET='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>';
-var ICON_TARGET='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
 var ICON_CHEVRON='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>';
 
 // Renders a dropdown whose visible pill stays the normal small size while
@@ -2595,13 +2603,11 @@ function renderAppearance(){
     {v:'system',icon:ICON_SYSTEM,title:'System',bg:'#6b7280'}
   ].map(function(o){
     return '<div class="opt-row'+(theme===o.v?' active':'')+'" onclick="A.setTheme(\''+o.v+'\')">'
-      +'<div class="opt-ico" style="background:'+o.bg+'">'+o.icon+'</div>'
       +'<div class="opt-text"><div class="opt-title">'+o.title+'</div></div>'
       +'<div class="opt-radio" style="margin-left:auto"><div class="opt-radio-dot"></div></div></div>';
   }).join('')+'</div>';
 }
 // App page: current version, automatic updates, manual check, history
-var ICON_REFRESH='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>';
 function lastCheckText(){
   var i=DB.data.settings.autoInfo;if(!i)return '—';
   var d=new Date(i.ts),hm=d.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'});
@@ -2622,7 +2628,7 @@ function renderAppPage(){
     +'<div class="opt-text"><div class="opt-title">Last check</div></div>'
     +'<span style="margin-left:auto;font-size:14px;font-weight:600;color:#999">'+esc(lastCheckText())+'</span></div>'
     +'</div>'
-    +'<button class="addbtn" id="update-btn" style="width:100%;height:46px;min-height:46px;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px" onclick="A.checkForUpdate()">'+ICON_REFRESH+'<span>Check for updates</span></button>';
+    +'<div class="opt-group"><div class="opt-row btn-row" id="update-btn" onclick="A.checkForUpdate()"><div class="opt-text"><div class="opt-title">Check for updates</div></div></div></div>';
   document.getElementById('app-history').innerHTML='<div class="calsec" style="padding:14px 15.5px 2px">'+CHANGELOG.slice().reverse().map(function(entry){
     return '<div style="margin-bottom:18px"><div style="font-weight:800;font-size:15px;margin-bottom:6px">'+esc(entry.v)+'</div>'
       +entry.notes.map(function(n){return '<div class="wn-item">• '+esc(n)+'</div>';}).join('')
@@ -2700,25 +2706,21 @@ function renderSettings(){
   DB.data.categoryOrder.forEach(function(cid){(DB.data.projectOrder[cid]||[]).forEach(function(pid){var p=DB.data.projects[pid];if(p)projOpts.push({value:pid,label:(p.icon||'')+' '+p.name});});});
   document.getElementById('settings-overview').innerHTML='<div class="opt-group">'
     +'<div class="opt-row" onclick="Nav.go(\'editlayout\')">'
-    +'<div class="opt-ico" style="background:#a855f7"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div>'
-    +'<div class="opt-text"><div class="opt-title">Edit layout</div></div></div>'
+    +'<div class="opt-text"><div class="opt-title">Edit layout</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>'
     +'<div class="opt-row" style="cursor:default">'
-    +'<div class="opt-ico" style="background:#ef4444">'+ICON_RESET+'</div>'
     +'<div class="opt-text"><div class="opt-title">Reset a project</div></div>'
     +customSelect(projOpts,'','A.resetProject(this.value)')
     +'</div></div>';
 
   // Statistics section: one button that resets everything
   document.getElementById('settings-stats').innerHTML=
-    '<button class="addbtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px" onclick="A.resetAllStats()">'
-    +ICON_RESET+'<span>Reset all statistics</span></button>';
+    '<div class="opt-group"><div class="opt-row btn-row" onclick="A.resetAllStats()"><div class="opt-text"><div class="opt-title">Reset all statistics</div></div></div></div>';
 
   var refill=DB.data.settings.todayRefill;
   var vanish=DB.data.settings.todayHabitsDisappear;
   document.getElementById('settings-today').innerHTML=
     '<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
-    +'<div class="opt-ico" style="background:#6366f1">'+ICON_MOON+'</div>'
     +'<div class="opt-text"><div class="opt-title">Day starts at</div></div>'
     +customSelect(HOUR_OPTS.map(function(h){return{value:h,label:hourLabel(h)};}),DB.data.settings.dayStartHour,'A.setDayStartHour(this.value)')
     +'</div>'
@@ -2729,7 +2731,6 @@ function renderSettings(){
     +'</div>'
     +'<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
-    +'<div class="opt-ico" style="background:#ef4444">'+ICON_TARGET+'</div>'
     +'<div class="opt-text"><div class="opt-title">Tasks shown</div></div>'
     +customSelect(Array.apply(null,Array(21)).map(function(_,n){return{value:n,label:String(n)};}),DB.data.settings.todayTaskCount,'A.setTodayTaskCount(this.value)')
     +'</div>'
@@ -2738,9 +2739,7 @@ function renderSettings(){
     +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(refill?'checked':'')+' onchange="A.setTodayRefill(this.checked)"><span class="switch-slider"></span></label>'
     +'</div>'
     +'</div>'
-    +'<button class="addbtn" style="width:100%;min-height:48px;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="A.resetSkipped()">'
-    +ICON_RESET+'<span>Reset skipped tasks</span>'
-    +'</button>';
+    +'<div class="opt-group"><div class="opt-row btn-row" onclick="A.resetSkipped()"><div class="opt-text"><div class="opt-title">Reset skipped tasks</div></div></div></div>';
 }
 
 function renderHabits(){
@@ -4246,9 +4245,7 @@ var MenuPage={
   render:function(){
     var hidden=DB.data.settings.hiddenTabs||[];
     document.getElementById('menu-tabs-list').innerHTML='<div class="opt-group">'+this.TABS.map(function(t){
-      var btn=document.querySelector('.tab-item[data-tab="'+t[0]+'"] svg');
       return '<div class="opt-row" style="cursor:default">'
-        +'<div class="opt-ico">'+(btn?btn.outerHTML:'')+'</div>'
         +'<div class="opt-text"><div class="opt-title">'+t[1]+'</div></div>'
         +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(hidden.indexOf(t[0])===-1?'checked':'')+' onchange="MenuPage.toggle(\''+t[0]+'\',this.checked)"><span class="switch-slider"></span></label>'
         +'</div>';

@@ -956,7 +956,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.9';
+var APP_VERSION='Beta 2.10';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1363,7 +1363,10 @@ var CHANGELOG=[
     'Restoring a task whose project is gone now tells you instead of silently dropping it'
   ]},
   {v:'Beta 2.9',notes:[
-    'Settings: new Statistics section — reset the history (and score) of one habit or all habits, and reset the completed-tasks statistics'
+    'Settings: new Statistics section for resetting habit and task statistics'
+  ]},
+  {v:'Beta 2.10',notes:[
+    'Statistics: one button now resets all statistics at once (every habit\'s history and the completed-tasks numbers)'
   ]}
 ];
 var COLORS={
@@ -1775,7 +1778,7 @@ var I18N=(function(){
     'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
-    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset habit stats':'Gewohnheits-Statistik zurücksetzen','Reset task stats':'Aufgaben-Statistik zurücksetzen','All habits':'Alle Gewohnheiten','Reset the completed-tasks statistics? The Trash is not touched.':'Statistik der erledigten Aufgaben zurücksetzen? Der Papierkorb bleibt unberührt.','Delete the history of all habits? Their scores and charts start over.':'Verlauf aller Gewohnheiten löschen? Ihre Werte und Diagramme beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
     '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
@@ -1823,7 +1826,6 @@ var I18N=(function(){
     [/^scheduled days completed \((\d+) skipped\)$/,'geplante Tage erledigt ($1 übersprungen)'],
     [/ \((\d+) skipped\)/g,' ($1 übersprungen)'],
     [/^Tracking: (.*)$/,'Verfolge: $1'],
-    [/^Delete the history of "(.*)"\? Its score and charts start over\.$/,'Verlauf von „$1“ löschen? Wert und Diagramme beginnen von vorn.'],
     [/^Move all (habits and categories|entries|tasks) of "(.*)" to the Trash\?$/,function(m,w,n){return 'Alle '+({'habits and categories':'Gewohnheiten und Kategorien','entries':'Einträge','tasks':'Aufgaben'})[w]+' von „'+n+'“ in den Papierkorb legen?';}],
     [/^Current streak: (\d+)$/,'Aktuelle Serie: $1'],
     [/^What's new in (.*)$/,'Neuigkeiten in $1'],
@@ -2448,19 +2450,10 @@ function renderSettings(){
     +customSelect(projOpts,'','A.resetProject(this.value)')
     +'</div></div>';
 
-  // Statistics section
-  var habitOpts=[{value:'',label:'Choose…'},{value:'__all',label:'All habits'}];
-  DB.data.dailyItems.forEach(function(it){if(!it.trackerPid)habitOpts.push({value:it.id,label:it.text});});
-  document.getElementById('settings-stats').innerHTML='<div class="opt-group">'
-    +'<div class="opt-row" style="cursor:default">'
-    +'<div class="opt-ico" style="background:#22c55e">'+ICON_RESET+'</div>'
-    +'<div class="opt-text"><div class="opt-title">Reset habit stats</div></div>'
-    +customSelect(habitOpts,'','A.resetHabitStats(this.value)')
-    +'</div>'
-    +'<div class="opt-row" onclick="A.resetTaskStats()">'
-    +'<div class="opt-ico" style="background:#3b82f6">'+ICON_RESET+'</div>'
-    +'<div class="opt-text"><div class="opt-title">Reset task stats</div></div>'
-    +'</div></div>';
+  // Statistics section: one button that resets everything
+  document.getElementById('settings-stats').innerHTML=
+    '<button class="addbtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px" onclick="A.resetAllStats()">'
+    +ICON_RESET+'<span>Reset all statistics</span></button>';
 
   var refill=DB.data.settings.todayRefill;
   var vanish=DB.data.settings.todayHabitsDisappear;
@@ -2792,19 +2785,12 @@ var A={
       A._refreshAll();renderSettings();
     });
   },
-  resetHabitStats:function(id){
-    if(!id)return;
-    var all=id==='__all',it=DB.data.dailyItems.find(function(x){return x.id===id;});
-    if(!all&&!it)return;
-    ConfirmSheet.show(all?'Delete the history of all habits? Their scores and charts start over.':'Delete the history of "'+it.text+'"? Its score and charts start over.',function(){
-      DB.resetHabitStats(all?null:id);
-      A._refreshAll();renderSettings();
-    });
-  },
-  resetTaskStats:function(){
-    ConfirmSheet.show('Reset the completed-tasks statistics? The Trash is not touched.',function(){
+  // Settings > Statistics: wipes every habit's history and the completed-tasks numbers
+  resetAllStats:function(){
+    ConfirmSheet.show('Reset all statistics? The history of every habit and the completed-tasks numbers start over.',function(){
+      DB.resetHabitStats(null);
       DB.resetTaskStats();
-      renderSettings();
+      A._refreshAll();renderSettings();
     });
   },
   resetSkipped:function(){

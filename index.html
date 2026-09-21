@@ -1044,7 +1044,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.34';
+var APP_VERSION='Beta 2.35';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1536,6 +1536,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.34',notes:[
     'Settings pages: every button (Check for updates, Export, Import, Reset skipped tasks, Reset all statistics) is now a normal white widget with blue text, like on iPhone, and the pages inside Settings have no icons — only the main Settings list keeps them'
+  ]},
+  {v:'Beta 2.35',notes:[
+    'Settings > Today: switches for "Skip tasks" and "Skip habits" — turn one off and that swipe-to-skip gesture is gone on Today'
   ]}
 ];
 var COLORS={
@@ -1597,6 +1600,8 @@ var DB={
     if(d.settings.todayRefill===undefined)d.settings.todayRefill=false;
     if(!d.settings.startTab)d.settings.startTab='today';
     if(d.settings.autoUpdate===undefined)d.settings.autoUpdate=false;
+    if(d.settings.skipTasks===undefined)d.settings.skipTasks=true;
+    if(d.settings.skipHabits===undefined)d.settings.skipHabits=true;
     if(!Array.isArray(d.settings.hiddenTabs))d.settings.hiddenTabs=[];
     // Missing entirely = a pre-existing install from before this system
     // existed — leave it unset (falsy) so the "what's new" sheet
@@ -1949,7 +1954,7 @@ var I18N=(function(){
     'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
-    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Last check':'Letzte Prüfung','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Last check':'Letzte Prüfung','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
     '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
@@ -2739,6 +2744,16 @@ function renderSettings(){
     +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(refill?'checked':'')+' onchange="A.setTodayRefill(this.checked)"><span class="switch-slider"></span></label>'
     +'</div>'
     +'</div>'
+    +'<div class="opt-group">'
+    +'<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-text"><div class="opt-title">Skip tasks</div></div>'
+    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(DB.data.settings.skipTasks!==false?'checked':'')+' onchange="A.setSkipTasks(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div>'
+    +'<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-text"><div class="opt-title">Skip habits</div></div>'
+    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(DB.data.settings.skipHabits!==false?'checked':'')+' onchange="A.setSkipHabits(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div>'
+    +'</div>'
     +'<div class="opt-group"><div class="opt-row btn-row" onclick="A.resetSkipped()"><div class="opt-text"><div class="opt-title">Reset skipped tasks</div></div></div></div>';
 }
 
@@ -3088,6 +3103,9 @@ var A={
       A._refreshAll();renderSettings();
     });
   },
+  // Swipe-to-skip on/off (Settings > Today): Today's rows are rebuilt without the swipe wrapper
+  setSkipTasks:function(val){DB.data.settings.skipTasks=val;DB.save();renderToday();},
+  setSkipHabits:function(val){DB.data.settings.skipHabits=val;DB.save();renderToday();},
   resetSkipped:function(){
     for(var pid in DB.data.extraTasks)(DB.data.extraTasks[pid]||[]).forEach(function(t){delete t.skip;});
     DB.save();renderSettings();renderToday();
@@ -4161,6 +4179,9 @@ function renderToday(){
 // but is amber in the charts. Only unchecked habits can be skipped.
 var SKIP_ICON='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 5 12 12 5 19"/><polyline points="13 5 20 12 13 19"/></svg>';
 function swipeWrap(kind,inner){
+  // switched off in Settings > Today: the row is plain, nothing to swipe
+  if(kind==='t'&&DB.data.settings.skipTasks===false)return inner;
+  if(kind==='h'&&DB.data.settings.skipHabits===false)return inner;
   return '<div class="sw '+kind+'"><div class="sw-act"><span>Skip'+SKIP_ICON+'</span></div><div class="sw-row">'+inner+'</div></div>';
 }
 var Skip=(function(){

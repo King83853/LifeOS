@@ -1036,7 +1036,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.30';
+var APP_VERSION='Beta 2.31';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1515,6 +1515,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.30',notes:[
     'Settings icons have the same colors in dark and light mode'
+  ]},
+  {v:'Beta 2.31',notes:[
+    'Settings: Trash has an arrow like the other widgets',
+    'Settings: the Appearance icon changes with the selected mode (sun, moon or half circle) and the text next to it is gone'
   ]}
 ];
 var COLORS={
@@ -2619,17 +2623,19 @@ function renderAppPage(){
   }).join('')+'</div>';
 }
 function renderSettings(){
-  var themeLbl={light:'Light',dark:'Dark',system:'System'};
   var chev='<span style="display:inline-flex;transform:rotate(-90deg);margin-left:-2px">'+ICON_CHEVRON+'</span>';
   var rowVal='margin-left:auto;font-size:14px;font-weight:600;color:#999';
   var appRow='<div class="opt-row" onclick="Nav.go(\'app\')">'
     +'<div class="opt-ico" style="background:#3b82f6">'+ICON_PHONE+'</div>'
     +'<div class="opt-text"><div class="opt-title">App</div></div>'
     +'<span style="'+rowVal+'">'+esc(APP_VERSION)+'</span>'+chev+'</div>';
+  // the icon shows the selected mode (no text needed)
+  var themeNow=DB.data.settings.theme||'system';
+  var themeIco={light:[ICON_SUN,'#f59e0b'],dark:[ICON_MOON,'#6366f1'],system:[ICON_SYSTEM,'#6b7280']}[themeNow]||[ICON_SYSTEM,'#6b7280'];
   var appearanceRow='<div class="opt-row" onclick="Nav.go(\'appearance\')">'
-    +'<div class="opt-ico" style="background:#f59e0b">'+ICON_SUN+'</div>'
+    +'<div class="opt-ico" style="background:'+themeIco[1]+'">'+themeIco[0]+'</div>'
     +'<div class="opt-text"><div class="opt-title">Appearance</div></div>'
-    +'<span style="'+rowVal+'">'+themeLbl[DB.data.settings.theme||'system']+'</span>'+chev+'</div>';
+    +'<span style="margin-left:auto;display:inline-flex">'+chev.replace('margin-left:-2px','margin-left:0')+'</span></div>';
   // Today / Overview / Statistics / Data each open their own page
   var tabIco=function(t){var e=document.querySelector('.tab-item[data-tab="'+t+'"] svg');return e?e.outerHTML:'';};
   var dataIco='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>';
@@ -2678,7 +2684,7 @@ function renderSettings(){
     +'<div class="opt-row" onclick="Nav.go(\'archive\')">'
     +'<div class="opt-ico" style="background:#71717a">'+trashSvg(20,'currentColor')+'</div>'
     +'<div class="opt-text"><div class="opt-title">Trash</div></div>'
-    +'<span class="ab" id="ab2" style="margin-left:auto;display:'+(trashN?'inline-flex':'none')+'">'+trashN+'</span>'
+    +'<span style="margin-left:auto;display:inline-flex;align-items:center;gap:8px"><span class="ab" id="ab2" style="margin-left:0;display:'+(trashN?'inline-flex':'none')+'">'+trashN+'</span>'+chev.replace('margin-left:-2px','margin-left:0')+'</span>'
     +'</div>'
     +'</div>';
 

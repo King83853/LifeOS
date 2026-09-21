@@ -563,19 +563,17 @@ html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
 @media(prefers-color-scheme:dark){.hh-btn{color:#e8e6df}}
 html[data-theme="dark"] .hh-btn{color:#e8e6df}
 html[data-theme="light"] .hh-btn{color:#1a1917}
-/* Dark mode: keep colors calm — muted War Room header and settings icon
-   badges (project colors use a soft tint, see tintStyle) */
+/* Dark mode: keep colors calm — muted War Room header (project colors use a
+   soft tint, see tintStyle); settings icon badges keep their colors */
 @media(prefers-color-scheme:dark){
   html:not([data-theme="light"]) .wrhdr{background:#7a2e2d}
   html:not([data-theme="light"]) .wrb{background:rgba(255,255,255,.14)}
   html:not([data-theme="light"]) .wrd{color:rgba(255,255,255,.7)}
-  html:not([data-theme="light"]) .opt-ico{filter:saturate(.7) brightness(.82)}
   html:not([data-theme="light"]) .bu{background:#7a2e2d}
 }
 html[data-theme="dark"] .wrhdr{background:#7a2e2d}
 html[data-theme="dark"] .wrb{background:rgba(255,255,255,.14)}
 html[data-theme="dark"] .wrd{color:rgba(255,255,255,.7)}
-html[data-theme="dark"] .opt-ico{filter:saturate(.7) brightness(.82)}
 html[data-theme="dark"] .bu{background:#7a2e2d}
 /* One divider look everywhere (1.5px, --line): a hair darker than the page
    background, so it reads as a soft gap between rows, as in Settings. */
@@ -1038,7 +1036,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.29';
+var APP_VERSION='Beta 2.30';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1514,6 +1512,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.29',notes:[
     'Settings: removed the extra "General" title above the first widget'
+  ]},
+  {v:'Beta 2.30',notes:[
+    'Settings icons have the same colors in dark and light mode'
   ]}
 ];
 var COLORS={

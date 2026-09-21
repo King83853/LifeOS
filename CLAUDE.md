@@ -221,6 +221,17 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   on resume after 5 min. Every release must still bump CACHE_NAME (that's what the
   comparison keys on).
 
+- Bottom sheets have NO Cancel/Close/back buttons (only real actions like
+  Save/OK/Delete/Got it): they close by pulling down or tapping the dimmed
+  background, and every `.sheet` gets a grey `.sheet-drag-handle` injected
+  at load so that's obvious. The generic pull-down (search "Every bottom
+  sheet closes by pulling it down") only takes over when the sheet is at its
+  scroll top, follows the finger, and on release runs the overlay's own
+  onclick (so a pull behaves exactly like a background tap, including
+  cancel callbacks) with `_instantClose=true` so `_overlayClose` doesn't wait
+  a second animation. A new sheet only needs `.sheet-overlay` with an onclick
+  close and a `.sheet` child — no close button, and don't add one.
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

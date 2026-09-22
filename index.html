@@ -727,6 +727,13 @@ html:not(#x) .trk-daily-dot.done{background-color:var(--go);background-image:url
 html:not(#x) .ti,html:not(#x) .cali,html:not(#x) .wri{height:48px;min-height:48px;padding-top:0;padding-bottom:0}
 html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
 .ts-date{font-size:12px;font-weight:500;color:#999;white-space:nowrap;flex-shrink:0}
+/* Task/habit/list rows and similar tappable white widgets flash the same
+   darker grey as the buttons above while pressed (see 2.72), instead of
+   giving no feedback at all. */
+html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .cali,html:not(#x) .cat-choice,html:not(#x) .color-field{transition:background .12s ease}
+html:not(#x) .ti:active,html:not(#x) .wri:active,html:not(#x) .cat-choice:active,html:not(#x) .color-field:active{background:var(--press)}
+html:not(#x) .cali:not(.locked):active{background:var(--press)}
+html:not(#x) .acard:active{background:var(--press)}
 /* tracker rows and entries */
 .trk-entry{padding:12px 0}
 </style>
@@ -1153,7 +1160,7 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.74';
+var APP_VERSION='Beta 2.75';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1780,6 +1787,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.74',notes:[
     'Appearance: the sun and moon icons are filled white instead of just outlined'
+  ]},
+  {v:'Beta 2.75',notes:[
+    'Tasks, habits, project tiles and other tappable rows now flash grey when pressed too, like the buttons'
   ]}
 ];
 var COLORS={

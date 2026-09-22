@@ -636,13 +636,9 @@ html:not(#x) .sheet-save{background:var(--card);border:none;border-radius:14px;h
 html:not(#x) .sheet-save.danger{background:#dc2626;color:#fff;text-align:center;font-weight:600}
 html:not(#x) .sheet-btns{margin-top:6px}
 /* choice lists: one white card, rows split by dividers */
-#cat-choices,#add-choice-list,#cat-btn-list,#daily-cat-list{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:14px}
+#cat-choices,#add-choice-list,#daily-cat-list{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:14px}
 html:not(#x) .cat-choice{border:none;border-radius:0;margin:0;height:46px;padding:0 14px;border-bottom:1.5px solid var(--line);font-size:15px;font-weight:600}
 html:not(#x) .cat-choice:last-child{border-bottom:none}
-html:not(#x) #cat-btn-list .type-btn{justify-content:space-between;height:46px;border-radius:0;margin:0;background:transparent;color:var(--ink);text-align:left;border-bottom:1.5px solid var(--line);font-size:15px;font-weight:600;padding:0 14px}
-html:not(#x) #cat-btn-list .type-btn:last-child{border-bottom:none}
-html:not(#x) #cat-btn-list .type-btn.active{background:transparent;color:var(--ink)}
-#cat-btn-list .type-btn.active::after{content:'\2713';font-size:15px;font-weight:700}
 #daily-cat-list .el-row{background:transparent;border-radius:0;margin:0;border-bottom:1.5px solid var(--line)}
 #daily-cat-list .el-row:last-child{border-bottom:none}
 /* option buttons (type, days, quick picks) */
@@ -1049,18 +1045,9 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
 <div class="sheet-overlay" id="proj-sheet-overlay" onclick="if(event.target===this)SheetEditor.close()">
   <div class="sheet" id="proj-sheet">
     <div class="sheet-title">Edit project</div>
-    <div id="cat-row" style="display:none;margin-bottom:16px">
-      <div class="sheet-label">Category</div>
-      <div id="cat-btn-list"></div>
-    </div>
-    <div id="type-row" style="display:none;margin-bottom:16px">
-      <div class="sheet-label">Type</div>
-      <div class="type-grid">
-        <div id="type-todo" class="type-btn active" onclick="SheetEditor.setType('todo')">To-do</div>
-        <div id="type-list" class="type-btn" onclick="SheetEditor.setType('list')">List</div>
-        <div id="type-tracker" class="type-btn" onclick="SheetEditor.setType('tracker')">Tracker</div>
-        <div id="type-daily" class="type-btn" onclick="SheetEditor.setType('daily')">Daily</div>
-      </div>
+    <div class="opt-group" id="new-proj-rows" style="display:none;margin-bottom:16px">
+      <div class="opt-row"><div class="opt-text"><div class="opt-title">Category</div></div><div id="new-proj-cat"></div></div>
+      <div class="opt-row"><div class="opt-text"><div class="opt-title">Type</div></div><div id="new-proj-type"></div></div>
     </div>
     <div class="sheet-label">Name</div>
     <input class="sheet-inp" id="sheet-name" placeholder="Project name">
@@ -1068,7 +1055,7 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
     <div class="sheet-label">Description</div>
     <input class="sheet-inp" id="sheet-desc" placeholder="Short description (optional)">
     <div class="sheet-label">Emoji icon</div>
-    <input class="sheet-inp" id="sheet-icon" placeholder="📋" style="font-size:24px;text-align:center;max-width:80px">
+    <input class="sheet-inp" id="sheet-icon" placeholder="📋" style="font-size:24px;text-align:center;max-width:80px" oninput="A.iconInput(this)">
     <div class="sheet-label">Color</div>
     <div class="color-field" id="color-field" onclick="ColorPicker.open()">
       <div class="color-field-swatch" id="color-field-swatch"></div>
@@ -1155,7 +1142,7 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.65';
+var APP_VERSION='Beta 2.66';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1757,6 +1744,10 @@ var CHANGELOG=[
   {v:'Beta 2.65',notes:[
     'Removed the "Every day"/"Weekend" quick-pick buttons from the habit window — just tap the days',
     'Selected day/type buttons are now a soft blue tint instead of solid black'
+  ]},
+  {v:'Beta 2.66',notes:[
+    'New project: Category and Type are dropdowns now, like the Task window',
+    'Fixed: the emoji icon field could hold more than one character — picking a new emoji now replaces the old one, and typed text/numbers are rejected'
   ]}
 ];
 var COLORS={
@@ -2998,6 +2989,30 @@ function renderHabits(){
 
 // ── ACTIONS ───────────────────────────────────────────────
 var A={
+  // Emoji icon field (project/category icon pickers): must hold exactly
+  // ONE emoji, never plain text/numbers, and picking a new one from the
+  // OS emoji keyboard should replace whatever was already there instead
+  // of appending to it. There's no way to force iOS/Android to open
+  // straight into the emoji keyboard (inputmode has no such value), so
+  // this stays a normal text field and cleans up after every keystroke
+  // instead: only the LAST grapheme typed/pasted/inserted is kept, and
+  // it's discarded (reverting to whatever was valid before) unless it's
+  // actually an emoji. Backspacing to empty is allowed, so there's
+  // always a way to clear it before picking a new one.
+  iconInput:function(el){
+    var v=el.value;
+    if(!v){el.value='';el.dataset.lastGood='';return;}
+    var graphemes=(window.Intl&&Intl.Segmenter)
+      ?[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(v)].map(function(s){return s.segment;})
+      :Array.from(v);
+    var last=graphemes[graphemes.length-1]||'';
+    if(/\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(last)){
+      el.value=last;el.dataset.lastGood=last;
+    } else {
+      el.value=el.dataset.lastGood||'';
+    }
+  },
+
   done:function(cb){
     var item=cb.closest('.ti,.wri');
     var key=item.getAttribute('data-key'),text=item.getAttribute('data-text'),sec=item.getAttribute('data-sec');
@@ -5374,6 +5389,7 @@ var CatPicker={
 };
 
 // ── SHEET EDITOR ──────────────────────────────────────────
+var TYPE_OPTS=[{value:'todo',label:'To-do'},{value:'list',label:'List'},{value:'tracker',label:'Tracker'},{value:'daily',label:'Daily'}];
 var SheetEditor={
   pid:null,
   selectedColor:'c-grey',
@@ -5382,34 +5398,15 @@ var SheetEditor={
     this.pid=null;
     this.newCatId=catId||DB.data.categoryOrder[0]||null;
     this.projectType='todo';
-    var catRow=document.getElementById('cat-row');
-    var catList=document.getElementById('cat-btn-list');
     var d=DB.data;
-    catList.innerHTML='';
-    var self=this;
-    d.categoryOrder.forEach(function(cid){
-      var cat=d.categories[cid];if(!cat)return;
-      var btn=document.createElement('div');
-      btn.className='type-btn'+(cid===self.newCatId?' active':'');
-      btn.style.marginBottom='6px';
-      btn.textContent=cat.name;
-      btn.onclick=function(){
-        catList.querySelectorAll('.type-btn').forEach(function(b){b.classList.remove('active');});
-        btn.classList.add('active');
-        self.newCatId=cid;
-      };
-      catList.appendChild(btn);
-    });
-    if(catRow)catRow.style.display='block';
-    document.getElementById('type-row').style.display='block';
-    document.getElementById('type-todo').classList.add('active');
-    document.getElementById('type-list').classList.remove('active');
-    document.getElementById('type-tracker').classList.remove('active');
-    document.getElementById('type-daily').classList.remove('active');
+    var catOpts=d.categoryOrder.map(function(cid){var cat=d.categories[cid];return cat&&{value:cid,label:cat.name};}).filter(Boolean);
+    document.getElementById('new-proj-cat').innerHTML=customSelect(catOpts,this.newCatId,'SheetEditor.setCat(this.value)');
+    document.getElementById('new-proj-type').innerHTML=customSelect(TYPE_OPTS,this.projectType,'SheetEditor.setType(this.value)');
+    document.getElementById('new-proj-rows').style.display='block';
     var sur=document.getElementById('sheet-unit-row');if(sur)sur.style.display='none';
     document.getElementById('sheet-name').value=name||'';
     document.getElementById('sheet-desc').value='';
-    document.getElementById('sheet-icon').value='📋';
+    document.getElementById('sheet-icon').value='📋';document.getElementById('sheet-icon').dataset.lastGood='📋';
     document.querySelector('.sheet-title').textContent='New project';
     this.selectedColor='c-grey';
     this.renderColors();
@@ -5423,12 +5420,11 @@ var SheetEditor={
     this.newCatId=null;
     this.projectType=null;
     document.querySelector('.sheet-title').textContent='Edit project';
-    document.getElementById('type-row').style.display='none';
-    var cr=document.getElementById('cat-row');if(cr)cr.style.display='none';
+    document.getElementById('new-proj-rows').style.display='none';
     var p=DB.data.projects[pid];
     document.getElementById('sheet-name').value=p.name||'';
     document.getElementById('sheet-desc').value=p.sub||p.desc||'';
-    document.getElementById('sheet-icon').value=p.icon||'📋';
+    document.getElementById('sheet-icon').value=p.icon||'📋';document.getElementById('sheet-icon').dataset.lastGood=p.icon||'📋';
     this.selectedColor=p.color||'c-grey';
     this.renderColors();
     var mar=document.getElementById('ma-edit-row');
@@ -5438,12 +5434,15 @@ var SheetEditor={
     _overlayOpen('proj-sheet-overlay');
   },
 
+  setCat:function(v){
+    this.newCatId=v;
+    var d=DB.data;
+    var catOpts=d.categoryOrder.map(function(cid){var cat=d.categories[cid];return cat&&{value:cid,label:cat.name};}).filter(Boolean);
+    document.getElementById('new-proj-cat').innerHTML=customSelect(catOpts,v,'SheetEditor.setCat(this.value)');
+  },
   setType:function(t){
     this.projectType=t;
-    document.getElementById('type-todo').classList.toggle('active',t==='todo');
-    document.getElementById('type-list').classList.toggle('active',t==='list');
-    document.getElementById('type-tracker').classList.toggle('active',t==='tracker');
-    document.getElementById('type-daily').classList.toggle('active',t==='daily');
+    document.getElementById('new-proj-type').innerHTML=customSelect(TYPE_OPTS,t,'SheetEditor.setType(this.value)');
     var sur2=document.getElementById('sheet-unit-row');if(sur2)sur2.style.display=t==='tracker'?'block':'none';
     var mar=document.getElementById('ma-edit-row');if(mar)mar.style.display=t==='tracker'?'block':'none';
   },

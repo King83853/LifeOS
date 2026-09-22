@@ -96,7 +96,7 @@ html[data-theme="light"] .wri{background:#fafaf8;border-color:#f0ede8}
 html[data-theme="dark"] .acard{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .acard{background:#fff;border-color:#e8e5e0}
 .acard:active{transform:scale(0.95)}
-.aico{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:27px;background:#f3f4f6;color:#374151}
+.aico{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:27px;background:#f3f4f6;color:#374151;overflow:hidden}
 @media(prefers-color-scheme:dark){.aico{background:#1f2937;color:#9ca3af}}
 html[data-theme="dark"] .aico{background:#1f2937;color:#9ca3af}
 html[data-theme="light"] .aico{background:#f3f4f6;color:#374151}
@@ -284,7 +284,7 @@ html[data-theme="light"] .trk-daily-dot{border-color:#ddd}
 @media(prefers-color-scheme:dark){.el-row{background:#1e1c1a;border-color:#2a2927}}
 html[data-theme="dark"] .el-row{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .el-row{background:#fff;border-color:#e8e5e0}
-.el-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:#f3f4f6}
+.el-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:#f3f4f6;overflow:hidden}
 @media(prefers-color-scheme:dark){.el-icon{background:#1f2937}}
 html[data-theme="dark"] .el-icon{background:#1f2937}
 html[data-theme="light"] .el-icon{background:#f3f4f6}
@@ -586,6 +586,14 @@ html:not(#x) .wri:last-child{border-bottom:none}
 #today-daily .calsec,[id^="dp-"] .calsec{border:none;padding:13.5px 15.5px 2px;overflow:hidden}
 /* Today: the category title sits above its white card, not inside it */
 #today-daily .calsec,[id^="dp-"] .calsec{padding-top:2px}
+/* The bottom padding here left a visible sliver of the card's own white
+   below the last row whenever that row's pressed-grey (or anything else
+   opaque) fills it — invisible when everything was white-on-white, but
+   glaring once the press color got noticeably darker (2.77). No such gap
+   is wanted below the last row at all, so it's removed outright rather
+   than colored to match (matching would still show at the rounded corner
+   seam). Top keeps its 2px, for spacing under the category title. */
+#today-daily .calsec,[id^="dp-"] .calsec{padding-bottom:0}
 html:not(#x) .archbox{border:none}
 /* project badge in task rows: a touch slimmer than the default 30px */
 .ti .bdg{height:27px;min-height:27px;display:inline-flex;align-items:center;padding-top:0;padding-bottom:0}
@@ -1068,6 +1076,11 @@ html:not(#x) .acard:active{background:var(--press)}
     <input class="sheet-inp" id="sheet-desc" placeholder="Short description (optional)">
     <div class="sheet-label">Emoji icon</div>
     <input class="sheet-inp" id="sheet-icon" placeholder="📋" style="font-size:24px;text-align:center;max-width:80px;caret-color:transparent" oninput="A.iconInput(this)">
+    <input type="file" id="sheet-photo-input" accept="image/*" style="display:none" onchange="SheetEditor.onPhotoPicked(this)">
+    <div class="opt-group" style="margin-top:10px">
+      <div class="opt-row btn-row" onclick="document.getElementById('sheet-photo-input').click()"><div class="opt-text"><div class="opt-title" id="sheet-photo-btn-label">Choose photo</div></div><div id="sheet-photo-preview" style="width:30px;height:30px;border-radius:8px;overflow:hidden;display:none;margin-left:auto;flex-shrink:0"></div></div>
+      <div class="opt-row btn-row" id="sheet-photo-remove-row" style="display:none" onclick="SheetEditor.removePhoto()"><div class="opt-text"><div class="opt-title" style="color:#dc2626">Remove photo</div></div></div>
+    </div>
     <div class="sheet-label">Color</div>
     <div class="color-field" id="color-field" onclick="ColorPicker.open()">
       <div class="color-field-swatch" id="color-field-swatch"></div>
@@ -1154,7 +1167,7 @@ html:not(#x) .acard:active{background:var(--press)}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.77';
+var APP_VERSION='Beta 2.79';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1791,6 +1804,12 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.77',notes:[
     'The pressed-grey is darker again — more visible against the white rows'
+  ]},
+  {v:'Beta 2.78',notes:[
+    'Fixed: a sliver of white showed below the last habit in a Today/Daily card whenever it was pressed'
+  ]},
+  {v:'Beta 2.79',notes:[
+    'Projects can use a photo from your library as their icon instead of an emoji — shown on the Overview cards and in Edit layout'
   ]}
 ];
 var COLORS={
@@ -2231,7 +2250,7 @@ var I18N=(function(){
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
     'Name':'Name','Type':'Typ','Category':'Kategorie','Color':'Farbe','Description':'Beschreibung','Date':'Datum','Day':'Tag','Days':'Tage','Week':'Woche','Month':'Monat',
-    'Habit':'Gewohnheit','Task':'Aufgabe','Project':'Projekt','Priority':'Priorität','Notes':'Notizen','Emoji icon':'Emoji-Symbol','View':'Ansicht','List':'Liste','Calendar':'Kalender',
+    'Habit':'Gewohnheit','Task':'Aufgabe','Project':'Projekt','Priority':'Priorität','Notes':'Notizen','Emoji icon':'Emoji-Symbol','Choose photo':'Foto auswählen','Change photo':'Foto ändern','Remove photo':'Foto entfernen','View':'Ansicht','List':'Liste','Calendar':'Kalender',
     'Every day':'Jeden Tag','Window size':'Fenstergröße','Moving average':'Gleitender Durchschnitt','Show moving average on chart':'Gleitenden Durchschnitt im Diagramm zeigen',
     'Unit (e.g. kg, kcal, h)':'Einheit (z. B. kg, kcal, h)','Category name':'Kategoriename','New category name':'Neuer Kategoriename','New category name…':'Neuer Kategoriename…',
     'Project name':'Projektname','Task name':'Aufgabenname','Short description (optional)':'Kurze Beschreibung (optional)','Add a task…':'Aufgabe hinzufügen…',
@@ -2436,7 +2455,7 @@ function renderGrids(){
         cntLbl=n?n+' tasks':'Empty';
       }
       h+='<div class="acard" onclick="_projFromDaily=null;_trackerOrigin=null;Nav.go(\''+pid+'\')">'
-        +'<div class="aico" style="'+tintStyle(col)+'">'+p.icon+'</div>'
+        +'<div class="aico" style="'+tintStyle(col)+'">'+iconOrPhoto(p)+'</div>'
         +'<div class="albl">'+p.name+'</div>'
         +'<div class="acnt">'+cntLbl+'</div></div>';
     });
@@ -2743,7 +2762,7 @@ function renderEditLayout(){
         return;
       }
       var p=d.projects[pid];if(!p)return;
-      h+='<div class="el-row"><div class="el-icon">'+p.icon+'</div><div class="el-name">'+p.name+'</div>';
+      h+='<div class="el-row"><div class="el-icon">'+iconOrPhoto(p)+'</div><div class="el-name">'+p.name+'</div>';
       h+='<div class="el-btns">';
       h+='<button class="el-btn"'+(pi===0?' disabled style="opacity:.3"':'')+' onclick="A.moveProj(\''+catId+'\',\''+pid+'\',-1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>';
       h+='<button class="el-btn"'+(pi===projs.length-1?' disabled style="opacity:.3"':'')+' onclick="A.moveProj(\''+catId+'\',\''+pid+'\',1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>';
@@ -5468,6 +5487,17 @@ var CatPicker={
 
 // ── SHEET EDITOR ──────────────────────────────────────────
 var TYPE_OPTS=[{value:'todo',label:'To-do'},{value:'list',label:'List'},{value:'tracker',label:'Tracker'},{value:'daily',label:'Daily'}];
+// A project's icon tile: a chosen photo (cropped to a square, compressed —
+// see SheetEditor.onPhotoPicked) always wins over the emoji if one is set.
+// Only the two tile-shaped spots that actually show a project's icon as a
+// standalone graphic use this (Overview's cards, Edit layout's rows) — the
+// other places an icon shows up are inline text ("Tracking: 📈 Name") where
+// a photo can't sensibly be dropped in, so those keep falling back to the
+// emoji/a default glyph exactly as before.
+function iconOrPhoto(p){
+  if(p&&p.photo)return '<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';
+  return (p&&p.icon)||'📋';
+}
 var SheetEditor={
   pid:null,
   selectedColor:'c-grey',
@@ -5485,6 +5515,7 @@ var SheetEditor={
     document.getElementById('sheet-name').value=name||'';
     document.getElementById('sheet-desc').value='';
     document.getElementById('sheet-icon').value='📋';document.getElementById('sheet-icon').dataset.lastGood='📋';
+    this.photo=null;this.renderPhotoUI();
     document.querySelector('.sheet-title').textContent='New project';
     this.selectedColor='c-grey';
     this.renderColors();
@@ -5503,6 +5534,7 @@ var SheetEditor={
     document.getElementById('sheet-name').value=p.name||'';
     document.getElementById('sheet-desc').value=p.sub||p.desc||'';
     document.getElementById('sheet-icon').value=p.icon||'📋';document.getElementById('sheet-icon').dataset.lastGood=p.icon||'📋';
+    this.photo=p.photo||null;this.renderPhotoUI();
     this.selectedColor=p.color||'c-grey';
     this.renderColors();
     var mar=document.getElementById('ma-edit-row');
@@ -5528,6 +5560,47 @@ var SheetEditor={
     _overlayClose('proj-sheet-overlay');
     this.pid=null;
     this.newCatId=null;
+  },
+  // Picking a new photo always REPLACES whatever was there — cropped to a
+  // centered square and compressed (160px, JPEG ~0.82) before it ever
+  // touches localStorage, since a full-resolution photo per project would
+  // add up fast. Emoji (`icon`) is kept untouched alongside it, so removing
+  // the photo later falls straight back to it with nothing to re-enter.
+  onPhotoPicked:function(input){
+    var file=input.files&&input.files[0];if(!file)return;
+    var self=this;
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var img=new Image();
+      img.onload=function(){
+        var size=160;
+        var c=document.createElement('canvas');c.width=size;c.height=size;
+        var ctx=c.getContext('2d');
+        var s=Math.min(img.width,img.height);
+        var sx=(img.width-s)/2,sy=(img.height-s)/2;
+        ctx.drawImage(img,sx,sy,s,s,0,0,size,size);
+        self.photo=c.toDataURL('image/jpeg',0.82);
+        self.renderPhotoUI();
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+    input.value='';
+  },
+  removePhoto:function(){this.photo=null;this.renderPhotoUI();},
+  renderPhotoUI:function(){
+    var prev=document.getElementById('sheet-photo-preview');
+    var lbl=document.getElementById('sheet-photo-btn-label');
+    var rmRow=document.getElementById('sheet-photo-remove-row');
+    if(this.photo){
+      prev.style.display='block';prev.innerHTML='<img src="'+this.photo+'" style="width:100%;height:100%;object-fit:cover">';
+      lbl.textContent='Change photo';
+      rmRow.style.display='';
+    } else {
+      prev.style.display='none';prev.innerHTML='';
+      lbl.textContent='Choose photo';
+      rmRow.style.display='none';
+    }
   },
 
   renderColors:function(){
@@ -5569,6 +5642,7 @@ var SheetEditor={
       // New project
       var unit=document.getElementById('sheet-unit').value.trim();
       var pid=DB.addProject(this.newCatId,name,icon,this.selectedColor,desc,this.projectType||'todo',unit);
+      if(this.photo){DB.data.projects[pid].photo=this.photo;DB.save();}
       if(this.projectType==='daily'){DB.data.habitsProjectId=pid;DB.save();}
       if(this.projectType==='tracker'){
         DB.data.projects[pid].maEnabled=document.getElementById('sheet-ma-enabled').checked;
@@ -5583,6 +5657,7 @@ var SheetEditor={
       var p=DB.data.projects[this.pid];
       p.name=name; p.sub=desc; p.desc=desc;
       p.icon=icon; p.color=this.selectedColor;
+      if(this.photo)p.photo=this.photo; else delete p.photo;
       if(p.type==='tracker'){
         p.maEnabled=document.getElementById('sheet-ma-enabled').checked;
         p.maWindow=Math.max(2,parseInt(document.getElementById('sheet-ma-window').value)||7);

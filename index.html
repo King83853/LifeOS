@@ -1167,7 +1167,7 @@ html:not(#x) .acard:active{background:var(--press)}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.79';
+var APP_VERSION='Beta 2.80';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1810,6 +1810,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.79',notes:[
     'Projects can use a photo from your library as their icon instead of an emoji — shown on the Overview cards and in Edit layout'
+  ]},
+  {v:'Beta 2.80',notes:[
+    'Fixed: a photo with no background of its own filled in black — it now uses the project\'s chosen color instead'
   ]}
 ];
 var COLORS={
@@ -5515,7 +5518,7 @@ var SheetEditor={
     document.getElementById('sheet-name').value=name||'';
     document.getElementById('sheet-desc').value='';
     document.getElementById('sheet-icon').value='📋';document.getElementById('sheet-icon').dataset.lastGood='📋';
-    this.photo=null;this.renderPhotoUI();
+    this.photo=null;this.photoRaw=null;this.renderPhotoUI();
     document.querySelector('.sheet-title').textContent='New project';
     this.selectedColor='c-grey';
     this.renderColors();
@@ -5534,7 +5537,7 @@ var SheetEditor={
     document.getElementById('sheet-name').value=p.name||'';
     document.getElementById('sheet-desc').value=p.sub||p.desc||'';
     document.getElementById('sheet-icon').value=p.icon||'📋';document.getElementById('sheet-icon').dataset.lastGood=p.icon||'📋';
-    this.photo=p.photo||null;this.renderPhotoUI();
+    this.photo=p.photo||null;this.photoRaw=null;this.renderPhotoUI();
     this.selectedColor=p.color||'c-grey';
     this.renderColors();
     var mar=document.getElementById('ma-edit-row');
@@ -5574,20 +5577,47 @@ var SheetEditor={
       var img=new Image();
       img.onload=function(){
         var size=160;
+        // Kept as a transparent PNG (not yet flattened) so a later color
+        // change (still in this same sheet) can re-tint it — see
+        // reapplyPhotoColor(). Only the flattened JPEG (photo) is ever
+        // saved to the project.
         var c=document.createElement('canvas');c.width=size;c.height=size;
         var ctx=c.getContext('2d');
         var s=Math.min(img.width,img.height);
         var sx=(img.width-s)/2,sy=(img.height-s)/2;
         ctx.drawImage(img,sx,sy,s,s,0,0,size,size);
-        self.photo=c.toDataURL('image/jpeg',0.82);
-        self.renderPhotoUI();
+        self.photoRaw=c.toDataURL('image/png');
+        self.reapplyPhotoColor();
       };
       img.src=e.target.result;
     };
     reader.readAsDataURL(file);
     input.value='';
   },
-  removePhoto:function(){this.photo=null;this.renderPhotoUI();},
+  // A transparent photo (no background of its own) should show the
+  // project's own chosen color behind it, not black — canvas fills
+  // whatever's still transparent with black the moment it's flattened to
+  // JPEG (no alpha channel), which is exactly what silently happened
+  // before this: the color picked in this very sheet was sitting right
+  // there and just never got used. Fills the tile with that color FIRST,
+  // then draws the (possibly transparent) photo on top.
+  reapplyPhotoColor:function(){
+    if(!this.photoRaw)return;
+    var self=this;
+    var img=new Image();
+    img.onload=function(){
+      var size=160;
+      var c=document.createElement('canvas');c.width=size;c.height=size;
+      var ctx=c.getContext('2d');
+      ctx.fillStyle=COLORS[self.selectedColor]||'#6b7280';
+      ctx.fillRect(0,0,size,size);
+      ctx.drawImage(img,0,0,size,size);
+      self.photo=c.toDataURL('image/jpeg',0.82);
+      self.renderPhotoUI();
+    };
+    img.src=this.photoRaw;
+  },
+  removePhoto:function(){this.photo=null;this.photoRaw=null;this.renderPhotoUI();},
   renderPhotoUI:function(){
     var prev=document.getElementById('sheet-photo-preview');
     var lbl=document.getElementById('sheet-photo-btn-label');
@@ -5618,6 +5648,7 @@ var SheetEditor={
         c.querySelectorAll('.sheet-color').forEach(function(x){x.classList.remove('sel');});
         sw.classList.add('sel');
         self.updateColorField();
+        self.reapplyPhotoColor();
         ColorPicker.close();
       };
       c.appendChild(sw);

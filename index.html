@@ -635,7 +635,7 @@ html:not(#x) .sheet-inp:focus,html:not(#x) .addinp:focus,html:not(#x) .trk-addin
 .ts-title{font-size:20px;font-weight:800}
 /* buttons in sheets: a white row with blue text, exactly like Settings' buttons */
 html:not(#x) .sheet-save{background:var(--card);border:none;border-radius:14px;height:46px;padding:0 14px;color:var(--blue);font-size:15px;font-weight:600;text-align:left;font-family:inherit}
-html:not(#x) .sheet-save.danger{color:#dc2626}
+html:not(#x) .sheet-save.danger{background:#dc2626;color:#fff;text-align:center;font-weight:600}
 html:not(#x) .sheet-btns{margin-top:6px}
 /* choice lists: one white card, rows split by dividers */
 #cat-choices,#add-choice-list,#cat-btn-list,#daily-cat-list{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:14px}
@@ -1152,7 +1152,7 @@ html:not(#x) .trk-daily-dot.done{background-color:var(--go);background-image:url
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.58';
+var APP_VERSION='Beta 2.59';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1731,6 +1731,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.58',notes:[
     'One-time tasks you tick off now go to the Trash (Tasks tab) like other completed tasks, and can be restored to the calendar'
+  ]},
+  {v:'Beta 2.59',notes:[
+    'The red Delete buttons in the confirm windows are solid red with white text again'
   ]}
 ];
 var COLORS={

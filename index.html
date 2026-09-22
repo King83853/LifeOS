@@ -437,9 +437,6 @@ html[data-theme="light"] .sheet{background:#fff}
 #task-sheet-overlay .sheet{max-height:88vh;padding:18px 18px 20px}
 .ts-title{width:100%;font-size:21px;font-weight:800;line-height:1.25;border:none;background:transparent;color:inherit;outline:none;padding:2px 0;margin-bottom:12px;font-family:inherit}
 .ts-title::placeholder{color:#bbb}
-#task-sheet-pri{margin-top:0;margin-bottom:10px;flex-wrap:nowrap;gap:6px}
-#task-sheet-pri .pri-pill{flex:1;justify-content:center;padding:6px 2px;min-height:32px;font-size:12px}
-.cat-choice.ts-proj{display:inline-flex;padding:6px 12px;margin:0 0 14px;font-size:13px;border-radius:99px;gap:6px}
 .ts-notes{min-height:40vh;resize:none;line-height:1.5;font-family:inherit;font-size:16px;padding:14px;margin-bottom:14px;display:block}
 .sheet-drag-handle{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:44px;height:5px;border-radius:3px;background:#c4c4c9}
 /* one identical top spacing for every sheet (handle at 10px, content from 30px) */
@@ -641,7 +638,6 @@ html:not(#x) .sheet-btns{margin-top:6px}
 #cat-choices,#add-choice-list,#cat-btn-list,#daily-cat-list{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:14px}
 html:not(#x) .cat-choice{border:none;border-radius:0;margin:0;height:46px;padding:0 14px;border-bottom:1.5px solid var(--line);font-size:15px;font-weight:600}
 html:not(#x) .cat-choice:last-child{border-bottom:none}
-html:not(#x) .cat-choice.ts-proj{display:flex;justify-content:space-between;width:100%;border:none;border-radius:14px;background:var(--card);margin:0 0 14px;font-size:15px}
 html:not(#x) #cat-btn-list .type-btn{justify-content:space-between;height:46px;border-radius:0;margin:0;background:transparent;color:var(--ink);text-align:left;border-bottom:1.5px solid var(--line);font-size:15px;font-weight:600;padding:0 14px}
 html:not(#x) #cat-btn-list .type-btn:last-child{border-bottom:none}
 html:not(#x) #cat-btn-list .type-btn.active{background:transparent;color:var(--ink)}
@@ -687,9 +683,8 @@ html:not(#x) .card-list .ti[data-pri="bu"]{box-shadow:inset 3px 0 0 #e24b4a}
 .trk-entry:last-child{border-bottom:none}
 /* priority picker: four equal pills in a row (dimmed until chosen) */
 html:not(#x) .pri-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0 10px}
-html:not(#x) .pri-pill,html:not(#x) #task-sheet-pri .pri-pill{justify-content:center;height:40px;min-height:40px;padding:0;border:none;border-radius:12px;opacity:.4;font-size:12px;font-weight:600}
+html:not(#x) .pri-pill{justify-content:center;height:40px;min-height:40px;padding:0;border:none;border-radius:12px;opacity:.4;font-size:12px;font-weight:600}
 html:not(#x) .pri-pill.on{opacity:1;border:none;box-shadow:inset 0 0 0 2px currentColor}
-html:not(#x) #task-sheet-pri{margin:0 0 14px;gap:8px}
 html:not(#x) .card-list .ti{padding:8px 10px}
 html:not(#x) .ts-notes{height:auto;min-height:34vh}
 .cal-none{font-size:13px;font-weight:500;color:#bbb;padding:12px 0 14px}
@@ -712,6 +707,12 @@ html:not(#x) .cali input[type=checkbox]:checked{background-color:var(--go);backg
 html:not(#x) .cali.skipped input[type=checkbox]:checked{background-color:var(--go-skip);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 6l6 6-6 6M12.5 6l6 6-6 6' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 html:not(#x) .trk-daily-dot{width:26px;height:26px;margin:0;border:none;border-radius:8px;background:var(--box) center/17px no-repeat}
 html:not(#x) .trk-daily-dot.done{background-color:var(--go);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+/* Every task/habit row is one line of the same height; long titles get an ellipsis */
+.tt,.cali label,.wit,.el-name,.trk-entry-val{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ti>div,.wri>div,.cali>label{min-width:0}
+html:not(#x) .ti,html:not(#x) .cali,html:not(#x) .wri{height:48px;min-height:48px;padding-top:0;padding-bottom:0}
+html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
+.ts-date{font-size:12px;font-weight:500;color:#999;white-space:nowrap;flex-shrink:0}
 /* tracker rows and entries */
 .trk-entry{padding:12px 0}
 </style>
@@ -1129,13 +1130,7 @@ html:not(#x) .trk-daily-dot.done{background-color:var(--go);background-image:url
 <div class="sheet-overlay" id="task-sheet-overlay" onclick="if(event.target===this)TaskSheet.close()">
   <div class="sheet">
     <input class="ts-title" id="task-sheet-name" placeholder="Task name">
-    <div class="pri-row" id="task-sheet-pri">
-      <span class="pri-pill bu" data-p="bu" onclick="TaskSheet.setPri(this)">War Room</span>
-      <span class="pri-pill bs" data-p="bs" onclick="TaskSheet.setPri(this)">High</span>
-      <span class="pri-pill bp" data-p="bp" onclick="TaskSheet.setPri(this)">Medium</span>
-      <span class="pri-pill bl" data-p="bl" onclick="TaskSheet.setPri(this)">Low</span>
-    </div>
-    <div id="task-sheet-move-btn" class="cat-choice ts-proj" onclick="TaskSheet.pickProject()"></div>
+    <div class="opt-group" id="task-sheet-rows"></div>
     <textarea id="task-sheet-desc" class="sheet-inp ts-notes" placeholder="Notes" oninput="TaskSheet.autosize()"></textarea>
     <div class="sheet-btns">
       <button class="sheet-save" onclick="TaskSheet.save()">Save</button>
@@ -1152,7 +1147,7 @@ html:not(#x) .trk-daily-dot.done{background-color:var(--go);background-image:url
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.59';
+var APP_VERSION='Beta 2.61';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1734,6 +1729,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.59',notes:[
     'The red Delete buttons in the confirm windows are solid red with white text again'
+  ]},
+  {v:'Beta 2.61',notes:[
+    'Task window: priority and project are dropdown rows (like in Settings) instead of buttons and a slide-up window behind it',
+    'Task and habit titles are always one line (long ones end in …), so every row is exactly the same height; the date in the calendar list moved to the right'
   ]}
 ];
 var COLORS={
@@ -2174,7 +2173,7 @@ var I18N=(function(){
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
     'Name':'Name','Type':'Typ','Category':'Kategorie','Color':'Farbe','Description':'Beschreibung','Date':'Datum','Day':'Tag','Days':'Tage','Week':'Woche','Month':'Monat',
-    'Habit':'Gewohnheit','Task':'Aufgabe','Project':'Projekt','Notes':'Notizen','Emoji icon':'Emoji-Symbol','View':'Ansicht','List':'Liste','Calendar':'Kalender',
+    'Habit':'Gewohnheit','Task':'Aufgabe','Project':'Projekt','Priority':'Priorität','Notes':'Notizen','Emoji icon':'Emoji-Symbol','View':'Ansicht','List':'Liste','Calendar':'Kalender',
     'Every day':'Jeden Tag','Weekend':'Wochenende','Window size':'Fenstergröße','Moving average':'Gleitender Durchschnitt','Show moving average on chart':'Gleitenden Durchschnitt im Diagramm zeigen',
     'Unit (e.g. kg, kcal, h)':'Einheit (z. B. kg, kcal, h)','Category name':'Kategoriename','New category name':'Neuer Kategoriename','New category name…':'Neuer Kategoriename…',
     'Project name':'Projektname','Task name':'Aufgabenname','Short description (optional)':'Kurze Beschreibung (optional)','Add a task…':'Aufgabe hinzufügen…',
@@ -2655,7 +2654,8 @@ function renderLockedInCalendar(){
     var dLbl=dl.toLocaleDateString('de-CH',{day:'numeric',month:'short',year:'numeric'});
     return '<div class="ti" data-once="'+o.id+'">'
       +'<input type="checkbox" onchange="A.completeOnce(this,\''+o.id+'\')">'
-      +'<div style="flex:1"><div class="tt">'+esc(o.text)+'</div><div class="ts">'+dLbl+'</div></div>'
+      +'<div style="flex:1"><div class="tt">'+esc(o.text)+'</div></div>'
+      +'<span class="ts-date">'+dLbl+'</span>'
       +(overdue?'<span class="bdg bu">Overdue</span>':'')
       +'</div>';
   }).join('')+'</div>';
@@ -5101,8 +5101,7 @@ var TaskSheet={
     this.pid=pid;this.key=key;this.pri=t.pri||'bs';this.moveToPid=pid;
     document.getElementById('task-sheet-name').value=t.text;
     document.getElementById('task-sheet-desc').value=t.desc||'';
-    this.renderPri();
-    this.renderMoveBtn();
+    this.renderRows();
     _overlayOpen('task-sheet-overlay');
     this.autosize();
   },
@@ -5111,30 +5110,21 @@ var TaskSheet={
     el.style.height='auto';
     el.style.height=el.scrollHeight+'px';
   },
-  renderPri:function(){
-    var self=this;
-    document.querySelectorAll('#task-sheet-pri .pri-pill').forEach(function(p){
-      p.classList.toggle('on',p.getAttribute('data-p')===self.pri);
-    });
-  },
-  setPri:function(el){this.pri=el.getAttribute('data-p');this.renderPri();},
-  renderMoveBtn:function(){
-    var p=DB.data.projects[this.moveToPid];
-    document.getElementById('task-sheet-move-btn').innerHTML=(p?p.icon+' '+esc(p.name):'')
-      +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
-  },
-  pickProject:function(){
-    var self=this;
-    var opts=[];
-    for(var pid in DB.data.projects){
-      var p=DB.data.projects[pid];
-      if(p.type!=='todo'&&p.type!=='list')continue;
-      (function(pid,p){
-        opts.push({icon:p.icon,label:p.name,fn:function(){self.moveToPid=pid;self.renderMoveBtn();}});
-      })(pid,p);
+  // Priority and project are two dropdown rows (same DSel list as Settings).
+  renderRows:function(){
+    var pri=['bu','bs','bp','bl'].map(function(k){return {value:k,label:PLBL[k]};});
+    var projs=[];
+    for(var id in DB.data.projects){
+      var p=DB.data.projects[id];
+      if(p.type==='todo'||p.type==='list')projs.push({value:id,label:p.name});
     }
-    AddChoice.show('Move to project',opts);
+    function row(title,sel){return '<div class="opt-row"><div class="opt-text"><div class="opt-title">'+title+'</div></div>'+sel+'</div>';}
+    document.getElementById('task-sheet-rows').innerHTML=
+      row('Priority',customSelect(pri,this.pri,'TaskSheet.setPri(this.value)'))
+      +row('Project',customSelect(projs,this.moveToPid,'TaskSheet.setProject(this.value)'));
   },
+  setPri:function(v){this.pri=v;this.renderRows();},
+  setProject:function(v){this.moveToPid=v;this.renderRows();},
   save:function(){
     var text=document.getElementById('task-sheet-name').value.trim();
     if(!text)return;

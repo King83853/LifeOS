@@ -637,6 +637,24 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   looked unfinished, so it has to be deferred until the moving page covers
   the bar and shown immediately when something slides back.
 
+- DSel dropdowns (customSelect/DSel — Language, Day starts at, Tasks shown,
+  Reset a project, and since 2.61 the Task window's Priority/Project rows)
+  render their open list (`.dsel-menu`) as a floating element appended
+  straight to `document.body`, not nested inside whatever row opened it.
+  The global touchmove blocker that stops the page scrolling behind an open
+  `.sheet-overlay` (search "While a sheet is open nothing behind it may
+  scroll") only carved out `.sheet` itself as scrollable — so a DSel menu
+  opened from a row THAT LIVES INSIDE an already-open sheet (exactly what
+  the Task window's Priority/Project rows do) got every touchmove inside
+  it treated as background scroll and blocked outright: reported as "the
+  dropdown doesn't work, I can't scroll." DSel dropdowns opened from a
+  Settings page never hit this, because no `.sheet-overlay` is open there
+  (`_overlayCount` is 0) and the blocker returns immediately. Fixed by
+  adding `.dsel-menu` to that blocker's carve-out alongside `.sheet`. If a
+  future floating element (another menu/popover appended to body rather
+  than nested in the sheet) needs to scroll while opened from inside a
+  sheet, it needs the same carve-out, not a new one-off case.
+
 ## Definition of "done" for a change
 0. If index.html (or any other cached asset) changed, bump `CACHE_NAME` in
    sw.js — EVERY time, even for changes that have nothing to do with the

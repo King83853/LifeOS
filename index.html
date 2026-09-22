@@ -1147,7 +1147,7 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.61';
+var APP_VERSION='Beta 2.62';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1733,6 +1733,9 @@ var CHANGELOG=[
   {v:'Beta 2.61',notes:[
     'Task window: priority and project are dropdown rows (like in Settings) instead of buttons and a slide-up window behind it',
     'Task and habit titles are always one line (long ones end in …), so every row is exactly the same height; the date in the calendar list moved to the right'
+  ]},
+  {v:'Beta 2.62',notes:[
+    'Fixed: a dropdown list (like Project in the task window) couldn\'t be scrolled when opened from inside a slide-up window'
   ]}
 ];
 var COLORS={
@@ -4812,7 +4815,16 @@ var _instantClose=false; // set by the swipe-down dismiss: its own slide already
   document.addEventListener('touchstart',function(e){startY=e.touches[0].clientY;},{passive:true,capture:true});
   document.addEventListener('touchmove',function(e){
     if(_overlayCount<=0)return;
-    var sheet=e.target.closest&&e.target.closest('.sheet');
+    // A DSel dropdown (see DSel/customSelect) can be opened from a row
+    // INSIDE an already-open sheet (Task window's Priority/Project rows) —
+    // its menu is a separate floating element appended to <body>, not a
+    // descendant of `.sheet`, so it needs the same scroll carve-out or
+    // every touchmove inside it gets blocked as "background scroll" and
+    // the list can't be scrolled at all. Reported as "the dropdown
+    // doesn't work, I can't scroll" once Priority/Project became dropdowns
+    // living inside the Task sheet — DSel dropdowns opened from Settings
+    // pages never hit this because _overlayCount is 0 there (no sheet open).
+    var sheet=e.target.closest&&e.target.closest('.sheet,.dsel-menu');
     if(!sheet){e.preventDefault();return;}
     var sc=scroller(e.target,sheet);
     if(!sc){e.preventDefault();return;}

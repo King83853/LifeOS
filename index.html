@@ -565,10 +565,10 @@ html[data-theme="dark"] .wrd{color:rgba(255,255,255,.7)}
 html[data-theme="dark"] .bu{background:#7a2e2d}
 /* One divider look everywhere (1.5px, --line): a hair darker than the page
    background, so it reads as a soft gap between rows, as in Settings. */
-:root{--line:#eceef1;--pg:#f3f4f6;--card:#fff;--press:#e3e4e8}
-@media(prefers-color-scheme:dark){:root{--line:#1a2230;--pg:#1f2937;--card:#1e1c1a;--press:#151d28}}
-html[data-theme="dark"]{--line:#1a2230;--pg:#1f2937;--card:#1e1c1a;--press:#151d28}
-html[data-theme="light"]{--line:#eceef1;--pg:#f3f4f6;--card:#fff;--press:#e3e4e8}
+:root{--line:#eceef1;--pg:#f3f4f6;--card:#fff;--press:#d5d6db}
+@media(prefers-color-scheme:dark){:root{--line:#1a2230;--pg:#1f2937;--card:#1e1c1a;--press:#0d1219}}
+html[data-theme="dark"]{--line:#1a2230;--pg:#1f2937;--card:#1e1c1a;--press:#0d1219}
+html[data-theme="light"]{--line:#eceef1;--pg:#f3f4f6;--card:#fff;--press:#d5d6db}
 /* War Room rows: same look as Today's list, split by dividers */
 html:not(#x) .wri{background:transparent;border:none;border-bottom:1.5px solid var(--line);border-radius:0;margin:0;padding:8px 10px}
 html:not(#x) .wri:last-child{border-bottom:none}
@@ -1154,7 +1154,7 @@ html:not(#x) .acard:active{background:var(--press)}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.76';
+var APP_VERSION='Beta 2.77';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1788,6 +1788,9 @@ var CHANGELOG=[
   {v:'Beta 2.76',notes:[
     'Every clickable white row now flashes grey when pressed, everywhere including Settings — and the soft square icon buttons (back, add, edit, etc.) do too, instead of just fading',
     'Cleaned up leftover styling for an old project header design no longer used'
+  ]},
+  {v:'Beta 2.77',notes:[
+    'The pressed-grey is darker again — more visible against the white rows'
   ]}
 ];
 var COLORS={

@@ -680,6 +680,30 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   than nested in the sheet) needs to scroll while opened from inside a
   sheet, it needs the same carve-out, not a new one-off case.
 
+- iOS: a `position:fixed` sheet is anchored to the LAYOUT viewport, which
+  does NOT shrink when the on-screen keyboard opens — only the VISUAL
+  viewport does. From iOS's point of view a sheet sitting at `bottom:0`
+  is now BEHIND the keyboard, so it auto-scrolls the whole document to
+  bring the focused input back into view — and because fixed positioning
+  on iOS tracks that same scroll instead of staying put, the sheet AND
+  the page behind it visibly jump together. Reported as "it's not just
+  the edit window that moves, the background does too." This is the
+  same root cause as the tab bar/FAB hiding while typing (see the
+  comment right above this fix) — just with an interactive sheet, which
+  can't simply be hidden. Fixed (2.73) by tracking `window.visualViewport`
+  directly and lifting the open sheet by the keyboard's height via an
+  inline `bottom` style (composes fine with the existing open/close slide,
+  which only ever touches `transform`) — once the sheet already sits
+  right above the keyboard, iOS has no remaining reason to auto-scroll
+  the document, so the background stops moving too. Reset on `focusout`.
+  Only verified with a simulated `visualViewport` resize in this desktop
+  preview (there's no real virtual keyboard here) — this is the standard
+  fix for this well-documented WebKit behavior, but still needs
+  confirming on a real iPhone; if it's not enough there, the next thing
+  to check is whether `visualViewport.offsetTop` is actually nonzero
+  during the real keyboard animation (it's assumed to track any residual
+  page scroll) rather than guessing at more one-off timers.
+
 ## Definition of "done" for a change
 0. If index.html (or any other cached asset) changed, bump `CACHE_NAME` in
    sw.js — EVERY time, even for changes that have nothing to do with the

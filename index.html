@@ -543,7 +543,7 @@ html[data-theme="light"] .hh-btn{color:#1a1917}
 /* Buttons on settings pages: a normal white widget row with blue text (no
    icons on sub-pages; icons stay on the main settings list) */
 .btn-row{cursor:pointer;transition:background .12s ease}
-html:not(#x) .btn-row:active{background:var(--pg)}
+html:not(#x) .btn-row:active{background:var(--press)}
 .btn-row .opt-title{color:#007aff}
 html[data-theme="dark"] .btn-row .opt-title{color:#0a84ff}
 @media(prefers-color-scheme:dark){html:not([data-theme="light"]) .btn-row .opt-title{color:#0a84ff}}
@@ -572,10 +572,10 @@ html[data-theme="dark"] .wrd{color:rgba(255,255,255,.7)}
 html[data-theme="dark"] .bu{background:#7a2e2d}
 /* One divider look everywhere (1.5px, --line): a hair darker than the page
    background, so it reads as a soft gap between rows, as in Settings. */
-:root{--line:#eceef1;--pg:#f3f4f6;--card:#fff}
-@media(prefers-color-scheme:dark){:root{--line:#1a2230;--pg:#1f2937;--card:#1e1c1a}}
-html[data-theme="dark"]{--line:#1a2230;--pg:#1f2937;--card:#1e1c1a}
-html[data-theme="light"]{--line:#eceef1;--pg:#f3f4f6;--card:#fff}
+:root{--line:#eceef1;--pg:#f3f4f6;--card:#fff;--press:#e3e4e8}
+@media(prefers-color-scheme:dark){:root{--line:#1a2230;--pg:#1f2937;--card:#1e1c1a;--press:#151d28}}
+html[data-theme="dark"]{--line:#1a2230;--pg:#1f2937;--card:#1e1c1a;--press:#151d28}
+html[data-theme="light"]{--line:#eceef1;--pg:#f3f4f6;--card:#fff;--press:#e3e4e8}
 /* War Room rows: same look as Today's list, split by dividers */
 html:not(#x) .wri{background:transparent;border:none;border-bottom:1.5px solid var(--line);border-radius:0;margin:0;padding:8px 10px}
 html:not(#x) .wri:last-child{border-bottom:none}
@@ -643,7 +643,7 @@ html:not(#x) #sheet-icon:focus{background:var(--blue-tint);box-shadow:0 0 0 2px 
 .ts-title{font-size:20px;font-weight:800}
 /* buttons in sheets: a white row with blue text, exactly like Settings' buttons */
 html:not(#x) .sheet-save{background:var(--card);border:none;border-radius:14px;height:46px;padding:0 14px;color:var(--blue);font-size:15px;font-weight:600;text-align:left;font-family:inherit;transition:background .12s ease}
-html:not(#x) .sheet-save:active{background:var(--pg)}
+html:not(#x) .sheet-save:active{background:var(--press)}
 html:not(#x) .sheet-save.danger{background:#dc2626;color:#fff;text-align:center;font-weight:600}
 html:not(#x) .sheet-btns{margin-top:6px}
 /* choice lists: one white card, rows split by dividers */
@@ -1153,7 +1153,7 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.71';
+var APP_VERSION='Beta 2.73';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1771,6 +1771,12 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.71',notes:[
     'Updating is back to fully blocking the screen — nothing underneath is tappable or scrollable while it installs'
+  ]},
+  {v:'Beta 2.72',notes:[
+    'The pressed-grey on Save/Check for updates etc. is a bit darker now, so it shows up against the page background too'
+  ]},
+  {v:'Beta 2.73',notes:[
+    'Slide-up windows now track the keyboard directly, so the background behind them shouldn\'t jump anymore when you tap into a field'
   ]}
 ];
 var COLORS={
@@ -5334,6 +5340,41 @@ document.addEventListener('focusin',function(e){
 document.addEventListener('focusout',function(e){
   if(e.target.matches('input,textarea'))document.body.classList.remove('kb-open');
 });
+
+// The open sheet's own position must track the KEYBOARD, not just hide
+// like the tab bar does above — it's the thing being typed into. iOS's
+// position:fixed is anchored to the LAYOUT viewport, which does NOT
+// shrink when the keyboard opens (only the VISUAL viewport does), so a
+// sheet sitting at the real bottom edge ends up behind the keyboard from
+// iOS's point of view. iOS then "fixes" that itself by auto-scrolling the
+// whole document to bring the focused input back into view — and because
+// fixed positioning on iOS tracks that same scroll instead of staying put,
+// the sheet AND the page behind it both visibly jump together. Reported
+// as "it's not just the edit window that moves, the background does too."
+// Fix: track window.visualViewport ourselves and lift the open sheet by
+// exactly the keyboard's height via inline `bottom` (composes fine with
+// the existing open/close slide, which only ever touches `transform`) —
+// once the sheet is already sitting right above the keyboard, iOS has no
+// reason left to auto-scroll the document, so the background stops
+// moving too. Only runs while a sheet is actually open.
+if(window.visualViewport){
+  (function(){
+    function syncOpenSheetToKeyboard(){
+      var ov=document.querySelector('.sheet-overlay.on');
+      var sheet=ov&&ov.querySelector('.sheet');
+      if(!sheet)return;
+      var vv=window.visualViewport;
+      var kb=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);
+      sheet.style.bottom=kb+'px';
+    }
+    window.visualViewport.addEventListener('resize',syncOpenSheetToKeyboard);
+    window.visualViewport.addEventListener('scroll',syncOpenSheetToKeyboard);
+    document.addEventListener('focusout',function(e){
+      if(!e.target.matches('input,textarea'))return;
+      document.querySelectorAll('.sheet-overlay .sheet').forEach(function(sh){sh.style.bottom='';});
+    });
+  })();
+}
 
 // Buttons/nav controls: act on touchend instead of relying solely on click.
 // iOS eats the click on the first tap while the page still has scroll

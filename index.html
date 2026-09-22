@@ -126,17 +126,6 @@ html[data-theme="light"] .dico{background:#f3f4f6;color:#1a1917}
    button all sit in one header row (no floating FAB — see
    TabPlus.tap()); the bottom tab bar stays visible */
 .proj-page{padding-bottom:118px}
-.proj-hdr .back{margin-bottom:0}
-/* Back button, name pill and edit/add buttons all share one 52px-tall
-   row — same height, same border/bg tokens as .back — so nothing in
-   this row reads as a different size or a different color family. */
-.proj-hdr .edit-proj-btn{width:52px;height:52px}
-.proj-name-pill{flex:1;min-width:0;height:52px;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #1a1917;border-radius:14px;padding:0 16px;cursor:pointer;font-family:inherit;color:#1a1917}
-@media(prefers-color-scheme:dark){.proj-name-pill{background:#1e1c1a;border-color:#e8e6df;color:#e8e6df}}
-html[data-theme="dark"] .proj-name-pill{background:#1e1c1a;border-color:#e8e6df;color:#e8e6df}
-html[data-theme="light"] .proj-name-pill{background:#fff;border-color:#1a1917;color:#1a1917}
-.proj-name-pill:active{opacity:.7}
-.proj-name-pill .dtitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17px}
 
 .ti,.wri{position:relative;overflow:hidden}
 .ti{display:flex;align-items:center;gap:12px;padding:8px;background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px;transition:opacity .3s}
@@ -532,7 +521,7 @@ html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
    outline-free look as Settings */
 .hh{margin-bottom:16px}
 .hh-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.hh-btn{width:40px;height:40px;border-radius:12px;border:none;padding:0;background:var(--card);color:#1a1917;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.hh-btn{width:40px;height:40px;border-radius:12px;border:none;padding:0;background:var(--card);color:#1a1917;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .12s ease}
 .hh-btn:active{opacity:.7}
 .hh-title{display:block;font-size:26px;font-weight:800;line-height:1.15;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 .hh-title-btn{display:block;max-width:100%;background:none;border:none;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
@@ -543,7 +532,11 @@ html[data-theme="light"] .hh-btn{color:#1a1917}
 /* Buttons on settings pages: a normal white widget row with blue text (no
    icons on sub-pages; icons stay on the main settings list) */
 .btn-row{cursor:pointer;transition:background .12s ease}
-html:not(#x) .btn-row:active{background:var(--press)}
+/* Blanket: every clickable white row/button flashes this same darker grey
+   while pressed (was scoped to task/habit rows and blue-text buttons only
+   — 2.75 — now covers every .opt-row, including plain navigation/toggle
+   rows, and the soft square icon buttons too). */
+html:not(#x) .opt-row:active{background:var(--press)}
 .btn-row .opt-title{color:#007aff}
 html[data-theme="dark"] .btn-row .opt-title{color:#0a84ff}
 @media(prefers-color-scheme:dark){html:not([data-theme="light"]) .btn-row .opt-title{color:#0a84ff}}
@@ -609,7 +602,8 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 html[data-theme="dark"]{--ink:#e8e6df;--blue:#0a84ff;--blue-tint:rgba(10,132,255,.22)}
 html[data-theme="light"]{--ink:#1a1917;--blue:#007aff;--blue-tint:rgba(0,122,255,.12)}
 /* soft square buttons (header +, back, edit, menu, add) */
-html:not(#x) .hdr-add,html:not(#x) .menu-btn,html:not(#x) .back,html:not(#x) .edit-proj-btn,html:not(#x) .addbtn{width:40px;height:40px;min-height:40px;border:none;border-radius:12px;background:var(--card);color:var(--ink)}
+html:not(#x) .hdr-add,html:not(#x) .menu-btn,html:not(#x) .back,html:not(#x) .edit-proj-btn,html:not(#x) .addbtn{width:40px;height:40px;min-height:40px;border:none;border-radius:12px;background:var(--card);color:var(--ink);transition:background .12s ease}
+html:not(#x) .hdr-add:active,html:not(#x) .menu-btn:active,html:not(#x) .back:active,html:not(#x) .edit-proj-btn:active,html:not(#x) .addbtn:active,html:not(#x) .hh-btn:active,html:not(#x) .el-btn:active{background:var(--press);opacity:1}
 html:not(#x) .addbtn{width:46px;height:46px;min-height:46px;border-radius:14px}
 html:not(#x) .dhdr{min-height:40px}
 .dtitle{font-size:20px;font-weight:800}
@@ -669,7 +663,7 @@ html[data-theme="dark"]:not(#x) .dpill.today{background:#052e16}
 html:not(#x) .el-card .el-row{background:transparent;border-radius:0;margin:0;border-bottom:1.5px solid var(--line)}
 html:not(#x) .el-card .el-row:last-child{border-bottom:none}
 html:not(#x) .el-row{padding:6px 8px 6px 14px;min-height:52px}
-html:not(#x) .el-btn{width:36px;height:36px;border:none;border-radius:10px;background:var(--pg)}
+html:not(#x) .el-btn{width:36px;height:36px;border:none;border-radius:10px;background:var(--pg);transition:background .12s ease}
 html:not(#x) .el-btn.danger{background:#dc2626}
 .el-name{flex:1;min-width:0}
 .type-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:14px}
@@ -1160,7 +1154,7 @@ html:not(#x) .acard:active{background:var(--press)}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.75';
+var APP_VERSION='Beta 2.76';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1790,6 +1784,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.75',notes:[
     'Tasks, habits, project tiles and other tappable rows now flash grey when pressed too, like the buttons'
+  ]},
+  {v:'Beta 2.76',notes:[
+    'Every clickable white row now flashes grey when pressed, everywhere including Settings — and the soft square icon buttons (back, add, edit, etc.) do too, instead of just fading',
+    'Cleaned up leftover styling for an old project header design no longer used'
   ]}
 ];
 var COLORS={

@@ -671,6 +671,12 @@ html:not(#x) .type-grid.days .type-btn{padding:0;font-size:13px}
 .sheet .opt-row{padding:0 14px;height:46px;min-height:46px;box-sizing:border-box}
 html:not(#x) .sheet .opt-row,html:not(#x) .sheet .opt-group{border:none}
 .sheet .opt-group{margin-bottom:14px}
+/* the divider between grouped rows inside a sheet (e.g. Priority/Project in
+   the Task window) — the border:none wipe right above also zeroed the
+   .opt-group .opt-row divider since it's a border shorthand; this specific
+   selector (3 classes) outweighs it regardless of source order */
+html:not(#x) .sheet .opt-group .opt-row{border-bottom:1.5px solid var(--line)}
+html:not(#x) .sheet .opt-group .opt-row:last-child{border-bottom:none}
 .sheet .opt-title{font-size:15px}
 /* task rows: one white card per group, rows split by dividers */
 .card-list{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:8px}
@@ -1147,7 +1153,7 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.62';
+var APP_VERSION='Beta 2.63';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1736,6 +1742,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.62',notes:[
     'Fixed: a dropdown list (like Project in the task window) couldn\'t be scrolled when opened from inside a slide-up window'
+  ]},
+  {v:'Beta 2.63',notes:[
+    'Fixed: the divider line between Priority and Project in the task window had gone missing'
   ]}
 ];
 var COLORS={

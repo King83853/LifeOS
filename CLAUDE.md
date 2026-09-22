@@ -256,6 +256,31 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   (already added). No emojis on categories, section titles, choice rows or
   type buttons (only user-chosen project icons remain).
 
+- A tracker-linked Daily item (`ciTracker()`) renders on BOTH Today and
+  Daily now (since 2.53), sharing one function — but `_projFromDaily`
+  (set right before navigating to the tracker's project page, so back
+  knows to return to Habits instead of Overview) only ever pointed at
+  Habits, regardless of which page the tap actually came from. Tapping a
+  tracked habit on TODAY and swiping back landed on Habits/Daily instead
+  of Today. Fixed with a second variable, `_trackerOrigin` ('today' or
+  'habits', derived from `ciTracker`'s existing `editable` flag — true
+  only when rendered by Daily), read by `_backTarget()` instead of the
+  hardcoded 'habits'. Any future page that both renders a tracker link
+  AND isn't Today or Daily needs to set this explicitly too, the same
+  way `HabitDetail.origin` already tracks it for the habit detail page.
+
+- Regular (non-tracker) habits can now have an optional `desc` on the
+  `dailyItems` entry, edited in `DailyItemSheet` (hidden, like the name
+  field, when `trackerPid` is set — a tracked project's own description
+  covers that case) and shown under the title on the habit's own page
+  (`#hd-desc`, hidden when empty). Deleting a habit moved from a
+  standalone trash icon on every Daily row (`ciEdit`) into a Delete
+  button inside this same edit sheet (`DailyItemSheet.remove`, editId-
+  gated) — `ciEdit` no longer renders one. `ciTracker`'s row keeps its
+  own inline trash icon: a tracker link has no edit sheet of its own to
+  hold a Delete button, so removing its only delete path would leave it
+  stuck in Daily permanently.
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

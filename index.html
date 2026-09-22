@@ -547,6 +547,7 @@ html[data-theme="dark"] .btn-row .opt-title{color:#0a84ff}
 .soon-ico{width:64px;height:64px;border-radius:20px;background:#ef444422;color:#ef4444;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
 .soon-t{font-size:20px;font-weight:800}
 .soon-s{font-size:13px;color:#999;max-width:260px;line-height:1.5}
+.hh-desc{font-size:13px;font-weight:500;color:#999;margin-top:4px;line-height:1.4}
 /* Daily: a past day of a habit whose stats were reset — visible but locked */
 .cali.locked{opacity:.4}
 .cali.locked input{cursor:not-allowed}
@@ -972,6 +973,7 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
     </div>
     <div class="hh-title" id="hd-title" onclick="HabitDetail.edit()">Habit</div>
     <div class="hh-sub" id="hd-sub"></div>
+    <div class="hh-desc" id="hd-desc" style="display:none"></div>
   </div>
   <div class="calsec" style="padding:12px 14px 10px">
     <div class="chart-hdr">
@@ -1101,6 +1103,7 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
     <div class="sheet-title" id="daily-item-sheet-title">Add habit</div>
     <input class="sheet-inp" id="daily-item-inp" placeholder="Habit name">
     <div class="sheet-label" id="daily-item-tracker-lbl" style="display:none"></div>
+    <textarea class="sheet-inp" id="daily-item-desc" placeholder="Description (optional)" style="min-height:70px;resize:none"></textarea>
     <div class="sheet-label">Days</div>
     <div class="type-grid days" id="daily-item-days"></div>
     <div class="type-grid" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
@@ -1109,6 +1112,9 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
     </div>
     <div class="sheet-btns">
       <button class="sheet-save" onclick="DailyItemSheet.save()">Save</button>
+    </div>
+    <div class="sheet-btns" id="daily-item-delete-row" style="display:none;margin-top:8px">
+      <button class="sheet-save danger" onclick="DailyItemSheet.remove()">Delete habit</button>
     </div>
   </div>
 </div>
@@ -1153,7 +1159,7 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.63';
+var APP_VERSION='Beta 2.64';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1745,6 +1751,12 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.63',notes:[
     'Fixed: the divider line between Priority and Project in the task window had gone missing'
+  ]},
+  {v:'Beta 2.64',notes:[
+    'Habits: added an optional description, shown on the habit\'s own page',
+    'Edit habit now has a Delete button; the small trash icon on each habit row in Daily is gone',
+    'Fixed: swiping back from a tracked habit opened on Today used to land on Daily instead of Today',
+    'A habit scheduled every day now just says "Every day" under its title, instead of naming all seven'
   ]}
 ];
 var COLORS={
@@ -2177,7 +2189,7 @@ var I18N=(function(){
     'Nothing else matters until the War Room is clear.':'Nichts anderes zählt, bis der War Room leer ist.',
     'Nothing to do today.':'Heute nichts zu tun.','Nothing scheduled for today.':'Für heute ist nichts geplant.','Nothing here.':'Hier ist nichts.',
     // actions
-    'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Add habit':'Gewohnheit hinzufügen','Habit name':'Name der Gewohnheit','Show on chart':'Im Diagramm anzeigen','Add category':'Kategorie hinzufügen','Add project':'Projekt hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
+    'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Add habit':'Gewohnheit hinzufügen','Habit name':'Name der Gewohnheit','Edit habit':'Gewohnheit bearbeiten','Delete habit':'Gewohnheit löschen','Description (optional)':'Beschreibung (optional)','Show on chart':'Im Diagramm anzeigen','Add category':'Kategorie hinzufügen','Add project':'Projekt hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
     'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Blocker':'Blocker','Coming soon':'Demnächst verfügbar','App and website blocker: limits, warnings, screen time and app usage.':'App- und Website-Blocker: Limits, Warnungen, Bildschirmzeit und App-Nutzung.','Show War Room':'War Room anzeigen','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
@@ -2389,7 +2401,7 @@ function renderGrids(){
       } else {
         cntLbl=n?n+' tasks':'Empty';
       }
-      h+='<div class="acard" onclick="_projFromDaily=null;Nav.go(\''+pid+'\')">'
+      h+='<div class="acard" onclick="_projFromDaily=null;_trackerOrigin=null;Nav.go(\''+pid+'\')">'
         +'<div class="aico" style="'+tintStyle(col)+'">'+p.icon+'</div>'
         +'<div class="albl">'+p.name+'</div>'
         +'<div class="acnt">'+cntLbl+'</div></div>';
@@ -3553,7 +3565,7 @@ function _backTarget(){
   // should return to Habits, not the usual Overview default — _projFromDaily
   // is set right before that specific navigation and cleared by the normal
   // Overview-card path, so it only matches the page it was actually set for.
-  if(cur&&_projFromDaily&&cur.id==='p-'+_projFromDaily)return 'habits';
+  if(cur&&_projFromDaily&&cur.id==='p-'+_projFromDaily)return _trackerOrigin||'habits';
   return 'overview';
 }
 function navBack(targetId){
@@ -3783,6 +3795,13 @@ function recomputeT(){
 }
 recomputeT();
 var DN=['Mo','Di','Mi','Do','Fr','Sa','So'];
+// A habit scheduled on all 7 days reads as "Every day" instead of naming
+// each one — used anywhere a habit's schedule is shown as text.
+function daysLabel(days){
+  days=days||[];
+  if(days.length===7)return 'Every day';
+  return days.map(function(i){return DN[i];}).join(', ');
+}
 Nav.sd=0; // offset from today, not a weekday index — see buildPills/buildPanels
 var HOUR_OPTS=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
 function hourLabel(h){h=+h;if(I18N.lang==='de')return String(h).padStart(2,'0')+':00';var ap=h<12?'AM':'PM';var h12=h%12;if(h12===0)h12=12;return h12+':00 '+ap;}
@@ -3799,8 +3818,7 @@ var LOCK_SVG='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke
 function ciEdit(itemId,text,dayIdx,locked){
   return '<div class="cali'+(locked?' locked':'')+'" data-id="'+itemId+'">'
     +'<input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'"'+(locked?' disabled':'')+' onchange="A.toggleDailyItemFor(this,'+dayIdx+')">'
-    +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label>'+(locked?LOCK_SVG:'')
-    +'<button class="trk-del" onclick="A.deleteDailyItem(event,\''+itemId+'\')">'+trashSvg(18,'currentColor')+'</button></div>';
+    +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label>'+(locked?LOCK_SVG:'')+'</div>';
 }
 // The most recent tracker entry actually logged on calendar date `ds`
 // (local time, matching dStr/pDate everywhere else) — null if none.
@@ -3819,6 +3837,11 @@ function trackerEntryForDate(pid,ds){
 // (renderGrids()) so reopening the same tracker from there afterward
 // doesn't stay stuck pointing back at Habits.
 var _projFromDaily=null;
+// Which page a tracker link was opened FROM (Today or Daily/Habits) — the
+// same tracker row now renders on both (see ciTracker()), so _projFromDaily
+// alone isn't enough to know where back should go; it used to always
+// assume Daily and sent Today's tap back to Habits instead of Today.
+var _trackerOrigin=null;
 // A tracker linked into Daily (dailyItems entry with trackerPid instead
 // of its own text) — no checkbox, since "done today" isn't something a
 // tap can toggle, only whatever value (if any) got logged on the
@@ -3830,7 +3853,7 @@ function ciTracker(it,dayIdx,editable){
   if(!p)return ''; // its tracker project was deleted — orphaned link, nothing sane to show
   var val=trackerEntryForDate(it.trackerPid,pDate(dayIdx));
   var unit=p.unit||'';
-  return '<div class="cali" style="cursor:pointer" onclick="_projFromDaily=\''+it.trackerPid+'\';Nav.go(\''+it.trackerPid+'\')">'
+  return '<div class="cali" style="cursor:pointer" onclick="_projFromDaily=\''+it.trackerPid+'\';_trackerOrigin=\''+(editable?'habits':'today')+'\';Nav.go(\''+it.trackerPid+'\')">'
     +'<div class="trk-daily-dot'+(val!=null?' done':'')+'"></div>'
     +'<label style="cursor:pointer">'+esc(p.name)+'</label>'
     +(val!=null?'<span class="trk-daily-val">'+esc(val+(unit?' '+unit:''))+'</span>':'')
@@ -4218,7 +4241,9 @@ var HabitDetail={
     if(!item){navBack();return;}
     var cat=DB.data.dailyCats.find(function(c){return c.id===item.catId;});
     document.getElementById('hd-title').textContent=item.text;
-    document.getElementById('hd-sub').textContent=(cat?cat.name+' · ':'')+(item.days||[]).map(function(i){return DN[i];}).join(', ');
+    document.getElementById('hd-sub').textContent=(cat?cat.name+' · ':'')+daysLabel(item.days);
+    var hdDesc=document.getElementById('hd-desc');
+    hdDesc.textContent=item.desc||'';hdDesc.style.display=item.desc?'':'none';
     document.querySelectorAll('#hd-seg .seg-btn').forEach(function(b){
       b.classList.toggle('active',b.getAttribute('data-view')==='day');
     });
@@ -4577,18 +4602,22 @@ var DailyItemSheet={
     var inp=document.getElementById('daily-item-inp');
     var lbl=document.getElementById('daily-item-tracker-lbl');
     var title=document.getElementById('daily-item-sheet-title');
+    var desc=document.getElementById('daily-item-desc');
     if(this.trackerPid){
       var p=DB.data.projects[this.trackerPid];
       title.textContent='Track in Daily';
       inp.style.display='none';
       lbl.style.display='';
       lbl.textContent='Tracking: '+(p?(p.icon||'📈')+' '+p.name:'');
+      desc.style.display='none';
     } else {
       title.textContent='Add habit';
       inp.style.display='';
       lbl.style.display='none';
       inp.value='';
+      desc.style.display='';desc.value='';
     }
+    document.getElementById('daily-item-delete-row').style.display='none';
     this.renderDays();
     _overlayOpen('daily-item-sheet-overlay');
     if(!this.trackerPid)setTimeout(function(){document.getElementById('daily-item-inp').focus();},300);
@@ -4600,14 +4629,18 @@ var DailyItemSheet={
     this.editId=itemId;this.catId=it.catId;this.trackerPid=it.trackerPid||null;
     this.selectedDays=(it.days||[]).slice();
     var inp=document.getElementById('daily-item-inp'),lbl=document.getElementById('daily-item-tracker-lbl');
+    var desc=document.getElementById('daily-item-desc');
     document.getElementById('daily-item-sheet-title').textContent='Edit habit';
     if(this.trackerPid){
       var p=DB.data.projects[this.trackerPid];
       inp.style.display='none';lbl.style.display='';
       lbl.textContent='Tracking: '+(p?(p.icon||'📈')+' '+p.name:'');
+      desc.style.display='none';
     } else {
       inp.style.display='';lbl.style.display='none';inp.value=it.text||'';
+      desc.style.display='';desc.value=it.desc||'';
     }
+    document.getElementById('daily-item-delete-row').style.display=this.trackerPid?'none':'';
     this.renderDays();
     _overlayOpen('daily-item-sheet-overlay');
   },
@@ -4627,6 +4660,19 @@ var DailyItemSheet={
     this.selectedDays=type==='all'?[0,1,2,3,4,5,6]:[5,6];
     this.renderDays();
   },
+  // Delete from inside the Edit habit sheet — the row's own inline trash
+  // icon was removed (2.64) so this is now the only way; same Trash/
+  // confirm path A.deleteDailyItem used.
+  remove:function(){
+    var id=this.editId;if(!id)return;
+    ConfirmSheet.show('Move this habit to the Trash?',function(){
+      DB.deleteDailyItem(id);
+      DailyItemSheet.editId=null;
+      _overlayClose('daily-item-sheet-overlay');
+      if(Nav.cur==='habit-detail')navBack();
+      buildPanels();restoreChecks(Nav.sd);renderToday();
+    },'Move to Trash');
+  },
   save:function(){
     if(!this.selectedDays.length||!this.catId)return;
     if(this.editId){
@@ -4636,6 +4682,7 @@ var DailyItemSheet={
           var nm=document.getElementById('daily-item-inp').value.trim();
           if(!nm)return;
           it.text=nm;
+          it.desc=document.getElementById('daily-item-desc').value.trim();
         }
         it.days=this.selectedDays.slice().sort();
         DB.save();

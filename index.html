@@ -565,12 +565,12 @@ html[data-theme="dark"] .wrd{color:rgba(255,255,255,.7)}
 html[data-theme="dark"] .bu{background:#7a2e2d}
 /* One divider look everywhere (1.5px, --line): a hair darker than the page
    background, so it reads as a soft gap between rows, as in Settings. */
-:root{--line:#eceef1;--pg:#f3f4f6;--card:#fff;--press:#d5d6db}
-@media(prefers-color-scheme:dark){:root{--line:#1a2230;--pg:#1f2937;--card:#1e1c1a;--press:#0d1219}}
-html[data-theme="dark"]{--line:#1a2230;--pg:#1f2937;--card:#1e1c1a;--press:#0d1219}
-html[data-theme="light"]{--line:#eceef1;--pg:#f3f4f6;--card:#fff;--press:#d5d6db}
+:root{--line:#d5d7db;--pg:#f3f4f6;--card:#fff;--press:#d5d6db}
+@media(prefers-color-scheme:dark){:root{--line:#333e4d;--pg:#1f2937;--card:#1e1c1a;--press:#0d1219}}
+html[data-theme="dark"]{--line:#333e4d;--pg:#1f2937;--card:#1e1c1a;--press:#0d1219}
+html[data-theme="light"]{--line:#d5d7db;--pg:#f3f4f6;--card:#fff;--press:#d5d6db}
 /* War Room rows: same look as Today's list, split by dividers */
-html:not(#x) .wri{background:transparent;border:none;border-bottom:1.5px solid var(--line);border-radius:0;margin:0;padding:8px 10px}
+html:not(#x) .wri{background:transparent;border:none;border-bottom:1px solid var(--line);border-radius:0;margin:0;padding:8px 10px}
 html:not(#x) .wri:last-child{border-bottom:none}
 .wri .bdg{height:27px;min-height:27px;padding-top:0;padding-bottom:0}
 /* dividers inside a card run edge to edge, like in Settings (14px padding
@@ -597,14 +597,14 @@ html:not(#x) .wri:last-child{border-bottom:none}
 html:not(#x) .archbox{border:none}
 /* project badge in task rows: a touch slimmer than the default 30px */
 .ti .bdg{height:27px;min-height:27px;display:inline-flex;align-items:center;padding-top:0;padding-bottom:0}
-html:not(#x) .cali,html:not(#x) .sw.h,html:not(#x) .archi,html:not(#x) .trk-entry{border-bottom-color:var(--line);border-bottom-width:1.5px}
-html:not(#x) .opt-group .opt-row{border-bottom:1.5px solid var(--line)}
+html:not(#x) .cali,html:not(#x) .sw.h,html:not(#x) .archi,html:not(#x) .trk-entry{border-bottom-color:var(--line);border-bottom-width:1px}
+html:not(#x) .opt-group .opt-row{border-bottom:1px solid var(--line)}
 html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 /* ══ DESIGN SYSTEM ══ the Settings look, applied to every page, sheet and button.
    Type scale: page title 20/800 (26/800 on pushed pages) · row text 15/600 ·
    secondary 12/500 grey · paragraph 13/500 grey · uppercase label 11/800 ·
    buttons + badges 15/600 and 12/600. Cards are var(--card) on var(--pg),
-   radius 14, no outlines; dividers 1.5px var(--line); rows 46px. */
+   radius 14, no outlines; dividers 1px var(--line) (darker/thinner, 2.82); rows 46px. */
 :root{--ink:#1a1917;--blue:#007aff;--blue-tint:rgba(0,122,255,.12)}
 @media(prefers-color-scheme:dark){:root{--ink:#e8e6df;--blue:#0a84ff;--blue-tint:rgba(10,132,255,.22)}}
 html[data-theme="dark"]{--ink:#e8e6df;--blue:#0a84ff;--blue-tint:rgba(10,132,255,.22)}
@@ -650,9 +650,9 @@ html:not(#x) .sheet-save.danger{background:#dc2626;color:#fff;text-align:center;
 html:not(#x) .sheet-btns{margin-top:6px}
 /* choice lists: one white card, rows split by dividers */
 #cat-choices,#add-choice-list,#daily-cat-list{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:14px}
-html:not(#x) .cat-choice{border:none;border-radius:0;margin:0;height:46px;padding:0 14px;border-bottom:1.5px solid var(--line);font-size:15px;font-weight:600}
+html:not(#x) .cat-choice{border:none;border-radius:0;margin:0;height:46px;padding:0 14px;border-bottom:1px solid var(--line);font-size:15px;font-weight:600}
 html:not(#x) .cat-choice:last-child{border-bottom:none}
-#daily-cat-list .el-row{background:transparent;border-radius:0;margin:0;border-bottom:1.5px solid var(--line)}
+#daily-cat-list .el-row{background:transparent;border-radius:0;margin:0;border-bottom:1px solid var(--line)}
 #daily-cat-list .el-row:last-child{border-bottom:none}
 /* option buttons (type, days, quick picks) */
 html:not(#x) .type-btn{border:none;background:var(--card);border-radius:12px;height:40px;padding:0 10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#999;transition:background .15s ease,color .15s ease}
@@ -668,7 +668,7 @@ html[data-theme="dark"]:not(#x) .dpill.today{background:#052e16}
 .dnum{font-weight:700}
 /* Edit layout: a category and its projects in one card */
 .el-card{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:8px}
-html:not(#x) .el-card .el-row{background:transparent;border-radius:0;margin:0;border-bottom:1.5px solid var(--line)}
+html:not(#x) .el-card .el-row{background:transparent;border-radius:0;margin:0;border-bottom:1px solid var(--line)}
 html:not(#x) .el-card .el-row:last-child{border-bottom:none}
 html:not(#x) .el-row{padding:6px 8px 6px 14px;min-height:52px}
 html:not(#x) .el-btn{width:36px;height:36px;border:none;border-radius:10px;background:var(--pg);transition:background .12s ease}
@@ -685,14 +685,14 @@ html:not(#x) .sheet .opt-row,html:not(#x) .sheet .opt-group{border:none}
    the Task window) — the border:none wipe right above also zeroed the
    .opt-group .opt-row divider since it's a border shorthand; this specific
    selector (3 classes) outweighs it regardless of source order */
-html:not(#x) .sheet .opt-group .opt-row{border-bottom:1.5px solid var(--line)}
+html:not(#x) .sheet .opt-group .opt-row{border-bottom:1px solid var(--line)}
 html:not(#x) .sheet .opt-group .opt-row:last-child{border-bottom:none}
 .sheet .opt-title{font-size:15px}
 /* task rows: one white card per group, rows split by dividers */
 .card-list{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:8px}
-html:not(#x) .card-list .ti{background:transparent;border:none;border-radius:0;margin:0;border-bottom:1.5px solid var(--line)}
+html:not(#x) .card-list .ti{background:transparent;border:none;border-radius:0;margin:0;border-bottom:1px solid var(--line)}
 html:not(#x) .card-list .ti:last-child{border-bottom:none}
-html:not(#x) .card-list .sw.t{margin:0;border-radius:0;border-bottom:1.5px solid var(--line)}
+html:not(#x) .card-list .sw.t{margin:0;border-radius:0;border-bottom:1px solid var(--line)}
 html:not(#x) .card-list .sw.t:last-child{border-bottom:none}
 html:not(#x) .card-list .sw.t .ti{border-bottom:none}
 html:not(#x) .card-list .ti[data-pri="bu"]{box-shadow:inset 3px 0 0 #e24b4a}
@@ -1167,7 +1167,7 @@ html:not(#x) .acard:active{background:var(--press)}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.81';
+var APP_VERSION='Beta 2.82';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1816,6 +1816,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.81',notes:[
     'That fill is now a pale tint of the chosen color, like the color already looks elsewhere, instead of the full solid color'
+  ]},
+  {v:'Beta 2.82',notes:[
+    'Every divider line in the app is thinner but shows up more clearly against the card'
   ]}
 ];
 var COLORS={

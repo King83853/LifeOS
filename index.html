@@ -96,6 +96,7 @@ html[data-theme="light"] .wri{background:#fafaf8;border-color:#f0ede8}
 html[data-theme="dark"] .acard{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .acard{background:#fff;border-color:#e8e5e0}
 .acard:active{transform:scale(0.95)}
+.dragging{transform:scale(1.06)!important;box-shadow:0 10px 24px rgba(0,0,0,.22)!important;opacity:.97;pointer-events:none;transition:box-shadow .15s ease,transform .15s ease}
 .aico{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:27px;background:#f3f4f6;color:#374151;overflow:hidden}
 @media(prefers-color-scheme:dark){.aico{background:#1f2937;color:#9ca3af}}
 html[data-theme="dark"] .aico{background:#1f2937;color:#9ca3af}
@@ -1167,7 +1168,7 @@ html:not(#x) .acard:active{background:var(--press)}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.83';
+var APP_VERSION='Beta 2.84';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1822,6 +1823,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.83',notes:[
     'Divider lines are even thinner'
+  ]},
+  {v:'Beta 2.84',notes:[
+    'Long-press a project, category or habit to pick it up — it pops up with a shadow — then drag to reorder it, like rearranging home-screen icons',
+    'Works on Overview (categories and projects) and Daily (habits)'
   ]}
 ];
 var COLORS={
@@ -2025,6 +2030,36 @@ var DB={
     var arr=this.data.projectOrder[catId]||[],i=arr.indexOf(id),j=i+dir;
     if(i===-1||j<0||j>=arr.length)return;
     var t=arr[i];arr[i]=arr[j];arr[j]=t;this.save();
+  },
+  // Drag-to-reorder (see DragReorder) hands back the whole new order at
+  // once, read straight from the final DOM order, rather than one swap
+  // at a time like the Edit layout arrows above.
+  reorderCategories:function(orderedIds){this.data.categoryOrder=orderedIds;this.save();},
+  reorderProjects:function(catId,orderedIds){this.data.projectOrder[catId]=orderedIds;this.save();},
+  // Habits/tracker links aren't kept in a separate per-category order
+  // array (unlike projects) — a dailyItems entry's position in that ONE
+  // flat array is all that decides display order, and only relative to
+  // other items sharing the same catId (buildPanels/renderToday just
+  // filter by catId, preserving whatever order they come out of the
+  // array in). Reordering therefore only needs to fix up this category's
+  // own relative order; where its items end up relative to some OTHER
+  // category's items in the underlying array doesn't matter at all.
+  reorderDailyItems:function(catId,orderedIds){
+    // orderedIds only covers whatever was actually on screen (a habit
+    // scheduled just on weekends never shows on a weekday panel, so it
+    // can't have been part of the drag) — anything in this category NOT
+    // mentioned keeps its old relative position, appended after the
+    // reordered ones, so a reorder done on one day can never silently
+    // drop a habit that just wasn't visible that day.
+    var d=this.data;
+    var mineAll=d.dailyItems.filter(function(it){return it.catId===catId;});
+    var rest=d.dailyItems.filter(function(it){return it.catId!==catId;});
+    var byId={};mineAll.forEach(function(it){byId[it.id]=it;});
+    var seen={};
+    var mine=orderedIds.map(function(id){if(byId[id]){seen[id]=1;return byId[id];}}).filter(Boolean);
+    mineAll.forEach(function(it){if(!seen[it.id])mine.push(it);});
+    d.dailyItems=rest.concat(mine);
+    this.save();
   },
   addTask:function(projId,text,pri){
     pri=pri||'bs';
@@ -2431,9 +2466,9 @@ function renderGrids(){
   }
   d.categoryOrder.forEach(function(catId){
     var cat=d.categories[catId];if(!cat)return;
-    h+='<div class="shdr">'+cat.name+'</div>';
+    h+='<div class="cat-block" data-cat="'+catId+'"><div class="shdr">'+cat.name+'</div>';
     var projs=d.projectOrder[catId]||[];
-    if(!projs.length){return;}
+    if(!projs.length){h+='</div>';return;}
     h+='<div class="agrid">';
     projs.forEach(function(pid){
       var p=d.projects[pid];if(!p)return;
@@ -2466,16 +2501,47 @@ function renderGrids(){
       } else {
         cntLbl=n?n+' tasks':'Empty';
       }
-      h+='<div class="acard" onclick="_projFromDaily=null;_trackerOrigin=null;Nav.go(\''+pid+'\')">'
+      h+='<div class="acard" data-pid="'+pid+'" onclick="_projFromDaily=null;_trackerOrigin=null;Nav.go(\''+pid+'\')">'
         +'<div class="aico" style="'+tintStyle(col)+'">'+iconOrPhoto(p)+'</div>'
         +'<div class="albl">'+p.name+'</div>'
         +'<div class="acnt">'+cntLbl+'</div></div>';
     });
-    h+='</div>';
+    h+='</div></div>';
   });
   document.getElementById('overview-grid').innerHTML=h;
   var ab2=document.getElementById('ab2');if(ab2){ab2.style.display=Trash.total()?'inline-flex':'none';ab2.textContent=Trash.total();}
-
+  wireOverviewDrag();
+}
+// Long-press a category title to drag the whole block (reorders
+// categoryOrder); long-press anywhere on a project card to drag just
+// that card within its own category's grid (reorders projectOrder for
+// that one catId — each .agrid is its own drag container, so a card
+// can't be dropped into a different category this way).
+function wireOverviewDrag(){
+  var grid=document.getElementById('overview-grid');
+  // #overview-grid itself is a fixed element that survives every
+  // renderGrids() call (only its CHILDREN get replaced by innerHTML=h) —
+  // wiring it again on every render would stack up duplicate listeners
+  // that each independently fire _prime()/_begin() for the same touch,
+  // so this only ever wires it once. Its callback re-queries the DOM
+  // live at drop time, so a single wiring stays correct across any
+  // number of later re-renders. Each .agrid below IS freshly created by
+  // every render, so those need no such guard — old ones (and their
+  // listeners) are simply discarded with the DOM they were attached to.
+  if(!grid.dataset.dragWired){
+    grid.dataset.dragWired='1';
+    DragReorder.init(grid,'.shdr','.cat-block','list',function(container){
+      var ids=[].slice.call(container.querySelectorAll('.cat-block')).map(function(el){return el.getAttribute('data-cat');});
+      DB.reorderCategories(ids);
+    });
+  }
+  grid.querySelectorAll('.agrid').forEach(function(agrid){
+    var catId=agrid.closest('.cat-block').getAttribute('data-cat');
+    DragReorder.init(agrid,'.acard','.acard','grid',function(container){
+      var ids=[].slice.call(container.querySelectorAll('.acard')).map(function(el){return el.getAttribute('data-pid');});
+      DB.reorderProjects(catId,ids);
+    });
+  });
 }
 
 function renderTracker(pid){
@@ -3942,7 +4008,7 @@ function ciTracker(it,dayIdx,editable){
   if(!p)return ''; // its tracker project was deleted — orphaned link, nothing sane to show
   var val=trackerEntryForDate(it.trackerPid,pDate(dayIdx));
   var unit=p.unit||'';
-  return '<div class="cali" style="cursor:pointer" onclick="_projFromDaily=\''+it.trackerPid+'\';_trackerOrigin=\''+(editable?'habits':'today')+'\';Nav.go(\''+it.trackerPid+'\')">'
+  return '<div class="cali" data-id="'+it.id+'" style="cursor:pointer" onclick="_projFromDaily=\''+it.trackerPid+'\';_trackerOrigin=\''+(editable?'habits':'today')+'\';Nav.go(\''+it.trackerPid+'\')">'
     +'<div class="trk-daily-dot'+(val!=null?' done':'')+'"></div>'
     +'<label style="cursor:pointer">'+esc(p.name)+'</label>'
     +(val!=null?'<span class="trk-daily-val">'+esc(val+(unit?' '+unit:''))+'</span>':'')
@@ -4403,7 +4469,7 @@ function buildPanels(){
     } else {
       DB.data.dailyCats.forEach(function(cat){
         var items=DB.data.dailyItems.filter(function(it){return it.catId===cat.id&&it.days.indexOf(wi)!==-1;});
-        h+='<div class="caltitle">'+esc(cat.name)+'</div><div class="calsec">';
+        h+='<div class="caltitle">'+esc(cat.name)+'</div><div class="calsec" data-cat="'+cat.id+'">';
         if(!items.length)h+='<div class="cal-none">No habits</div>';
         items.forEach(function(it){
           // Days before a habit existed: a new habit simply isn't there; a
@@ -4418,6 +4484,22 @@ function buildPanels(){
     p.innerHTML=h;c.appendChild(p);
   }
   var cur=document.getElementById('dp-'+Nav.sd);if(cur)cur.classList.add('on');
+  wireDailyDrag();
+}
+// Long-press any habit row to drag it up/down within its own category —
+// every day's panel gets its own listeners (only the visible one can
+// actually receive touches), all reordering the same underlying
+// dailyItems array, so whichever day you happened to be on when you
+// dragged doesn't matter.
+function wireDailyDrag(){
+  document.querySelectorAll('#dpanels .calsec[data-cat]').forEach(function(calsec){
+    var catId=calsec.getAttribute('data-cat');
+    DragReorder.init(calsec,'.cali','.cali','list',function(container){
+      var ids=[].slice.call(container.querySelectorAll('.cali[data-id]')).map(function(el){return el.getAttribute('data-id');});
+      DB.reorderDailyItems(catId,ids);
+      buildPanels();restoreChecks(Nav.sd);
+    });
+  });
 }
 // value stored for a habit on a day: falsy, true, or 'skip'
 function dcv(ds,id){return DB.data.dailyChecks[ds]&&DB.data.dailyChecks[ds][id];}
@@ -5514,6 +5596,123 @@ var TYPE_OPTS=[{value:'todo',label:'To-do'},{value:'list',label:'List'},{value:'
 // other places an icon shows up are inline text ("Tracking: 📈 Name") where
 // a photo can't sensibly be dropped in, so those keep falling back to the
 // emoji/a default glyph exactly as before.
+// ── DRAG TO REORDER ───────────────────────────────────────────
+// Long-press an item (like rearranging home-screen icons) to pick it up —
+// it pops up with a shadow as the only "you can move this now" signal (no
+// shiver on the others, by request) — then drag to swap it past its
+// neighbors; drop anywhere to commit. `handleSel` is what has to be
+// pressed to START a drag (a whole card, or just a category's title
+// text); `itemSel` is what actually gets picked up and swapped — the
+// nearest ancestor matching itemSel from wherever the press landed, so a
+// title press can drag its whole category block while a press anywhere
+// on a project card drags just that card. Scoping one `container` per
+// group of siblings (one category's own .agrid, not the whole page) is
+// what keeps a drag from crossing into a different category — swap
+// targets are only ever looked for inside that same container.
+var DragReorder={
+  active:false,_timer:null,_el:null,_container:null,_itemSel:null,_mode:'grid',
+  _onDrop:null,_startX:0,_startY:0,_offX:0,_offY:0,_preMove:null,_preEnd:null,
+  _onMove:null,_onEnd:null,
+  init:function(container,handleSel,itemSel,mode,onDrop){
+    var self=this;
+    container.addEventListener('touchstart',function(e){
+      if(self.active)return; // a drag already in progress elsewhere
+      var handle=e.target.closest(handleSel);
+      if(!handle||!container.contains(handle))return;
+      var item=handle.closest(itemSel);
+      if(!item||!container.contains(item))return;
+      self._prime(item,container,itemSel,mode,onDrop,e.touches[0]);
+    },{passive:true});
+  },
+  _prime:function(el,container,itemSel,mode,onDrop,touch){
+    this._el=el;this._container=container;this._itemSel=itemSel;this._mode=mode;this._onDrop=onDrop;
+    this._startX=touch.clientX;this._startY=touch.clientY;
+    var self=this;
+    this._timer=setTimeout(function(){self._begin();},450);
+    this._preMove=function(e){
+      var t=e.touches[0];
+      if(Math.abs(t.clientX-self._startX)>10||Math.abs(t.clientY-self._startY)>10)self._cancelPre();
+    };
+    this._preEnd=function(){self._cancelPre();};
+    document.addEventListener('touchmove',this._preMove,{passive:true});
+    document.addEventListener('touchend',this._preEnd,{passive:true});
+  },
+  _cancelPre:function(){
+    if(this._timer){clearTimeout(this._timer);this._timer=null;}
+    if(this._preMove){document.removeEventListener('touchmove',this._preMove,{passive:true});this._preMove=null;}
+    if(this._preEnd){document.removeEventListener('touchend',this._preEnd,{passive:true});this._preEnd=null;}
+  },
+  _begin:function(){
+    this._timer=null;this._cancelPre();
+    this.active=true;
+    this._lastSwapWith=null;this._lastSwapAt=0;
+    try{if(navigator.vibrate)navigator.vibrate(8);}catch(e){}
+    var el=this._el,r=el.getBoundingClientRect();
+    this._offX=this._startX-r.left;this._offY=this._startY-r.top;
+    el.style.width=r.width+'px';el.style.height=r.height+'px';
+    el.style.position='fixed';el.style.left=r.left+'px';el.style.top=r.top+'px';
+    el.style.zIndex='999';el.style.margin='0';
+    el.classList.add('dragging');
+    var self=this;
+    this._onMove=function(e){self._move(e);};
+    // Touch events always keep targeting whatever element touchstart
+    // actually hit, no matter where the finger wanders to — so these can
+    // all be bound straight to `el` instead of `document`. That matters
+    // here specifically: it lets `_end` stop the event from propagating
+    // any further (see below) to swallow the tap TAPPABLE — the generic
+    // touch-feedback IIFE further down — would otherwise still fire on
+    // release from ITS OWN separate `document`-level listener, without
+    // that same stopPropagation() also cutting off _end's own listener
+    // (which is exactly what happened the first time this used `kill` as
+    // a second, separate document-level listener: both were downstream
+    // of the same stopPropagation() call, so it silently ate its own).
+    this._onEnd=function(e){self._end(e);};
+    el.addEventListener('touchmove',this._onMove,{passive:false});
+    el.addEventListener('touchend',this._onEnd,{passive:false});
+    el.addEventListener('touchcancel',this._onEnd,{passive:false});
+  },
+  _move:function(e){
+    e.preventDefault();
+    var t=e.touches[0],el=this._el;
+    el.style.left=(t.clientX-this._offX)+'px';
+    el.style.top=(t.clientY-this._offY)+'px';
+    var items=[].slice.call(this._container.querySelectorAll(this._itemSel));
+    for(var i=0;i<items.length;i++){
+      var it=items[i];
+      if(it===el)continue;
+      // A swap pulls `it` into the gap `el` just vacated, which can shift
+      // `it`'s own rect enough that the SAME pointer position still (or
+      // again) overlaps it on the very next move — swapping straight back
+      // and oscillating between the two orders every other frame. A short
+      // cooldown on re-swapping the SAME pair blocks that bounce without
+      // blocking a genuine, deliberate reversal (the user dragging back
+      // the other way for real takes longer than this).
+      if(it===this._lastSwapWith&&Date.now()-this._lastSwapAt<250)continue;
+      var r=it.getBoundingClientRect();
+      if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom){
+        var elIdx=items.indexOf(el);
+        if(elIdx<i)it.parentNode.insertBefore(el,it.nextSibling);
+        else it.parentNode.insertBefore(el,it);
+        this._lastSwapWith=it;this._lastSwapAt=Date.now();
+        break;
+      }
+    }
+  },
+  _end:function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    var el=this._el;
+    el.removeEventListener('touchmove',this._onMove,{passive:false});
+    el.removeEventListener('touchend',this._onEnd,{passive:false});
+    el.removeEventListener('touchcancel',this._onEnd,{passive:false});
+    el.style.position='';el.style.left='';el.style.top='';el.style.width='';el.style.height='';el.style.zIndex='';el.style.margin='';
+    el.classList.remove('dragging');
+    this.active=false;
+    var container=this._container,onDrop=this._onDrop;
+    this._el=null;this._container=null;this._onDrop=null;
+    if(onDrop)onDrop(container);
+  }
+};
 function iconOrPhoto(p){
   if(p&&p.photo)return '<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';
   return (p&&p.icon)||'📋';

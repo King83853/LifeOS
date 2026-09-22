@@ -281,6 +281,62 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   hold a Delete button, so removing its only delete path would leave it
   stuck in Daily permanently.
 
+- Drag-to-reorder (2.84, `DragReorder`): long-press (450ms, cancelled by
+  >10px movement before then) picks an item up — `position:fixed`, a
+  `.dragging` class (scale+shadow, no shiver by request), tracked to the
+  finger — then swaps it past whichever sibling it overlaps on drop.
+  `DragReorder.init(container, handleSel, itemSel, mode, onDrop)` is
+  generic: `handleSel` is what has to be PRESSED to start a drag (a whole
+  card, or just a category's title text so the title can drag the whole
+  block); `itemSel` is what actually gets picked up (the nearest ancestor
+  matching it from the handle). One `container` per sibling group is what
+  scopes a drag — Overview wires each category's own `.agrid` separately
+  for its projects (so a project can't be dragged into a different
+  category this way), and the whole `#overview-grid` once for `.cat-block`
+  category reordering. Daily wires every day panel's own `.calsec`
+  (harmless to wire all of them — a `display:none` panel's rows never
+  receive touches anyway) for habit reordering within a category;
+  `DB.reorderDailyItems` only touches that category's own relative order,
+  and explicitly keeps any same-category item NOT in the dropped set (a
+  habit not scheduled on whichever weekday you happened to drag on) in
+  place rather than dropping it — the naive version that just replaced the
+  whole category's slice with the visible subset would have silently
+  deleted every hidden-that-day habit from the array.
+  Two real bugs from writing this, worth not repeating: (1) suppressing
+  the tap TAPPABLE (the generic touch-feedback IIFE) would otherwise still
+  fire on release used `stopPropagation()` from a SEPARATE listener on the
+  dragged element — which also silently ate the drag engine's OWN
+  `touchend` listener, since that one was on `document` and never got to
+  fire once propagation stopped. Fixed by binding the drag's own
+  touchmove/touchend/touchcancel straight to the element instead of
+  `document` (touch events always keep targeting whatever element
+  touchstart actually hit, no matter where the finger goes, so this works
+  and lets `_end` itself call `stopPropagation()` after doing its own job,
+  with nothing downstream left to accidentally cut off). (2)
+  `wireOverviewDrag()` runs at the end of every `renderGrids()` call (task
+  completion, project add/edit/delete, tab switches — very frequent), and
+  initially called `DragReorder.init` on `#overview-grid` itself every
+  time — that container is NOT recreated by `innerHTML=h` (only its
+  children are), so every call stacked another duplicate listener on the
+  same persistent element, each independently firing `_begin()`/`_end()`
+  for one gesture and stepping on each other's state in the shared
+  `DragReorder` singleton (`_end` reading `this._el` after a previous
+  duplicate call had already nulled it — `Cannot read properties of null`).
+  Fixed with a `dataset.dragWired` guard so that specific container is
+  only ever wired once; the per-category `.agrid`s and Daily's `.calsec`s
+  genuinely ARE fresh elements every render, so they need no such guard.
+  Only verified via synthetic `Touch`/`TouchEvent` dispatch in this desktop
+  preview (real long-press timing and drag physics need a real phone) —
+  one thing that surfaced there and is worth knowing before "debugging" it
+  again: this preview's `setTimeout` gets throttled to ~1s regardless of
+  the requested delay whenever the tab isn't the foregrounded/focused one,
+  which looked exactly like swap-oscillation until dispatching moves
+  back-to-back (no artificial delay) confirmed the swap logic itself was
+  already stable — a `_lastSwapWith`/`_lastSwapAt` 250ms cooldown on
+  re-swapping the same pair is still in there as a real safety net against
+  a swap's own reflow shifting the target enough to immediately re-trigger
+  itself, just wasn't what that particular test artifact was showing.
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

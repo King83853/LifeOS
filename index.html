@@ -1152,7 +1152,7 @@ html:not(#x) .trk-daily-dot.done{background-color:var(--go);background-image:url
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.57';
+var APP_VERSION='Beta 2.58';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1728,6 +1728,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.57',notes:[
     'New tick boxes: a soft grey tile that fills in when ticked — black for tasks, green for habits, light green with a double arrow for skipped'
+  ]},
+  {v:'Beta 2.58',notes:[
+    'One-time tasks you tick off now go to the Trash (Tasks tab) like other completed tasks, and can be restored to the calendar'
   ]}
 ];
 var COLORS={
@@ -1983,6 +1986,12 @@ var DB={
   // name). Returns '' or a message when it can't.
   restoreTask:function(idx){
     var item=this.data.archived[idx];if(!item)return '';
+    if(item.once){
+      this.data.archived.splice(idx,1);
+      this.data.dailyOnce.push({id:'once'+Date.now()+Math.random().toString(36).slice(2),text:item.text,date:item.due||dStr(new Date())});
+      this.save();
+      return '';
+    }
     var pid=null;
     for(var id in this.data.projects){if(this.data.projects[id].name===item.section){pid=id;break;}}
     if(!pid)return 'Restore the project first.';
@@ -2121,7 +2130,13 @@ var DB={
     this.data.dailyOnce.push({id:id,text:text,date:date});
     this.save();return id;
   },
+  // A ticked one-time task goes to the Trash (Tasks tab) like any other
+  // completed task; `once` + `due` let Restore put it back on the calendar.
   completeOnce:function(id){
+    var o=this.data.dailyOnce.find(function(x){return x.id===id;});
+    if(o)this.data.archived.push({key:o.id,text:o.text,section:'One-time',once:true,due:o.date,
+      date:new Date().toLocaleDateString('de-CH',{day:'numeric',month:'short',year:'numeric'}),
+      dateISO:dStr(new Date())});
     this.data.dailyOnce=this.data.dailyOnce.filter(function(x){return x.id!==id;});
     this.save();
   }

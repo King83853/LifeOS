@@ -172,8 +172,9 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   project into the Trash: To-do/List tasks become `archived` entries with
   `removed:true` (no `dateISO`, so they don't count as completed in the
   stats), tracker entries become `entry` trash items, Daily's habits become
-  `habit` items and its categories are removed. One-time tasks have no delete path (completing one just
-  removes it), so they aren't in the Trash.
+  `habit` items and its categories are removed. Ticking a one-time task (`dailyOnce`) archives it
+  (`section:'One-time', once:true, due`) into Trash > Tasks (2.58); `restoreTask` puts a
+  `once` entry back on the calendar with its old date.
 
 - Language (Settings > Language, `I18N` in index.html): English is the
   source text in markup and JS; German is a DOM translation layer — `DE`

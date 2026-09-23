@@ -393,6 +393,39 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   type get the matching corner radius directly, so their own fill
   reaches the true rounded boundary instead of depending on the parent's
   clip to fake it.
+  That `:first-child`/`:last-child` fix itself turned out wrong for
+  habits specifically (2.86, reported with a real screenshot: a MIDDLE
+  row rounding at the bottom like it was last). Root cause: with Settings
+  > Today > "Skip habits" turned ON, `swipeWrap()` wraps EVERY habit row
+  in its own `.sw.h > .sw-row`, so each `.cali` becomes the ONLY child of
+  its own individual wrapper — making it simultaneously `:first-child`
+  AND `:last-child` of THAT wrapper, for every single row, all the time.
+  Both radius rules then matched every row; whichever was declared later
+  in the stylesheet (the `:last-child` one) won outright since border-
+  radius is a single shorthand property, not four independent longhands,
+  so EVERY row silently got bottom-only rounding regardless of position.
+  This didn't reproduce with "Skip habits" off (the default, and what
+  every test in the previous entry happened to use) since then `.cali` is
+  a plain direct child of `.calsec` and the selector matches correctly —
+  which is exactly why it shipped unnoticed and needed a real device
+  screenshot to catch. Fixed by dropping the CSS pseudo-selector for
+  `.cali` specifically and marking the true edges explicitly instead:
+  `markEdgeRows(container, itemSel)` (in index.html, called after every
+  `buildPanels()`/`renderToday()`) reads `container.querySelectorAll
+  (itemSel)` — which finds `.cali` regardless of how deep it's nested —
+  and toggles `.row-first`/`.row-last` on the actual first/last match;
+  the CSS now keys off those classes for `.cali` instead of the pseudo-
+  selector. Needs calling from BOTH render paths that build a `.calsec`
+  of habits — Daily's `buildPanels()` (all day panels, plus its own
+  `[data-cat]`-less One-time section, which `wireDailyDrag` deliberately
+  skips since one-time tasks aren't reorderable — that skip must not
+  also skip marking it) AND Today's separate `renderToday()` — missing
+  either one leaves that screen's edge rows back to unrounded/square
+  rather than wrong, but still not matching the card. Other row-in-card
+  types (`.ti` in `.card-list`, `.opt-row` in `.opt-group`, etc.) still
+  use the plain pseudo-selector — they don't have an equivalent per-row
+  wrapping path today, but if one is ever added to any of them, it needs
+  this same explicit-class treatment, not another one-off fix.
 
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large

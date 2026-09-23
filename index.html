@@ -754,11 +754,11 @@ html:not(#x) .acard:active{background:var(--press)}
    Giving the first/last row a matching radius on that side makes its own
    fill reach the true rounded corner instead of relying on the clip. */
 html:not(#x) .card-list .ti:first-child,html:not(#x) .card-list .sw.t:first-child,
-html:not(#x) .cali:first-child,html:not(#x) .opt-group .opt-row:first-child,
+html:not(#x) .cali.row-first,html:not(#x) .opt-group .opt-row:first-child,
 html:not(#x) .el-card .el-row:first-child,html:not(#x) .cat-choice:first-child,
 html:not(#x) #daily-cat-list .el-row:first-child{border-radius:14px 14px 0 0}
 html:not(#x) .card-list .ti:last-child,html:not(#x) .card-list .sw.t:last-child,
-html:not(#x) .cali:last-child,html:not(#x) .opt-group .opt-row:last-child,
+html:not(#x) .cali.row-last,html:not(#x) .opt-group .opt-row:last-child,
 html:not(#x) .el-card .el-row:last-child,html:not(#x) .cat-choice:last-child,
 html:not(#x) #daily-cat-list .el-row:last-child{border-radius:0 0 14px 14px}
 /* tracker rows and entries */
@@ -1192,7 +1192,7 @@ html:not(#x) #daily-cat-list .el-row:last-child{border-radius:0 0 14px 14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.85';
+var APP_VERSION='Beta 2.86';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1856,6 +1856,9 @@ var CHANGELOG=[
     'Dragging to reorder now makes the other items slide out of the way to make room, instead of jumping straight to their new spot',
     'The pressed-grey on a task/habit row no longer shows when you\'re pressing its tick box specifically — only the row itself',
     'Fixed: the pressed-grey on a single-row card didn\'t quite reach the rounded corners'
+  ]},
+  {v:'Beta 2.86',notes:[
+    'Fixed: with Skip habits turned on, pressing ANY habit rounded its corners like it was the only one in the list — every row now only rounds when it truly is the first or last'
   ]}
 ];
 var COLORS={
@@ -4513,6 +4516,11 @@ function buildPanels(){
     p.innerHTML=h;c.appendChild(p);
   }
   var cur=document.getElementById('dp-'+Nav.sd);if(cur)cur.classList.add('on');
+  // Every calsec, including the plain (non-draggable) One-time one, which
+  // `wireDailyDrag` below skips on purpose (`[data-cat]`-only, since a
+  // one-time task isn't reorderable) — this only sets a CSS class though,
+  // it doesn't need to line up with what's draggable.
+  document.querySelectorAll('#dpanels .calsec').forEach(function(calsec){markEdgeRows(calsec,'.cali');});
   wireDailyDrag();
 }
 // Long-press any habit row to drag it up/down within its own category —
@@ -4522,12 +4530,29 @@ function buildPanels(){
 // dragged doesn't matter.
 function wireDailyDrag(){
   document.querySelectorAll('#dpanels .calsec[data-cat]').forEach(function(calsec){
+    markEdgeRows(calsec,'.cali');
     var catId=calsec.getAttribute('data-cat');
     DragReorder.init(calsec,'.cali','.cali','list',function(container){
       var ids=[].slice.call(container.querySelectorAll('.cali[data-id]')).map(function(el){return el.getAttribute('data-id');});
       DB.reorderDailyItems(catId,ids);
       buildPanels();restoreChecks(Nav.sd);
     });
+  });
+}
+// Which row actually gets the card's own corner radius (see the CSS rule
+// right above the design-system block) — done by explicit class instead
+// of a `:first-child`/`:last-child` selector, which trusts the ROW to
+// really be its parent's literal first/last DOM child. Couldn't reproduce
+// a real report of the wrong row rounding with any habit list built here,
+// which points at exactly that kind of mismatch between what the CSS
+// assumes and what's actually in the DOM on a real device/real data —
+// this reads the TRUE first/last of the matching rows directly, so it
+// can't be wrong regardless of what else might be sitting in there.
+function markEdgeRows(container,itemSel){
+  var items=[].slice.call(container.querySelectorAll(itemSel));
+  items.forEach(function(el,i){
+    el.classList.toggle('row-first',i===0);
+    el.classList.toggle('row-last',i===items.length-1);
   });
 }
 // value stored for a habit on a day: falsy, true, or 'skip'
@@ -4627,6 +4652,15 @@ function renderToday(){
   });
   document.getElementById('today-daily').innerHTML=h;
   syncTodaySections();
+  // Same edge-row marking Daily's panels use (see markEdgeRows) — needed
+  // here too: with "Skip habits" on, each row is wrapped in its own
+  // swipe container (see swipeWrap), which made a plain CSS
+  // `:first-child`/`:last-child` selector match EVERY row (each is the
+  // only child of its own wrapper) instead of just the true edges —
+  // reported as the pressed-grey rounding at the bottom of every row,
+  // not just the last one. querySelectorAll searches the whole subtree
+  // regardless of that extra wrapping, so this stays correct either way.
+  document.querySelectorAll('#today-daily .calsec').forEach(function(calsec){markEdgeRows(calsec,'.cali');});
 
   document.querySelectorAll('#today-daily input[type=checkbox][data-id]').forEach(function(cb){
     paintCheck(cb,dcv(ds,cb.getAttribute('data-id')));

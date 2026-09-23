@@ -545,11 +545,10 @@ html[data-theme="light"] .hh-btn{color:#1a1917}
 /* Buttons on settings pages: a normal white widget row with blue text (no
    icons on sub-pages; icons stay on the main settings list) */
 .btn-row{cursor:pointer;transition:background .12s ease}
-/* Blanket: every clickable white row/button flashes this same darker grey
-   while pressed (was scoped to task/habit rows and blue-text buttons only
-   — 2.75 — now covers every .opt-row, including plain navigation/toggle
-   rows, and the soft square icon buttons too). */
-html:not(#x) .opt-row:active{background:var(--press)}
+/* Every clickable white row/button flashes this same darker grey while
+   pressed — but only rows that open something: a row holding a switch
+   does nothing itself (only its switch toggles), so it never greys. */
+html:not(#x) .opt-row:not(:has(.switch)):active{background:var(--press)}
 .btn-row .opt-title{color:#007aff}
 html[data-theme="dark"] .btn-row .opt-title{color:#0a84ff}
 @media(prefers-color-scheme:dark){html:not([data-theme="light"]) .btn-row .opt-title{color:#0a84ff}}
@@ -1251,7 +1250,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.92';
+var APP_VERSION='Beta 2.93';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1953,6 +1952,9 @@ var CHANGELOG=[
     'Habit rows that open a page end in the same arrow as Settings rows',
     'Fixed: ticked-off habits lost their strike-through since 2.89',
     'Fixed: a single War Room task\'s red stripe was square at the top'
+  ]},
+  {v:'Beta 2.93',notes:[
+    'Rows with a switch no longer turn grey when pressed — the grey only shows on rows that open something'
   ]}
 ];
 var COLORS={

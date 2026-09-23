@@ -373,6 +373,11 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   (Tasks > Calendar, excluded in the `.ti:active` CSS rule) grey. A NEW
   row type with a press-grey needs the same question asked: does a tap
   open anything? If not, no grey.
+  Same rule for Settings-style rows (2.93): an `.opt-row` holding a
+  `.switch` does nothing itself (only the switch toggles), so the
+  `.opt-row:active` grey is `:not(:has(.switch))`. (A structural `:has()`
+  like this is fine; it's `:has(input:active)` — a live touch state —
+  that proved unreliable on-device.)
 
 - Stats/habit-detail progress ring (`renderPieChart`): fully round ends
   (`stroke-linecap="round"`) were called cheap-looking, flat ends (2.89)

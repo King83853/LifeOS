@@ -267,19 +267,30 @@ html[lang="de"] .cali.skipped label::after{content:' \00b7 übersprungen'}
    the row's usual 14px edge + 12px gap, so nothing moves visually. */
 .cali.split{padding:0;gap:0}
 .cali-tick{align-self:stretch;display:flex;align-items:center;flex-shrink:0;padding:0 12px 0 14px;cursor:pointer}
-.cali.split>label{align-self:stretch;line-height:47px;padding-right:14px}
-.cali.split>svg{margin-right:14px}
+.cali.split>label{align-self:stretch;line-height:47px}
+/* Whatever ends the row (Settings' right arrow, or a locked row's lock)
+   carries the row's 14px right edge. The arrow stretches to full height so
+   it's part of the bar's tap area. */
+.cali-chev{align-self:stretch;display:flex;align-items:center;flex-shrink:0;padding:0 14px 0 8px;cursor:pointer}
+.cali.split>svg{margin:0 14px 0 8px}
+/* A tracker habit's number box: same size, corners and colors as a tick
+   box (--box empty, --go done), widening to fit its number. */
+.trk-box{min-width:26px;height:26px;padding:0 6px;box-sizing:border-box;border-radius:8px;background:var(--box);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.trk-box.done{background:var(--go);color:#fff}
+/* A Daily-linked tracker's entries fold behind one row (see renderTracker). */
+.trk-entries-hdr{display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;cursor:pointer;font-size:15px;font-weight:500}
+.trk-entries-t{flex:1}
+.trk-entries-n{color:#999}
+.trk-entries-chev{display:inline-flex;transform:rotate(-90deg);transition:transform .2s ease}
+.trk-entries.open .trk-entries-chev{transform:none}
+.trk-entries-list{display:none;padding:0 14px;border-top:0.5px solid var(--line)}
+.trk-entries.open .trk-entries-list{display:block}
+.trk-box.skip{background:var(--go-skip) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 6l6 6-6 6M12.5 6l6 6-6 6' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/17px no-repeat}
 /* Status dot for a tracker linked into Daily (see ciTracker()) — not a
    checkbox, since a tracker's "done today" isn't a toggle a tap can
    flip, it's whatever value (if any) was logged today on the tracker's
    own project page. Same footprint as the real checkbox next to it in
    other rows, just not interactive itself — the whole row is. */
-.trk-daily-dot{width:16px;height:16px;border-radius:50%;border:2px solid #ddd;flex-shrink:0;box-sizing:border-box;margin:0 6px}
-@media(prefers-color-scheme:dark){.trk-daily-dot{border-color:#3a3a3a}}
-html[data-theme="dark"] .trk-daily-dot{border-color:#3a3a3a}
-html[data-theme="light"] .trk-daily-dot{border-color:#ddd}
-.trk-daily-dot.done{background:#22c55e;border-color:#22c55e}
-.trk-daily-val{font-size:13px;color:#999;font-weight:600;flex-shrink:0}
 
 .el-row{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px}
 @media(prefers-color-scheme:dark){.el-row{background:#1e1c1a;border-color:#2a2927}}
@@ -614,7 +625,7 @@ html:not(#x) .dhdr{min-height:40px}
 /* text roles */
 .tt,.cali label,.wit,.el-name,.trk-entry-val,.archi-title,.cat-choice,.color-field-label{font-size:15px;font-weight:600}
 .ts,.archi-sub,.trk-entry-date{font-size:12px;font-weight:500}
-.trk-unit,.trk-daily-val{font-size:13px;font-weight:500}
+.trk-unit{font-size:13px;font-weight:500}
 .empty{font-size:14px;font-weight:500}
 .albl{font-size:12px;font-weight:600}
 .acnt{font-size:11px;font-weight:500;color:#999}
@@ -701,7 +712,7 @@ html:not(#x) .ts-notes{height:auto;min-height:34vh}
 .wdays{scrollbar-width:none}.wdays::-webkit-scrollbar{display:none}
 input,textarea,select{font-family:inherit}
 /* lighter weights: text 500 (was 600), titles and labels 700 (was 800) */
-html:not(#x) .opt-title,html:not(#x) .tt,html:not(#x) .cali label,html:not(#x) .wit,html:not(#x) .el-name,html:not(#x) .trk-entry-val,html:not(#x) .archi-title,html:not(#x) .cat-choice,html:not(#x) .color-field-label,html:not(#x) .albl,html:not(#x) .bdg,html:not(#x) .wrb,html:not(#x) .wrt,html:not(#x) .seg-btn,html:not(#x) .trash-act,html:not(#x) .trash-x,html:not(#x) .hh-btn.hh-txt,html:not(#x) .sheet-save,html:not(#x) .type-btn,html:not(#x) .sheet-inp,html:not(#x) .addinp,html:not(#x) .row-num,html:not(#x) #cat-btn-list .type-btn,html:not(#x) .dsel-opt,html:not(#x) .tlbl,html:not(#x) .trk-daily-val{font-weight:500}
+html:not(#x) .opt-title,html:not(#x) .tt,html:not(#x) .cali label,html:not(#x) .wit,html:not(#x) .el-name,html:not(#x) .trk-entry-val,html:not(#x) .archi-title,html:not(#x) .cat-choice,html:not(#x) .color-field-label,html:not(#x) .albl,html:not(#x) .bdg,html:not(#x) .wrb,html:not(#x) .wrt,html:not(#x) .seg-btn,html:not(#x) .trash-act,html:not(#x) .trash-x,html:not(#x) .hh-btn.hh-txt,html:not(#x) .sheet-save,html:not(#x) .type-btn,html:not(#x) .sheet-inp,html:not(#x) .addinp,html:not(#x) .row-num,html:not(#x) #cat-btn-list .type-btn,html:not(#x) .dsel-opt,html:not(#x) .tlbl{font-weight:500}
 html:not(#x) .dsel-opt.sel{font-weight:600}
 .dtitle,.hh-title,.sheet-title,.ts-title,.soon-t,.trk-val{font-weight:700}
 html:not(#x) .sl,html:not(#x) .shdr,html:not(#x) .caltitle,html:not(#x) .el-grp,html:not(#x) .sheet-label{font-weight:700}
@@ -715,8 +726,6 @@ html:not(#x) .ti input[type=checkbox],html:not(#x) .wri input[type=checkbox],htm
 html:not(#x) .ti input[type=checkbox]:checked,html:not(#x) .wri input[type=checkbox]:checked{background-color:var(--ink);background-image:var(--tick-ink)}
 html:not(#x) .cali input[type=checkbox]:checked{background-color:var(--go);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 html:not(#x) .cali.skipped input[type=checkbox]:checked{background-color:var(--go-skip);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 6l6 6-6 6M12.5 6l6 6-6 6' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
-html:not(#x) .trk-daily-dot{width:26px;height:26px;margin:0;border:none;border-radius:8px;background:var(--box) center/17px no-repeat}
-html:not(#x) .trk-daily-dot.done{background-color:var(--go);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 /* Every task/habit row is one line of the same height; long titles get an ellipsis */
 .tt,.cali label,.wit,.el-name,.trk-entry-val{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .ti>div,.wri>div,.cali>label{min-width:0}
@@ -746,7 +755,8 @@ html:not(#x) .acard:active{background:var(--press)}
    on the right. */
 .trk-add-row{position:relative}
 .trk-add-unit{position:absolute;right:14px;top:23px;transform:translateY(-50%);color:#999;font-size:15px;font-weight:500;pointer-events:none}
-html:not(#x) #trk-add-val{padding-right:64px}
+html:not(#x) #trk-add-val,html:not(#x) #trk-day-val,html:not(#x) #daily-item-goal{padding-right:64px}
+.trk-day-goal{font-size:13px;font-weight:500;color:#999;margin:-4px 2px 14px}
 /* A row with no border-radius of its own relies entirely on its card's
    overflow:hidden clip to look rounded — but that clip only cuts a SHARP
    corner down to the card's curve, it doesn't paint anything of its own
@@ -765,6 +775,13 @@ html:not(#x) .card-list .ti:last-child,html:not(#x) .card-list .sw.t:last-child,
 html:not(#x) .cali.row-last,html:not(#x) .opt-group .opt-row:last-child,
 html:not(#x) .el-card .el-row:last-child,html:not(#x) .cat-choice:last-child,
 html:not(#x) #daily-cat-list .el-row:last-child{border-radius:0 0 14px 14px}
+/* A row alone in its card is first AND last — without this the later
+   bottom-only rule wins, so e.g. a single War Room task's red stripe
+   (inset box-shadow, follows the radius) came out square at the top. */
+html:not(#x) .card-list .ti:only-child,html:not(#x) .card-list .sw.t:only-child,
+html:not(#x) .cali.row-first.row-last,html:not(#x) .opt-group .opt-row:only-child,
+html:not(#x) .el-card .el-row:only-child,html:not(#x) .cat-choice:only-child,
+html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 /* tracker rows and entries */
 .trk-entry{padding:12px 0}
 </style>
@@ -1147,6 +1164,13 @@ html:not(#x) #daily-cat-list .el-row:last-child{border-radius:0 0 14px 14px}
     <input class="sheet-inp" id="daily-item-inp" placeholder="Habit name">
     <div class="sheet-label" id="daily-item-tracker-lbl" style="display:none"></div>
     <textarea class="sheet-inp" id="daily-item-desc" placeholder="Description (optional)" style="min-height:70px;resize:none"></textarea>
+    <div id="daily-item-goal-wrap" style="display:none">
+      <div class="sheet-label">Goal (optional)</div>
+      <div class="trk-add-row">
+        <input class="sheet-inp" id="daily-item-goal" type="number" inputmode="decimal" placeholder="Done when this is reached">
+        <span class="trk-add-unit" id="daily-item-goal-unit"></span>
+      </div>
+    </div>
     <div class="sheet-label">Days</div>
     <div class="type-grid days" id="daily-item-days"></div>
     <div class="sheet-btns">
@@ -1189,6 +1213,21 @@ html:not(#x) #daily-cat-list .el-row:last-child{border-radius:0 0 14px 14px}
   </div>
 </div>
 
+<div class="sheet-overlay" id="trk-day-sheet-overlay" onclick="if(event.target===this)TrackerDaySheet.close()">
+  <div class="sheet">
+    <div class="sheet-title" id="trk-day-title"></div>
+    <div class="sheet-label">Value</div>
+    <div class="trk-add-row">
+      <input class="sheet-inp" id="trk-day-val" type="number" inputmode="decimal" placeholder="Enter value">
+      <span class="trk-add-unit" id="trk-day-unit"></span>
+    </div>
+    <div class="trk-day-goal" id="trk-day-goal"></div>
+    <div class="sheet-btns">
+      <button class="sheet-save" onclick="TrackerDaySheet.save()">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="sheet-overlay" id="trk-add-sheet-overlay" onclick="if(event.target===this)TrackerAddSheet.close()">
   <div class="sheet">
     <div class="sheet-title" id="trk-add-title"></div>
@@ -1212,7 +1251,7 @@ html:not(#x) #daily-cat-list .el-row:last-child{border-radius:0 0 14px 14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.91';
+var APP_VERSION='Beta 2.92';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1905,6 +1944,15 @@ var CHANGELOG=[
     'Project cards no longer shrink when you press them',
     'The date on the Daily page now looks exactly like the one on Today: same size and grey, next to the title',
     'Progress ring: no more gap between done and skipped — they meet in a flat line, like the bar chart'
+  ]},
+  {v:'Beta 2.92',notes:[
+    'Tracked projects in Daily can have a goal: the day counts as done once the number reaches it',
+    'Their tick box now shows the number you logged — grey until done, green once the goal is reached — and tapping it (holding, with hold to complete on) opens a window to enter or adjust that day\'s number',
+    'Tracked projects can be skipped like any habit, and now count in Statistics',
+    'A tracked project\'s page folds its entries away behind one row and shows the usual habit charts below',
+    'Habit rows that open a page end in the same arrow as Settings rows',
+    'Fixed: ticked-off habits lost their strike-through since 2.89',
+    'Fixed: a single War Room task\'s red stripe was square at the top'
   ]}
 ];
 var COLORS={
@@ -2289,10 +2337,28 @@ var DB={
   // (trackerPid), rendered via ciTracker() instead of ci()/ciEdit(), and
   // its name/icon are always read live from that project so a rename
   // there doesn't leave a stale copy sitting in the daily item.
-  addTrackerDailyItem:function(catId,trackerPid,days){
+  addTrackerDailyItem:function(catId,trackerPid,days,goal){
     var id='di'+Date.now()+Math.random().toString(36).slice(2);
-    this.data.dailyItems.push({id:id,catId:catId,trackerPid:trackerPid,days:days,created:dStr(new Date())});
+    var it={id:id,catId:catId,trackerPid:trackerPid,days:days,created:dStr(new Date())};
+    if(typeof goal==='number'&&!isNaN(goal))it.goal=goal;
+    this.data.dailyItems.push(it);
     this.save();return id;
+  },
+  // A tracker habit holds one value per day: set it by changing that day's
+  // latest entry, or — if nothing was logged that day yet — adding one
+  // timestamped on that day (now, if that day is the calendar day it is
+  // now; otherwise noon), so trackerEntryForDate buckets it onto `ds`.
+  setTrackerDayValue:function(pid,ds,val){
+    if(!this.data.trackerEntries)this.data.trackerEntries={};
+    var list=this.data.trackerEntries[pid]=this.data.trackerEntries[pid]||[];
+    var last=null;
+    list.forEach(function(e){if(dStr(new Date(e.ts))===ds&&(!last||e.ts>=last.ts))last=e;});
+    if(last)last.val=val;
+    else{
+      var p=ds.split('-'),ts=dStr(new Date())===ds?Date.now():new Date(+p[0],+p[1]-1,+p[2],12).getTime();
+      list.push({val:val,ts:ts});
+    }
+    this.save();
   },
   deleteDailyItem:function(id){
     var d=this.data,item=d.dailyItems.find(function(x){return x.id===id;});
@@ -2379,7 +2445,7 @@ var I18N=(function(){
     'Every day':'Jeden Tag','Window size':'Fenstergröße','Moving average':'Gleitender Durchschnitt','Show moving average on chart':'Gleitenden Durchschnitt im Diagramm zeigen',
     'Unit (e.g. kg, kcal, h)':'Einheit (z. B. kg, kcal, h)','Category name':'Kategoriename','New category name':'Neuer Kategoriename','New category name…':'Neuer Kategoriename…',
     'Project name':'Projektname','Task name':'Aufgabenname','Short description (optional)':'Kurze Beschreibung (optional)','Add a task…':'Aufgabe hinzufügen…',
-    'Enter value':'Wert eingeben','Value':'Wert','New project':'Neues Projekt','Edit project':'Projekt bearbeiten','Daily categories':'Tageskategorien','Daily habits':'Tägliche Gewohnheiten',
+    'Enter value':'Wert eingeben','Value':'Wert','Goal (optional)':'Ziel (optional)','Done when this is reached':'Erledigt, sobald erreicht','Daily habit':'Tägliche Gewohnheit','Goal':'Ziel','None':'Keins','New project':'Neues Projekt','Edit project':'Projekt bearbeiten','Daily categories':'Tageskategorien','Daily habits':'Tägliche Gewohnheiten',
     'e.g. Business':'z. B. Business','e.g. Chores':'z. B. Haushalt','e.g. Health':'z. B. Gesundheit','Category:':'Kategorie:',
     // priorities
     'High':'Hoch','Medium':'Mittel','Low':'Niedrig','Overdue':'Überfällig',
@@ -2420,6 +2486,7 @@ var I18N=(function(){
     [/^Tracking: (.*)$/,'Verfolge: $1'],
     [/^Move all (habits and categories|entries|tasks) of "(.*)" to the Trash\?$/,function(m,w,n){return 'Alle '+({'habits and categories':'Gewohnheiten und Kategorien','entries':'Einträge','tasks':'Aufgaben'})[w]+' von „'+n+'“ in den Papierkorb legen?';}],
     [/^Current streak: (\d+)$/,'Aktuelle Serie: $1'],
+    [/^Goal: (.*)$/,'Ziel: $1'],
     [/^What's new in (.*)$/,'Neuigkeiten in $1'],
     [/^Category: (.*)$/,'Kategorie: $1'],
     [/^Delete all (\d+) items in this tab forever\?$/,'Alle $1 Einträge in diesem Tab endgültig löschen?'],
@@ -2568,7 +2635,7 @@ function renderGrids(){
         var remaining=0;
         d.dailyItems.forEach(function(it){
           if(it.days.indexOf(TI)===-1)return;
-          var done=it.trackerPid?(trackerEntryForDate(it.trackerPid,dsToday)!=null):DB.isDailyChecked(it.id,dsToday);
+          var done=!!habitDayVal(it,dsToday);
           if(!done)remaining++;
         });
         d.dailyOnce.forEach(function(o){if(o.date<=dsToday)remaining++;});
@@ -2718,11 +2785,78 @@ function renderTracker(pid){
       +'<div class="trk-entry-date">'+ds+'</div></div>'+delBtn+'</div>';
   }).join('');
 
+  // Linked into Daily: entries fold away behind one row (closed by default,
+  // remembered while the app is open) and the habit's charts follow.
+  var link=DB.data.dailyItems.find(function(x){return x.trackerPid===pid;});
+  var entriesH;
+  if(!listH)entriesH='<div class="empty">No entries yet</div>';
+  else if(link)entriesH='<div class="calsec trk-entries'+(TrackerPage.open[pid]?' open':'')+'" style="padding:0">'
+    +'<div class="trk-entries-hdr" onclick="TrackerPage.toggle(this,\''+pid+'\')"><span class="trk-entries-t">Entries</span>'
+    +'<span class="trk-entries-n">'+entries.length+'</span><span class="trk-entries-chev">'+ICON_CHEVRON+'</span></div>'
+    +'<div class="trk-entries-list">'+listH+'</div></div>';
+  else entriesH='<div class="sl">Entries</div><div class="calsec" style="padding:2px 14px">'+listH+'</div>';
   c.innerHTML='<div class="calsec" style="padding:16px 14px 6px"><div class="trk-val">'+latest+'</div>'
     +'<div class="trk-unit">'+unit+'</div>'
     +svgH+'</div>'
-    +(listH?'<div class="sl">Entries</div><div class="calsec" style="padding:2px 14px">'+listH+'</div>':'<div class="empty">No entries yet</div>');
+    +entriesH
+    +(link?TrackerPage.habitHTML(pid,link):'');
+  if(link)TrackerPage.renderChart(pid);
 }
+// The habit side of a tracker page (see renderTracker): its Days/Goal
+// (tap to edit, same sheet as any habit), then the same bar chart,
+// consistency ring and streak as a habit's own page.
+var TrackerPage={
+  open:{},view:{},
+  toggle:function(hdr,pid){
+    this.open[pid]=!this.open[pid];
+    hdr.parentNode.classList.toggle('open',this.open[pid]);
+  },
+  habitHTML:function(pid,it){
+    var p=DB.data.projects[pid],v=this.view[pid]||'day';
+    var s=habitConsistency(it),st=habitStreaks(it);
+    var chev='<span style="display:inline-flex;transform:rotate(-90deg);margin-left:8px">'+ICON_CHEVRON+'</span>';
+    function row(title,val){
+      return '<div class="opt-row" onclick="DailyItemSheet.openEdit(\''+it.id+'\')"><div class="opt-text"><div class="opt-title">'+title+'</div></div>'
+        +'<span style="margin-left:auto;color:#999;font-size:15px;font-weight:500;white-space:nowrap">'+val+'</span>'+chev+'</div>';
+    }
+    return '<div class="shdr">Daily habit</div>'
+      +'<div class="opt-group">'+row('Days',esc(daysLabel(it.days)))
+      +row('Goal',hasGoal(it)?esc(fmtTrk(it.goal)+(p.unit?' '+p.unit:'')):'None')+'</div>'
+      +'<div class="calsec" style="padding:12px 14px 10px"><div class="chart-hdr">'
+      +'<div id="trk-readout-'+pid+'" class="chart-readout">&nbsp;</div><div class="seg-row">'
+      +[['day','Day'],['week','Week'],['month','Month']].map(function(x){
+        return '<button class="seg-btn'+(x[0]===v?' active':'')+'" data-view="'+x[0]+'" onclick="TrackerPage.setView(\''+pid+'\',\''+x[0]+'\')">'+x[1]+'</button>';
+      }).join('')
+      +'</div></div><div id="trk-chart-'+pid+'"></div></div>'
+      +'<div class="shdr">Consistency</div>'
+      +'<div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:22px 14px;gap:10px">'
+      +renderPieChart(s.pct,s.skipped,s.target)
+      +'<div style="font-size:13px;color:#999;text-align:center;line-height:1.5"><b>'+s.completed+'</b> of <b>'+s.target+'</b> scheduled days completed'+(s.skipped?' ('+s.skipped+' skipped)':'')+'</div></div>'
+      +'<div class="shdr">Longest streak</div>'
+      +'<div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:18px 14px;gap:4px">'
+      +'<div style="font-size:34px;font-weight:800;line-height:1.1">'+st.best+'</div>'
+      +'<div style="font-size:13px;color:#999;text-align:center">scheduled days in a row</div>'
+      +'<div style="font-size:13px;color:#999;text-align:center">Current streak: '+st.current+'</div></div>';
+  },
+  setView:function(pid,v){
+    this.view[pid]=v;
+    document.querySelectorAll('#sc-'+pid+' .seg-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')===v);});
+    this.renderChart(pid);
+  },
+  renderChart:function(pid){
+    var it=DB.data.dailyItems.find(function(x){return x.trackerPid===pid;});
+    var host=document.getElementById('trk-chart-'+pid);
+    if(!it||!host)return;
+    var v=this.view[pid]||'day',periods=habitPeriods(it,v,{day:14,week:8,month:6}[v]);
+    host.innerHTML=renderBarChart(periods,'trk-svg-'+pid);
+    var ro=document.getElementById('trk-readout-'+pid);ro.innerHTML='&nbsp;';
+    var svg=document.getElementById('trk-svg-'+pid);
+    if(svg)svg.addEventListener('click',function(e){
+      var r=e.target.closest('rect');if(!r)return;
+      var pr=periods[+r.getAttribute('data-i')];if(pr)ro.textContent=barReadout(pr);
+    });
+  }
+};
 
 function renderProj(pid){
   var p=DB.data.projects[pid];if(!p)return;
@@ -3992,11 +4126,14 @@ function pDate(pi){var m=new Date(T);m.setDate(T.getDate()+pi);return dStr(m);}
 // checkbox plus the row's padding around it; a tap anywhere in it ticks,
 // and it never shows the pressed grey) and the bar (the label, stretched
 // to fill the rest of the row; opens the habit and shows the grey).
+// The bar ends in the same right arrow Settings' rows use (CALI_CHEV) — it
+// belongs to the bar: tapping it does what tapping the label does.
 function ci(itemId,text,dayIdx){
   return '<div class="cali split" data-id="'+itemId+'">'
     +'<span class="cali-tick" onclick="tickZone(event,this)"><input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'" onchange="A.toggleDailyItemFor(this,'+dayIdx+')"></span>'
-    +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label></div>';
+    +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label>'+CALI_CHEV+'</div>';
 }
+var CALI_CHEV='<span class="cali-chev" onclick="this.parentNode.querySelector(\'label\').click()"><span style="display:inline-flex;transform:rotate(-90deg)">'+ICON_CHEVRON+'</span></span>';
 function tickZone(e,zone){
   var cb=zone.querySelector('input');
   // A tap right on the checkbox toggles it natively; in hold-to-complete
@@ -4008,7 +4145,7 @@ var LOCK_SVG='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke
 function ciEdit(itemId,text,dayIdx,locked){
   return '<div class="cali split'+(locked?' locked':'')+'" data-id="'+itemId+'">'
     +'<span class="cali-tick" onclick="tickZone(event,this)"><input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'"'+(locked?' disabled':'')+' onchange="A.toggleDailyItemFor(this,'+dayIdx+')"></span>'
-    +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label>'+(locked?LOCK_SVG:'')+'</div>';
+    +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label>'+(locked?LOCK_SVG:CALI_CHEV)+'</div>';
 }
 // The most recent tracker entry actually logged on calendar date `ds`
 // (local time, matching dStr/pDate everywhere else) — null if none.
@@ -4032,24 +4169,24 @@ var _projFromDaily=null;
 // alone isn't enough to know where back should go; it used to always
 // assume Daily and sent Today's tap back to Habits instead of Today.
 var _trackerOrigin=null;
-// A tracker linked into Daily (dailyItems entry with trackerPid instead
-// of its own text) — no checkbox, since "done today" isn't something a
-// tap can toggle, only whatever value (if any) got logged on the
-// tracker's own project page. The whole row navigates there instead;
-// `editable` adds the same delete-this-link button ciEdit() has, for
-// the Daily page's own item list (not shown on Today's).
+// A tracker linked into Daily (dailyItems entry with trackerPid instead of
+// its own text). Same two-button row as a habit (see ci()): the tick zone
+// holds a number box instead of a checkbox — that day's logged value, grey
+// like an empty tick box until it's done, green like a ticked one once it is
+// (see habitDayVal: goal reached, or anything logged when there's no goal).
+// Tapping it (holding, in hold-to-complete mode) opens TrackerDaySheet to
+// enter or adjust that day's value; the bar opens the tracker's own page.
 function ciTracker(it,dayIdx,editable){
   var p=DB.data.projects[it.trackerPid];
   if(!p)return ''; // its tracker project was deleted — orphaned link, nothing sane to show
-  var val=trackerEntryForDate(it.trackerPid,pDate(dayIdx));
-  var unit=p.unit||'';
-  return '<div class="cali" data-id="'+it.id+'" style="cursor:pointer" onclick="_projFromDaily=\''+it.trackerPid+'\';_trackerOrigin=\''+(editable?'habits':'today')+'\';Nav.go(\''+it.trackerPid+'\')">'
-    +'<div class="trk-daily-dot'+(val!=null?' done':'')+'"></div>'
-    +'<label style="cursor:pointer">'+esc(p.name)+'</label>'
-    +(val!=null?'<span class="trk-daily-val">'+esc(val+(unit?' '+unit:''))+'</span>':'')
-    +(editable?'<button class="trk-del" onclick="A.deleteDailyItem(event,\''+it.id+'\')">'+trashSvg(18,'currentColor')+'</button>':'')
-    +'</div>';
+  var ds=pDate(dayIdx),val=trackerEntryForDate(it.trackerPid,ds),hv=habitDayVal(it,ds);
+  return '<div class="cali split trk-row" data-id="'+it.id+'" data-tracker="'+it.id+'" data-day="'+dayIdx+'">'
+    +'<span class="cali-tick" onclick="TrackerDaySheet.tap(\''+it.id+'\','+dayIdx+')"><span class="trk-box'+(hv==='skip'?' skip':(hv?' done':''))+'">'+(val!=null&&hv!=='skip'?esc(fmtTrk(val)):'')+'</span></span>'
+    +'<label onclick="_projFromDaily=\''+it.trackerPid+'\';_trackerOrigin=\''+(editable?'habits':'today')+'\';Nav.go(\''+it.trackerPid+'\')">'+esc(p.name)+'</label>'
+    +CALI_CHEV+'</div>';
 }
+// A logged value as short as possible for the number box (no trailing .0).
+function fmtTrk(v){return String(Math.round(v*100)/100);}
 // ── HABIT STATS ───────────────────────────────────────────
 // Mo=0..So=6, matching TI/DN's convention throughout this file.
 function wIdx(d){return (d.getDay()+6)%7;}
@@ -4087,7 +4224,7 @@ function habitConsistency(item){
   for(;dStr(d)<=todayS;d.setDate(d.getDate()+1)){
     var ds=dStr(d);
     if(ds<created||days.indexOf(wIdx(d))===-1)continue;
-    var v=dcv(ds,item.id),done=!!v;
+    var v=habitDayVal(item,ds),done=!!v;
     if(ds===todayS&&!done)continue;
     target++;if(done){completed++;if(v==='skip')skipped++;}
   }
@@ -4107,7 +4244,7 @@ function habitPeriods(item,granularity,count){
         var lbl=cursor.getDate()+'.'+(cursor.getMonth()+1)+'.';
         // before the habit existed: an empty slot (no bar, no grey stripe)
         if(ds<created)out.unshift({label:lbl,blank:true,completed:0,skipped:0,scheduled:0});
-        else{var v=dcv(ds,item.id);out.unshift({label:lbl,completed:v?1:0,skipped:v==='skip'?1:0,scheduled:1});}
+        else{var v=habitDayVal(item,ds);out.unshift({label:lbl,completed:v?1:0,skipped:v==='skip'?1:0,scheduled:1});}
       }
       cursor.setDate(cursor.getDate()-1);
     }
@@ -4122,7 +4259,7 @@ function habitPeriods(item,granularity,count){
         var ds2=dStr(day);
         if(days.indexOf(d)!==-1&&ds2>=created){
           scheduled++;
-          {var v2=dcv(ds2,item.id);if(v2){completed++;if(v2==='skip')skipped++;}}
+          {var v2=habitDayVal(item,ds2);if(v2){completed++;if(v2==='skip')skipped++;}}
         }
       }
       var wend=dStr(new Date(start.getFullYear(),start.getMonth(),start.getDate()+6));
@@ -4138,7 +4275,7 @@ function habitPeriods(item,granularity,count){
         var ds3=dStr(cur);
         if(cur<=T&&days.indexOf(wIdx(cur))!==-1&&ds3>=created){
           scheduled2++;
-          {var v3=dcv(ds3,item.id);if(v3){completed2++;if(v3==='skip')skipped2++;}}
+          {var v3=habitDayVal(item,ds3);if(v3){completed2++;if(v3==='skip')skipped2++;}}
         }
         cur.setDate(cur.getDate()+1);
       }
@@ -4264,7 +4401,7 @@ function habitStreaks(item){
   for(var guard=0;dStr(d)<=todayS&&guard<800;guard++,d.setDate(d.getDate()+1)){
     if(days.indexOf(wIdx(d))===-1)continue;
     var ds=dStr(d);
-    if(dcv(ds,item.id)){run++;if(run>best)best=run;}
+    if(habitDayVal(item,ds)){run++;if(run>best)best=run;}
     else if(ds!==todayS)run=0;
   }
   return{best:best,current:run};
@@ -4272,11 +4409,7 @@ function habitStreaks(item){
 function aggHabitConsistency(){
   var totalCompleted=0,totalTarget=0,totalSkipped=0;
   DB.data.dailyItems.forEach(function(it){
-    // Tracker-linked items aren't boolean check-offs (see ciTracker()) —
-    // habitConsistency()'s completed/target math only means something
-    // for dailyChecks-based habits, so they're left out of this entirely
-    // rather than always scoring 0% and dragging the real number down.
-    if(!it.days||!it.days.length||it.trackerPid)return;
+    if(!it.days||!it.days.length)return;
     var s=habitConsistency(it);
     totalCompleted+=s.completed;totalTarget+=s.target;totalSkipped+=s.skipped||0;
   });
@@ -4289,7 +4422,7 @@ function aggHabitConsistency(){
 function bestHabitConsistency(){
   var best=null;
   DB.data.dailyItems.forEach(function(it){
-    if(!it.days||!it.days.length||it.trackerPid)return;
+    if(!it.days||!it.days.length)return;
     var s=habitConsistency(it);
     if(!s.target)return;
     if(!best||s.pct>best.pct)best={item:it,pct:s.pct};
@@ -4300,7 +4433,7 @@ function bestHabitConsistency(){
 function worstHabitConsistency(){
   var worst=null;
   DB.data.dailyItems.forEach(function(it){
-    if(!it.days||!it.days.length||it.trackerPid)return;
+    if(!it.days||!it.days.length)return;
     var s=habitConsistency(it);
     if(!s.target)return;
     if(!worst||s.pct<worst.pct)worst={item:it,pct:s.pct};
@@ -4313,7 +4446,7 @@ function worstHabitConsistency(){
 // day has *something* scheduled — completed/scheduled summed across
 // every habit with a schedule.
 function aggHabitPeriods(granularity,count){
-  var items=DB.data.dailyItems.filter(function(it){return it.days&&it.days.length&&!it.trackerPid;});
+  var items=DB.data.dailyItems.filter(function(it){return it.days&&it.days.length;});
   var out=[];
   if(granularity==='day'){
     var cursor=new Date(T);
@@ -4322,7 +4455,7 @@ function aggHabitPeriods(granularity,count){
       items.forEach(function(it){
         if(it.days.indexOf(wi)!==-1&&ds>=habitCreatedDs(it)){
           scheduled++;
-          {var av=dcv(ds,it.id);if(av){completed++;if(av==='skip')skipped++;}}
+          {var av=habitDayVal(it,ds);if(av){completed++;if(av==='skip')skipped++;}}
         }
       });
       out.unshift({label:cursor.getDate()+'.'+(cursor.getMonth()+1)+'.',completed:completed,skipped:skipped,scheduled:scheduled});
@@ -4340,7 +4473,7 @@ function aggHabitPeriods(granularity,count){
         items.forEach(function(it){
           if(it.days.indexOf(d)!==-1&&ds2>=habitCreatedDs(it)){
             scheduled2++;
-            {var aw=dcv(ds2,it.id);if(aw){completed2++;if(aw==='skip')skipped2++;}}
+            {var aw=habitDayVal(it,ds2);if(aw){completed2++;if(aw==='skip')skipped2++;}}
           }
         });
       }
@@ -4358,7 +4491,7 @@ function aggHabitPeriods(granularity,count){
           items.forEach(function(it){
             if(it.days.indexOf(wi3)!==-1&&ds3>=habitCreatedDs(it)){
               scheduled3++;
-              {var am=dcv(ds3,it.id);if(am){completed3++;if(am==='skip')skipped3++;}}
+              {var am=habitDayVal(it,ds3);if(am){completed3++;if(am==='skip')skipped3++;}}
             }
           });
         }
@@ -4401,11 +4534,11 @@ var Stats={
     this.renderChart();
     var best=bestHabitConsistency();
     document.getElementById('stats-best').innerHTML=best
-      ?'<b>'+esc(best.item.text)+'</b> — <b>'+best.pct+'%</b>'
+      ?'<b>'+esc(habitName(best.item))+'</b> — <b>'+best.pct+'%</b>'
       :'No scheduled habits yet.';
     var worst=worstHabitConsistency();
     document.getElementById('stats-worst').innerHTML=worst
-      ?'<b>'+esc(worst.item.text)+'</b> — <b>'+worst.pct+'%</b>'
+      ?'<b>'+esc(habitName(worst.item))+'</b> — <b>'+worst.pct+'%</b>'
       :'No scheduled habits yet.';
     var ts=oneTimeTaskStats();
     document.getElementById('stats-avg-num').textContent=ts.total?ts.avg.toFixed(1):'0';
@@ -4436,6 +4569,11 @@ var Stats={
   }
 };
 
+// What a tapped bar in a habit's bar chart says above the chart.
+function barReadout(p){
+  return p.scheduled>1?(p.completed+' / '+p.scheduled+(p.skipped?' ('+p.skipped+' skipped)':'')+' — '+p.label)
+    :(p.skipped?'Skipped — '+p.label:(p.completed?'Done — '+p.label:'Not done — '+p.label));
+}
 var HabitDetail={
   itemId:null,view:'day',origin:'today',
   open:function(itemId){
@@ -4487,8 +4625,7 @@ var HabitDetail={
       svg.addEventListener('click',function(e){
         var r=e.target.closest('rect');if(!r)return;
         var p=periods[+r.getAttribute('data-i')];if(!p)return;
-        var txt=p.scheduled>1?(p.completed+' / '+p.scheduled+(p.skipped?' ('+p.skipped+' skipped)':'')+' — '+p.label):(p.skipped?'Skipped — '+p.label:(p.completed?'Done — '+p.label:'Not done — '+p.label));
-        document.getElementById('hd-chart-readout').textContent=txt;
+        document.getElementById('hd-chart-readout').textContent=barReadout(p);
       });
     }
   },
@@ -4594,10 +4731,27 @@ function markEdgeRows(container,itemSel){
 }
 // value stored for a habit on a day: falsy, true, or 'skip'
 function dcv(ds,id){return DB.data.dailyChecks[ds]&&DB.data.dailyChecks[ds][id];}
+// Whether a habit counts as done on day ds — what every score, streak, bar,
+// count and disappear-when-done check reads: falsy, true, or 'skip'. A
+// normal habit is its check-off (dcv). A tracker-linked habit is done when
+// that day's logged value reaches its goal (it.goal), or — with no goal —
+// when anything was logged that day at all; otherwise it can be skipped
+// like any habit (swipe on Today, stored as 'skip' in dailyChecks).
+function habitDayVal(it,ds){
+  if(!it.trackerPid)return dcv(ds,it.id);
+  var v=trackerEntryForDate(it.trackerPid,ds);
+  if(v!=null&&(!hasGoal(it)||v>=it.goal))return true;
+  return dcv(ds,it.id)==='skip'?'skip':false;
+}
+function hasGoal(it){return typeof it.goal==='number'&&!isNaN(it.goal);}
+function habitName(it){
+  if(!it.trackerPid)return it.text;
+  var p=DB.data.projects[it.trackerPid];return p?p.name:'';
+}
 function paintCheck(cb,val){
   cb.checked=!!val;
   var row=cb.closest('.cali');if(row)row.classList.toggle('skipped',val==='skip');
-  var l=cb.nextElementSibling;
+  var l=row?row.querySelector('label'):cb.nextElementSibling;
   if(l){
     if(val==='skip'){l.style.textDecoration='none';l.style.opacity='0.6';}
     else{l.style.textDecoration=val?'line-through':'none';l.style.opacity=val?'0.35':'1';}
@@ -4679,12 +4833,12 @@ function renderToday(){
     var items=DB.data.dailyItems.filter(function(it){
       if(it.catId!==cat.id||it.days.indexOf(TI)===-1)return false;
       if(!vanish)return true;
-      var done=it.trackerPid?(trackerEntryForDate(it.trackerPid,ds)!=null):DB.isDailyChecked(it.id,ds);
+      var done=!!habitDayVal(it,ds);
       return !done;
     });
     if(!items.length)return;
     h+='<div class="caltitle">'+esc(cat.name)+'</div><div class="calsec">';
-    items.forEach(function(it){h+=it.trackerPid?ciTracker(it,0,false):swipeWrap('h',ci(it.id,it.text,0));});
+    items.forEach(function(it){h+=swipeWrap('h',it.trackerPid?ciTracker(it,0,false):ci(it.id,it.text,0));});
     h+='</div>';
   });
   document.getElementById('today-daily').innerHTML=h;
@@ -4760,12 +4914,12 @@ var Skip=(function(){
     var w=e.target.closest&&e.target.closest('.sw');
     cur=null;mode=0;
     if(!w)return;
-    var cb=w.querySelector('input[type=checkbox]');
-    if(w.classList.contains('h')&&(!cb||cb.checked))return;
+    var cb=w.querySelector('input[type=checkbox]'),tb=w.querySelector('.trk-box');
+    if(w.classList.contains('h')&&(tb?(tb.classList.contains('done')||tb.classList.contains('skip')):(!cb||cb.checked)))return;
     // A press that starts on (or left of) the tick-off square never swipes,
     // so ticking something off with a slightly moving finger can't skip it.
     var tz=w.querySelector('.cali-tick');
-    if(cb&&e.touches[0].clientX<=(tz?tz.getBoundingClientRect().right:cb.getBoundingClientRect().right+4))return;
+    if((tz||cb)&&e.touches[0].clientX<=(tz?tz.getBoundingClientRect().right:cb.getBoundingClientRect().right+4))return;
     cur=w;sx=e.touches[0].clientX;sy=e.touches[0].clientY;dx=0;mode=1;
     THRESH=Math.min(110,w.offsetWidth*.35);
   },{passive:true});
@@ -4809,7 +4963,7 @@ var Skip=(function(){
         else{w.remove();syncTodaySections();}
       },400);
     } else {
-      var id=w.querySelector('input[type=checkbox]').getAttribute('data-id');
+      var id=w.querySelector('.cali[data-id]').getAttribute('data-id');
       DB.skipDaily(id,ds);
       close(w,true);
       setTimeout(renderToday,230);
@@ -4912,6 +5066,7 @@ var DailyItemSheet={
       desc.style.display='';desc.value='';
     }
     document.getElementById('daily-item-delete-row').style.display='none';
+    this.showGoal(null);
     this.renderDays();
     _overlayOpen('daily-item-sheet-overlay');
     if(!this.trackerPid)setTimeout(function(){document.getElementById('daily-item-inp').focus();},300);
@@ -4934,9 +5089,22 @@ var DailyItemSheet={
       inp.style.display='';lbl.style.display='none';inp.value=it.text||'';
       desc.style.display='';desc.value=it.desc||'';
     }
-    document.getElementById('daily-item-delete-row').style.display=this.trackerPid?'none':'';
+    document.getElementById('daily-item-delete-row').style.display='';
+    this.showGoal(hasGoal(it)?it.goal:null);
     this.renderDays();
     _overlayOpen('daily-item-sheet-overlay');
+  },
+  // Goal (tracker habits only): done on a day once that day's value
+  // reaches it (see habitDayVal). Empty = done whenever anything is logged.
+  showGoal:function(goal){
+    var p=this.trackerPid&&DB.data.projects[this.trackerPid];
+    document.getElementById('daily-item-goal-wrap').style.display=p?'':'none';
+    document.getElementById('daily-item-goal').value=goal!=null?fmtTrk(goal):'';
+    document.getElementById('daily-item-goal-unit').textContent=p&&p.unit||'';
+  },
+  readGoal:function(){
+    var g=parseFloat(document.getElementById('daily-item-goal').value);
+    return isNaN(g)?null:g;
   },
   renderDays:function(){
     var c=document.getElementById('daily-item-days');
@@ -4961,6 +5129,7 @@ var DailyItemSheet={
       _overlayClose('daily-item-sheet-overlay');
       if(Nav.cur==='habit-detail')navBack();
       buildPanels();restoreChecks(Nav.sd);renderToday();
+      if(DB.data.projects[Nav.cur])renderProj(Nav.cur);
     },'Move to Trash');
   },
   save:function(){
@@ -4973,6 +5142,9 @@ var DailyItemSheet={
           if(!nm)return;
           it.text=nm;
           it.desc=document.getElementById('daily-item-desc').value.trim();
+        } else {
+          var g=this.readGoal();
+          if(g==null)delete it.goal;else it.goal=g;
         }
         it.days=this.selectedDays.slice().sort();
         DB.save();
@@ -4980,11 +5152,12 @@ var DailyItemSheet={
       this.editId=null;
       _overlayClose('daily-item-sheet-overlay');
       if(Nav.cur==='habit-detail')HabitDetail.render();
-      buildPanels();restoreChecks(Nav.sd);renderToday();
+      buildPanels();restoreChecks(Nav.sd);renderToday();renderGrids();
+      if(DB.data.projects[Nav.cur])renderProj(Nav.cur);
       return;
     }
     if(this.trackerPid){
-      DB.addTrackerDailyItem(this.catId,this.trackerPid,this.selectedDays.slice());
+      DB.addTrackerDailyItem(this.catId,this.trackerPid,this.selectedDays.slice(),this.readGoal());
     } else {
       var text=document.getElementById('daily-item-inp').value.trim();
       if(!text)return;
@@ -5080,6 +5253,24 @@ var holdTimer=null,holdSX=0,holdSY=0;
 document.addEventListener('touchstart',function(e){
   if(!DB.data.settings.holdToComplete)return;
   var item=e.target.closest('.ti,.wri,.cali');if(!item)return;
+  // A tracker habit's number box: holding it opens its value window
+  // (TrackerDaySheet) instead of ticking anything.
+  var box=item.querySelector('.trk-box');
+  if(box){
+    var br=box.getBoundingClientRect(),bt=e.touches[0];
+    if(parseInt(item.getAttribute('data-day'),10)>0)return;
+    if(bt.clientX<br.left-8||bt.clientX>br.right+8||bt.clientY<br.top-8||bt.clientY>br.bottom+8)return;
+    holdSX=bt.clientX;holdSY=bt.clientY;
+    item.classList.add('holding');
+    holdTimer=setTimeout(function(){
+      holdTimer=null;
+      item.classList.add('snap');item.classList.remove('holding');
+      setTimeout(function(){item.classList.remove('snap');},50);
+      playClick();
+      TrackerDaySheet.open(item.getAttribute('data-tracker'),parseInt(item.getAttribute('data-day'),10));
+    },700);
+    return;
+  }
   var cb=item.querySelector('input[type=checkbox]');if(!cb)return;
   // Only start the hold gesture when the touch actually lands on the checkbox square
   // (checkbox has pointer-events:none in hold mode, so e.target alone can't tell us this)
@@ -5552,6 +5743,48 @@ var TrackerAddSheet={
   close:function(){_overlayClose('trk-add-sheet-overlay');}
 };
 document.getElementById('trk-add-val').addEventListener('keydown',function(e){if(e.key==='Enter')TrackerAddSheet.save();});
+
+// Enter or adjust one day's value of a tracker habit, from its number box
+// on Today/Daily (see ciTracker): a tap, or — in hold-to-complete mode — a
+// hold (the HOLD TO COMPLETE handler calls open() directly). Saving sets
+// that day's value (DB.setTrackerDayValue), so adjusting through the day
+// changes one value instead of piling up entries. Days that haven't
+// happened yet can't be logged.
+var TrackerDaySheet={
+  itemId:null,dayIdx:0,
+  tap:function(itemId,dayIdx){
+    if(DB.data.settings.holdToComplete)return;
+    this.open(itemId,dayIdx);
+  },
+  open:function(itemId,dayIdx){
+    var it=DB.data.dailyItems.find(function(x){return x.id===itemId;});
+    var p=it&&DB.data.projects[it.trackerPid];
+    if(!p||dayIdx>0)return;
+    this.itemId=itemId;this.dayIdx=dayIdx;
+    var d=new Date(T);d.setDate(T.getDate()+dayIdx);
+    document.getElementById('trk-day-title').textContent=p.name+(dayIdx?' · '+d.toLocaleDateString('de-CH',{weekday:'short',day:'numeric',month:'short'}):'');
+    document.getElementById('trk-day-unit').textContent=p.unit||'';
+    var g=document.getElementById('trk-day-goal');
+    g.textContent=hasGoal(it)?'Goal: '+fmtTrk(it.goal)+(p.unit?' '+p.unit:''):'';
+    g.style.display=hasGoal(it)?'':'none';
+    var v=trackerEntryForDate(it.trackerPid,pDate(dayIdx));
+    var inp=document.getElementById('trk-day-val');inp.value=v!=null?fmtTrk(v):'';
+    _overlayOpen('trk-day-sheet-overlay');
+    setTimeout(function(){inp.focus();},300);
+  },
+  save:function(){
+    var id=this.itemId,it=DB.data.dailyItems.find(function(x){return x.id===id;});
+    var val=parseFloat(document.getElementById('trk-day-val').value);
+    if(!it||isNaN(val))return;
+    var ds=pDate(this.dayIdx);
+    DB.setTrackerDayValue(it.trackerPid,ds,val);
+    if(dcv(ds,it.id)==='skip')DB.toggleDailyCheck(it.id,ds,false);
+    _overlayClose('trk-day-sheet-overlay');
+    renderToday();buildPanels();restoreChecks(Nav.sd);renderGrids();renderTracker(it.trackerPid);
+  },
+  close:function(){_overlayClose('trk-day-sheet-overlay');}
+};
+document.getElementById('trk-day-val').addEventListener('keydown',function(e){if(e.key==='Enter')TrackerDaySheet.save();});
 
 var TabBar={
   // Hides the footer tabs switched off in Settings > Menu (Settings itself

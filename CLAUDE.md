@@ -79,20 +79,37 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   are read from `DB.data.projects[trackerPid]` live on every render,
   never copied into the dailyItems entry, so renaming the tracker can't
   leave a stale label sitting in Daily.
-  Anywhere that loops over `dailyItems` and asks "is this one done
-  today" needs to branch on `it.trackerPid` — grepping for
-  `isDailyChecked` finds the checkbox-only call sites, but doesn't catch
-  places that need the tracker branch ADDED, which is exactly what got
-  missed on the first pass here: Overview's Daily-card remaining count
-  (`renderGrids`) silently always counted a tracker habit as pending
-  because it only ever checked `isDailyChecked`, which a tracker item
-  never sets. The Statistics tab's aggregate consistency/best-score/bars
-  went the other way — rather than teaching that boolean-consistency
-  math a second "done" definition, tracker-linked items are just
-  excluded from it entirely (`aggHabitConsistency`/`bestHabitConsistency`
-  /`aggHabitPeriods` all skip `it.trackerPid`), since a logged number
-  isn't a check-off streak and forcing it into that shape would only
-  produce a meaningless score.
+  Since 2.92 there is ONE answer to "is this habit done on day ds":
+  `habitDayVal(it,ds)` (falsy / true / 'skip'). A normal habit is its
+  check-off (`dcv`); a tracker habit is done when that day's value
+  reaches `it.goal` (optional number on the dailyItems entry, set in the
+  habit sheet), or with no goal when anything was logged that day, and
+  otherwise can be 'skip' (swipe on Today, stored in dailyChecks like any
+  habit; saving a value clears it). EVERY score/streak/bar/count/
+  disappear check goes through it — use it for any new one; don't
+  re-branch on `it.trackerPid`. That's the history of this area: first
+  Overview's count missed trackers (only checked `isDailyChecked`), then
+  Statistics excluded trackers entirely ("a logged number isn't a
+  check-off") — reversed in 2.92 at the user's request: tracker habits
+  now count in Stats, best/worst use `habitName(it)` (a tracker entry has
+  no `text`).
+  Tracker habit rows (`ciTracker`, Today and Daily) are split rows like
+  habits: the tick zone shows a number box (`.trk-box`, that day's value;
+  `--box` grey until done, `--go` green when done, skip style when
+  skipped — same colors as a tick box, widening to fit the number); a tap
+  on it (a hold, in hold-to-complete mode — the HOLD handler has a
+  `.trk-box` branch) opens `TrackerDaySheet`, which SETS that day's value
+  (`DB.setTrackerDayValue`: changes that day's latest entry or adds one
+  timestamped on that day) so adjusting through the day doesn't pile up
+  entries; future days can't be logged. The bar opens the tracker page.
+  The old inline trash icon on Daily's tracker rows is gone — delete is in
+  the habit sheet now (openEdit shows Delete for trackers too), reached
+  from the tracker page's "Daily habit" Days/Goal rows.
+  A tracker page for a Daily-linked tracker (`renderTracker` +
+  `TrackerPage`): entries fold behind one "Entries N ›" row (closed by
+  default, state kept per pid while the app runs), then Days/Goal rows,
+  the habit bar chart (Day/Week/Month), Consistency ring and Longest
+  streak — same pieces as a habit's own page (`barReadout` is shared).
 
 - Habit consistency scores (`habitConsistency`, and the Statistics tab's
   ring/best/worst built on it) count only days ON OR AFTER the habit was
@@ -334,7 +351,20 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   `closest('input,.cali-tick')`, and Skip's swipe start check uses the
   tick zone's right edge instead of the checkbox's. One-time rows
   (`onceRow`) and tracker rows (`ciTracker`) are NOT split — a one-time
-  row's label already ticks it, and a tracker row is one link.
+  row's label already ticks it. (Tracker rows became split rows too in
+  2.92 — see the dailyItems entry above.)
+  Since 2.92 every habit bar that opens a page ends in Settings' right
+  arrow (`CALI_CHEV`, a `.cali-chev` span that forwards its tap to the
+  label, so it's part of the bar); locked rows show the lock instead. The
+  trailing element carries the row's 14px right edge (label has no right
+  padding of its own).
+  Regression from the 2.89 split, found in 2.92: `paintCheck` found the
+  label with `cb.nextElementSibling` — empty once the checkbox moved into
+  `.cali-tick`, so ticked habits silently lost their strike-through for
+  three releases. Now `row.querySelector('label')`. When wrapping an
+  element in a new container, grep for sibling/parent navigation from it
+  (`nextElementSibling`, `previousSibling`, `parentNode`), not just
+  selectors.
   Rule since 2.90 (asked for directly): the pressed grey only shows on
   rows that OPEN something (a window/sheet or a page). Habit bars (habit
   page), tracker rows (tracker page), task rows `.ti`/`.wri` (TaskSheet)
@@ -533,6 +563,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   has "Hold to complete" ON (the fresh-install default), where a plain
   tap on a habit deliberately doesn't tick — turn it off in a test before
   concluding that ticking is broken.
+  Screenshots only show what the pane last PAINTED: when the Browser pane
+  is hidden (`document.visibilityState==='hidden'`) it stops repainting
+  and every screenshot repeats the last frame even though the DOM has
+  moved on — check `document.visibilityState` before trusting a
+  screenshot that contradicts the DOM, and verify layout with
+  getBoundingClientRect measurements instead.
   Two unrelated fixes landed in the same 2.85 pass while looking at this
   screen's presses: (a) the pressed-grey on a `.ti`/`.cali`/`.wri` row
   was appearing when pressing the CHECKBOX too, since CSS `:active`
@@ -587,6 +623,11 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   use the plain pseudo-selector — they don't have an equivalent per-row
   wrapping path today, but if one is ever added to any of them, it needs
   this same explicit-class treatment, not another one-off fix.
+  A row ALONE in its card matches both first and last; the later
+  bottom-only rule won, so e.g. a single War Room task's red stripe
+  (inset box-shadow, follows the radius) was square at the top. Fixed in
+  2.92 with an `:only-child` (and `.cali.row-first.row-last`) rule giving
+  all four corners — every row type in that rule set is covered.
 
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large

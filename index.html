@@ -95,7 +95,6 @@ html[data-theme="light"] .wri{background:#fafaf8;border-color:#f0ede8}
 @media(prefers-color-scheme:dark){.acard{background:#1e1c1a;border-color:#2a2927}}
 html[data-theme="dark"] .acard{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .acard{background:#fff;border-color:#e8e5e0}
-.acard:active{transform:scale(0.95)}
 .dragging{transform:scale(1.06)!important;box-shadow:0 10px 24px rgba(0,0,0,.22)!important;opacity:.97;pointer-events:none;transition:box-shadow .15s ease,transform .15s ease}
 /* Left behind in the flow at the dragged item's spot (see DragReorder) —
    plain empty space, nothing to paint. */
@@ -155,14 +154,6 @@ html[data-theme="light"] .ti::before,.wri::before,.cali::before{background:#c9c5
 .ti.snap::before,.wri.snap::before,.cali.snap::before{transition:none}
 body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox],body.hold-mode .cali input[type=checkbox]{pointer-events:none}
 
-.pri-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
-.pri-pill{font-size:12px;font-weight:700;padding:9px 16px;border-radius:99px;cursor:pointer;border:1.5px solid transparent;opacity:.4;min-height:40px;display:inline-flex;align-items:center;user-select:none}
-.pri-pill.on{opacity:1;border-color:currentColor}
-.pri-pill:active{transform:scale(0.95)}
-.pri-pill[data-p="bu"]{background:#dc2626;color:#fff}
-.pri-pill[data-p="bs"]{background:#fee2e2;color:#b91c1c}
-.pri-pill[data-p="bp"]{background:#fef9c3;color:#854d0e}
-.pri-pill[data-p="bl"]{background:#dcfce7;color:#166534}
 
 .addrow{display:flex;gap:8px;margin-top:10px}
 .addinp{flex:1;font-size:16px;padding:14px;border:1.5px solid #e8e5e0;border-radius:14px;background:#fff;color:#1a1917;outline:none;min-height:52px}
@@ -202,8 +193,6 @@ html[data-theme="dark"] .trash-act{color:#0a84ff}
 .hh-btn.hh-txt{width:auto;padding:0 14px;font-size:14px;font-weight:600;white-space:nowrap}
 .seg-btn i{font-style:normal;opacity:.6;margin-left:4px}
 
-.wnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.wlbl{font-size:14px;font-weight:700}
 .wdays{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;-webkit-overflow-scrolling:touch}
 .dpill{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 8px;border-radius:14px;border:1.5px solid #e8e5e0;cursor:pointer;background:#fff;min-width:46px;transition:transform .1s}
 @media(prefers-color-scheme:dark){.dpill{background:#1e1c1a;border-color:#2a2927}}
@@ -406,6 +395,7 @@ html[data-theme="light"] .switch-slider{background:#d1d1d1}
 html[data-theme="dark"] .update-overlay{background:rgba(26,25,23,.97)}
 html[data-theme="light"] .update-overlay{background:rgba(243,244,246,.97)}
 .update-overlay.on{display:flex}
+.update-overlay{touch-action:none}
 .update-slot{position:relative;width:160px;height:36px;display:flex;align-items:center;justify-content:center}
 .update-text{font-size:15px;font-weight:700;color:#1a1917}
 @media(prefers-color-scheme:dark){.update-text{color:#e8e6df}}
@@ -513,10 +503,6 @@ html[data-theme="light"] .type-btn.active{border-color:#1a1917;color:#1a1917;bac
 .trk-val{font-size:32px;font-weight:800;letter-spacing:-.02em;margin:4px 0 2px}
 .trk-unit{font-size:13px;color:#999;font-weight:500;margin-bottom:12px}
 .trk-chart{width:100%;height:140px;margin:4px 0 12px}
-.trk-addinp{flex:1;font-size:16px;padding:13px 16px;border:1.5px solid #1a1917;border-radius:14px;background:#fff;color:#1a1917;outline:none;min-height:52px}
-@media(prefers-color-scheme:dark){.trk-addinp{background:#1e1c1a;border-color:#e8e6df;color:#e8e6df}}
-html[data-theme="dark"] .trk-addinp{background:#1e1c1a;border-color:#e8e6df;color:#e8e6df}
-html[data-theme="light"] .trk-addinp{background:#fff;border-color:#1a1917;color:#1a1917}
 .trk-entry{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0ede8}
 .trk-entry-val{font-size:15px;font-weight:700}
 .trk-entry-date{font-size:12px;color:#999}
@@ -537,6 +523,10 @@ html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
 .hh-btn:active{opacity:.7}
 .hh-title{display:block;font-size:26px;font-weight:800;line-height:1.15;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 .hh-title-btn{display:block;max-width:100%;background:none;border:none;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+/* A pushed page title with a date on the right (Daily), laid out like Today's header. */
+.hh-titlerow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hh-titlerow .hh-title-btn{min-width:0}
+.hh-titlerow .tlbl{flex-shrink:0}
 .hh-sub{font-size:13px;color:#999;margin-top:4px}
 @media(prefers-color-scheme:dark){.hh-btn{color:#e8e6df}}
 html[data-theme="dark"] .hh-btn{color:#e8e6df}
@@ -626,26 +616,25 @@ html:not(#x) .dhdr{min-height:40px}
 .ts,.archi-sub,.trk-entry-date{font-size:12px;font-weight:500}
 .trk-unit,.trk-daily-val{font-size:13px;font-weight:500}
 .empty{font-size:14px;font-weight:500}
-.wlbl{font-size:15px;font-weight:600}
 .albl{font-size:12px;font-weight:600}
 .acnt{font-size:11px;font-weight:500;color:#999}
 .wrt{font-weight:600}.wrd{font-size:12px;font-weight:500}
-.bdg,.pri-pill,.wrb{font-size:12px;font-weight:600}
+.bdg,.wrb{font-size:12px;font-weight:600}
 .seg-btn{font-size:12px;font-weight:600}
 .trash-act,.trash-x,.hh-btn.hh-txt{font-size:15px;font-weight:600}
 /* Sheets: grey grouped background, white inputs/rows, like a Settings page */
 html:not(#x) .sheet{background:var(--pg);padding-left:16px;padding-right:16px}
 .sheet-title{font-size:20px;font-weight:800;margin-bottom:16px}
 .sheet-label{margin:0 0 8px}
-html:not(#x) .sheet-inp,html:not(#x) .addinp,html:not(#x) .trk-addinp{border:none;border-radius:14px;background:var(--card);color:var(--ink);height:46px;min-height:46px;padding:0 14px;font-size:16px;font-weight:600;box-shadow:none}
+html:not(#x) .sheet-inp,html:not(#x) .addinp{border:none;border-radius:14px;background:var(--card);color:var(--ink);height:46px;min-height:46px;padding:0 14px;font-size:16px;font-weight:600;box-shadow:none}
 html:not(#x) .sheet-inp,html:not(#x) .sheet .addinp{margin-bottom:14px}
 html:not(#x) textarea.sheet-inp{height:auto;padding:14px;font-weight:500}
-html:not(#x) .sheet-inp:focus,html:not(#x) .addinp:focus,html:not(#x) .trk-addinp:focus{border:none;box-shadow:none}
+html:not(#x) .sheet-inp:focus,html:not(#x) .addinp:focus{border:none;box-shadow:none}
 /* The emoji field has no blinking caret (see A.iconInput) — its own
    persistent "you're editing this" indicator instead: a soft blue tint +
    ring while focused, so it's still obvious which window is selected. */
 html:not(#x) #sheet-icon:focus{background:var(--blue-tint);box-shadow:0 0 0 2px var(--blue);transition:background .15s ease,box-shadow .15s ease}
-.sheet-inp::placeholder,.addinp::placeholder,.trk-addinp::placeholder{color:#bbb;font-weight:500}
+.sheet-inp::placeholder,.addinp::placeholder{color:#bbb;font-weight:500}
 .ts-title{font-size:20px;font-weight:800}
 /* buttons in sheets: a white row with blue text, exactly like Settings' buttons */
 html:not(#x) .sheet-save{background:var(--card);border:none;border-radius:14px;height:46px;padding:0 14px;color:var(--blue);font-size:15px;font-weight:600;text-align:left;font-family:inherit;transition:background .12s ease}
@@ -706,16 +695,13 @@ html:not(#x) .card-list .sw.t .ti{border-bottom:none}
 html:not(#x) .card-list .ti[data-pri="bu"]{box-shadow:inset 3px 0 0 #e24b4a}
 .trk-entry:last-child{border-bottom:none}
 /* priority picker: four equal pills in a row (dimmed until chosen) */
-html:not(#x) .pri-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0 10px}
-html:not(#x) .pri-pill{justify-content:center;height:40px;min-height:40px;padding:0;border:none;border-radius:12px;opacity:.4;font-size:12px;font-weight:600}
-html:not(#x) .pri-pill.on{opacity:1;border:none;box-shadow:inset 0 0 0 2px currentColor}
 html:not(#x) .card-list .ti{padding:8px 10px}
 html:not(#x) .ts-notes{height:auto;min-height:34vh}
 .cal-none{font-size:13px;font-weight:500;color:#bbb;padding:12px 14px 14px}
 .wdays{scrollbar-width:none}.wdays::-webkit-scrollbar{display:none}
 input,textarea,select{font-family:inherit}
 /* lighter weights: text 500 (was 600), titles and labels 700 (was 800) */
-html:not(#x) .opt-title,html:not(#x) .tt,html:not(#x) .cali label,html:not(#x) .wit,html:not(#x) .el-name,html:not(#x) .trk-entry-val,html:not(#x) .archi-title,html:not(#x) .cat-choice,html:not(#x) .color-field-label,html:not(#x) .wlbl,html:not(#x) .albl,html:not(#x) .bdg,html:not(#x) .pri-pill,html:not(#x) .wrb,html:not(#x) .wrt,html:not(#x) .seg-btn,html:not(#x) .trash-act,html:not(#x) .trash-x,html:not(#x) .hh-btn.hh-txt,html:not(#x) .sheet-save,html:not(#x) .type-btn,html:not(#x) .sheet-inp,html:not(#x) .addinp,html:not(#x) .trk-addinp,html:not(#x) .row-num,html:not(#x) #cat-btn-list .type-btn,html:not(#x) .dsel-opt,html:not(#x) .tlbl,html:not(#x) .trk-daily-val{font-weight:500}
+html:not(#x) .opt-title,html:not(#x) .tt,html:not(#x) .cali label,html:not(#x) .wit,html:not(#x) .el-name,html:not(#x) .trk-entry-val,html:not(#x) .archi-title,html:not(#x) .cat-choice,html:not(#x) .color-field-label,html:not(#x) .albl,html:not(#x) .bdg,html:not(#x) .wrb,html:not(#x) .wrt,html:not(#x) .seg-btn,html:not(#x) .trash-act,html:not(#x) .trash-x,html:not(#x) .hh-btn.hh-txt,html:not(#x) .sheet-save,html:not(#x) .type-btn,html:not(#x) .sheet-inp,html:not(#x) .addinp,html:not(#x) .row-num,html:not(#x) #cat-btn-list .type-btn,html:not(#x) .dsel-opt,html:not(#x) .tlbl,html:not(#x) .trk-daily-val{font-weight:500}
 html:not(#x) .dsel-opt.sel{font-weight:600}
 .dtitle,.hh-title,.sheet-title,.ts-title,.soon-t,.trk-val{font-weight:700}
 html:not(#x) .sl,html:not(#x) .shdr,html:not(#x) .caltitle,html:not(#x) .el-grp,html:not(#x) .sheet-label{font-weight:700}
@@ -756,6 +742,11 @@ html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .cali,html:not(#x) .cat-choice,h
 html:not(#x) .ti:not([data-once]):active:not(:has(input:active)),html:not(#x) .wri:active:not(:has(input:active)),html:not(#x) .cat-choice:active,html:not(#x) .color-field:active{background:var(--press)}
 html:not(#x) .cali:not(.locked).pressed-row{background:var(--press)}
 html:not(#x) .acard:active{background:var(--press)}
+/* New tracker entry window: the tracker's unit sits inside the value field
+   on the right. */
+.trk-add-row{position:relative}
+.trk-add-unit{position:absolute;right:14px;top:23px;transform:translateY(-50%);color:#999;font-size:15px;font-weight:500;pointer-events:none}
+html:not(#x) #trk-add-val{padding-right:64px}
 /* A row with no border-radius of its own relies entirely on its card's
    overflow:hidden clip to look rounded — but that clip only cuts a SHARP
    corner down to the card's curve, it doesn't paint anything of its own
@@ -1012,9 +1003,11 @@ html:not(#x) #daily-cat-list .el-row:last-child{border-radius:0 0 14px 14px}
       <button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
       <button class="hh-btn" onclick="TabPlus.tap()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
     </div>
-    <button class="hh-title-btn" onclick="if(DB.data.habitsProjectId)SheetEditor.open(DB.data.habitsProjectId)"><span class="hh-title" id="habits-dtitle">Daily</span></button>
+    <div class="hh-titlerow">
+      <button class="hh-title-btn" onclick="if(DB.data.habitsProjectId)SheetEditor.open(DB.data.habitsProjectId)"><span class="hh-title" id="habits-dtitle">Daily</span></button>
+      <span class="tlbl" id="wlbl"></span>
+    </div>
   </div>
-  <div class="wnav"><span class="wlbl" id="wlbl"></span></div>
   <div class="wdays" id="wdays"></div>
   <div id="dpanels"></div>
 </div>
@@ -1196,6 +1189,20 @@ html:not(#x) #daily-cat-list .el-row:last-child{border-radius:0 0 14px 14px}
   </div>
 </div>
 
+<div class="sheet-overlay" id="trk-add-sheet-overlay" onclick="if(event.target===this)TrackerAddSheet.close()">
+  <div class="sheet">
+    <div class="sheet-title" id="trk-add-title"></div>
+    <div class="sheet-label">Value</div>
+    <div class="trk-add-row">
+      <input class="sheet-inp" id="trk-add-val" type="number" inputmode="decimal" placeholder="Enter value">
+      <span class="trk-add-unit" id="trk-add-unit"></span>
+    </div>
+    <div class="sheet-btns">
+      <button class="sheet-save" onclick="TrackerAddSheet.save()">Save</button>
+    </div>
+  </div>
+</div>
+
 <div id="proj-pages"></div>
 
 <script>
@@ -1205,7 +1212,7 @@ html:not(#x) #daily-cat-list .el-row:last-child{border-radius:0 0 14px 14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.90';
+var APP_VERSION='Beta 2.91';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1890,6 +1897,14 @@ var CHANGELOG=[
   {v:'Beta 2.90',notes:[
     'The progress ring now has softly rounded corners instead of sharp or fully round ends, with a thin gap between done and skipped',
     'One-time tasks no longer turn grey when pressed, since there is no window to open for them — the grey only shows on rows that open something'
+  ]},
+  {v:'Beta 2.91',notes:[
+    'Adding a task on a project page now opens the full task window (name, priority, project, notes) instead of a bar below the list',
+    'Adding a tracker entry opens its own window too, with the unit shown inside the field',
+    'The page behind the update screen can no longer be scrolled while it downloads',
+    'Project cards no longer shrink when you press them',
+    'The date on the Daily page now looks exactly like the one on Today: same size and grey, next to the title',
+    'Progress ring: no more gap between done and skipped — they meet in a flat line, like the bar chart'
   ]}
 ];
 var COLORS={
@@ -2364,7 +2379,7 @@ var I18N=(function(){
     'Every day':'Jeden Tag','Window size':'Fenstergröße','Moving average':'Gleitender Durchschnitt','Show moving average on chart':'Gleitenden Durchschnitt im Diagramm zeigen',
     'Unit (e.g. kg, kcal, h)':'Einheit (z. B. kg, kcal, h)','Category name':'Kategoriename','New category name':'Neuer Kategoriename','New category name…':'Neuer Kategoriename…',
     'Project name':'Projektname','Task name':'Aufgabenname','Short description (optional)':'Kurze Beschreibung (optional)','Add a task…':'Aufgabe hinzufügen…',
-    'Enter value':'Wert eingeben','New project':'Neues Projekt','Edit project':'Projekt bearbeiten','Daily categories':'Tageskategorien','Daily habits':'Tägliche Gewohnheiten',
+    'Enter value':'Wert eingeben','Value':'Wert','New project':'Neues Projekt','Edit project':'Projekt bearbeiten','Daily categories':'Tageskategorien','Daily habits':'Tägliche Gewohnheiten',
     'e.g. Business':'z. B. Business','e.g. Chores':'z. B. Haushalt','e.g. Health':'z. B. Gesundheit','Category:':'Kategorie:',
     // priorities
     'High':'Hoch','Medium':'Mittel','Low':'Niedrig','Overdue':'Überfällig',
@@ -2613,8 +2628,6 @@ function renderTracker(pid){
   var entries=((DB.data.trackerEntries||{})[pid]||[]).slice().sort(function(a,b){return a.ts-b.ts;});
   var unit=p.unit||'';
   var latest=entries.length?entries[entries.length-1].val:'--';
-  var priRow=document.getElementById('pri-'+pid);
-  if(priRow)priRow.style.display='none';
 
   // SVG chart with axes
   var PL=44,PR=12,PT=12,PB=28; // padding left/right/top/bottom
@@ -2705,13 +2718,9 @@ function renderTracker(pid){
       +'<div class="trk-entry-date">'+ds+'</div></div>'+delBtn+'</div>';
   }).join('');
 
-  var addSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
   c.innerHTML='<div class="calsec" style="padding:16px 14px 6px"><div class="trk-val">'+latest+'</div>'
     +'<div class="trk-unit">'+unit+'</div>'
     +svgH+'</div>'
-    +'<div id="trk-addwrap-'+pid+'" style="display:none;gap:8px;margin:0 0 14px">'
-    +'<input id="trk-inp-'+pid+'" class="trk-addinp" type="number" placeholder="Enter value" inputmode="decimal">'
-    +'<button class="addbtn" onclick="A.addTrackerEntry(\''+pid+'\')" >'+addSvg+'</button></div>'
     +(listH?'<div class="sl">Entries</div><div class="calsec" style="padding:2px 14px">'+listH+'</div>':'<div class="empty">No entries yet</div>');
 }
 
@@ -2735,9 +2744,6 @@ function renderProj(pid){
     }
   });
   c.innerHTML=h?'<div class="card-list">'+h+'</div>':'';
-  // Hide priority row for list type
-  var priRow=document.getElementById('pri-'+pid);
-  if(priRow)priRow.style.display=isList?'none':'';
 }
 
 // Trash page: one tab per kind of deleted thing. "Completed" is the
@@ -3235,17 +3241,6 @@ var A={
       if(Nav.cur==='today'){if(DB.data.settings.todayRefill)renderToday();else syncTodaySections();}
     },300);
   },
-  addTask:function(pid){
-    var inp=document.getElementById('inp-'+pid);if(!inp)return;
-    var val=inp.value.trim();if(!val)return;
-    var priEl=document.querySelector('#pri-'+pid+' .pri-pill.on');
-    var p=priEl?priEl.getAttribute('data-p'):'bs';
-    DB.addTask(pid,val,p);
-    renderProj(pid);renderWar();renderGrids();
-    inp.value='';inp.blur();
-    var aw=document.getElementById('addwrap-'+pid);if(aw)aw.style.display='none';
-    var fab=document.getElementById('fab');if(fab)fab.style.display='';
-  },
   restore:function(idx){
     var msg=DB.restoreTask(idx);
     if(msg){alert(t(msg));return;}
@@ -3309,16 +3304,12 @@ var A={
     DB.deleteProject(catId,pid);buildProjPages();renderEditLayout();renderGrids();renderWar();
     buildPanels();restoreChecks(Nav.sd);
   },
-  addTrackerEntry:function(pid){
-    var inp=document.getElementById('trk-inp-'+pid);
-    var val=parseFloat(inp.value);
-    if(isNaN(val))return;
+  addTrackerEntry:function(pid,val){
     if(!DB.data.trackerEntries)DB.data.trackerEntries={};
     if(!DB.data.trackerEntries[pid])DB.data.trackerEntries[pid]=[];
     DB.data.trackerEntries[pid].push({val:val,ts:Date.now()});
-    DB.save();inp.value='';
+    DB.save();
     renderTracker(pid);
-    var fab=document.getElementById('fab');if(fab)fab.style.display='';
   },
   delTrackerEntry:function(pid,ts){
     var self=this;
@@ -3718,10 +3709,7 @@ function _slideUnit(a,b,from,to,dur,done){
 }
 
 function _renderPage(id){
-  if(DB.data.projects[id]){
-    renderProj(id);
-    var aw=document.getElementById('addwrap-'+id);if(aw)aw.style.display='none';
-  }
+  if(DB.data.projects[id])renderProj(id);
   if(id==='overview'){renderWar();renderGrids();}
   if(id==='archive')renderArchive();
   if(id==='lockedin')renderLockedIn();
@@ -3967,36 +3955,9 @@ function buildProjPages(){
     h+='<button class="hh-btn" onclick="TabPlus.tap()">'+PLUS_SVG+'</button>';
     h+='</div><button class="hh-title-btn" onclick="SheetEditor.open(\''+pid+'\')"><span class="hh-title">'+p.name+'</span></button></div>';
     h+='<div id="sc-'+pid+'"></div>';
-    if(p.type!=='tracker'&&p.type!=='daily'){
-    h+='<div id="addwrap-'+pid+'" style="display:none">';
-    h+='<div class="pri-row" id="pri-'+pid+'">';
-    h+='<span class="pri-pill bu" data-p="bu" onclick="selPri(this,event)">War Room</span>';
-    h+='<span class="pri-pill bs on" data-p="bs" onclick="selPri(this,event)">High</span>';
-    h+='<span class="pri-pill bp" data-p="bp" onclick="selPri(this,event)">Medium</span>';
-    h+='<span class="pri-pill bl" data-p="bl" onclick="selPri(this,event)">Low</span>';
     h+='</div>';
-    h+='<div class="addrow">';
-    h+='<input class="addinp" id="inp-'+pid+'" placeholder="Add a task…">';
-    h+='<button class="addbtn" data-pid="'+pid+'" onclick="A.addTask(this.getAttribute(\'data-pid\'))"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><line x1=\"12\" y1=\"5\" x2=\"12\" y2=\"19\"/><line x1=\"5\" y1=\"12\" x2=\"19\" y2=\"12\"/></svg></button>';
-    h+='</div>';
-    h+='</div>';
-  }
-  h+='</div>';
   }
   document.getElementById('proj-pages').innerHTML=h;
-  for(var pid in DB.data.projects){
-    (function(id){
-      var inp=document.getElementById('inp-'+id);
-      if(inp)inp.addEventListener('keydown',function(e){if(e.key==='Enter')A.addTask(id);});
-    })(pid);
-  }
-}
-
-function selPri(pill,ev){
-  if(ev){ev.preventDefault();ev.stopPropagation();}
-  var row=pill.closest('.pri-row');if(!row)return;
-  row.querySelectorAll('.pri-pill').forEach(function(p){p.classList.remove('on');});
-  pill.classList.add('on');
 }
 
 // ── HABITS ────────────────────────────────────────────────
@@ -4236,47 +4197,50 @@ function renderBarChart(periods,svgId){
 }
 
 // One segment of the progress ring (ring 37..47 around 50,50), from
-// fraction f0 to f1 clockwise from 12 o'clock, as a filled shape whose four
-// corners are rounded by a quarter of the ring's thickness — a stroke can
-// only do sharp or fully round ends. Each corner is a small circle tangent
-// to the segment's straight end and to the outer/inner edge; on a very
-// short segment the radius shrinks so the corners never overlap.
-var RING_CORNER=2.5,RING_GAP=0.006;
-function ringSegment(f0,f1,col){
+// fraction f0 to f1 clockwise from 12 o'clock, as a filled shape. `rs`/`re`
+// round the start/end corners by a quarter of the ring's thickness (a
+// stroke can only do sharp or fully round ends); an unrounded end is a
+// flat radial cut. Each rounded corner is a small circle tangent to the
+// straight end and to the outer/inner edge; on a very short segment the
+// radius shrinks so the corners never overlap.
+var RING_CORNER=2.5;
+function ringSegment(f0,f1,col,rs,re){
   var ro=47,ri=37,TAU=2*Math.PI,a0=f0*TAU,a1=f1*TAU,span=a1-a0;
   if(span>=TAU-1e-6)return '<circle cx="50" cy="50" r="42" fill="none" stroke="'+col+'" stroke-width="10"></circle>';
-  var s=Math.sin(Math.min(span,Math.PI)/2);
+  var s=Math.sin(Math.min(rs&&re?span/2:span,Math.PI/2));
   var cr=Math.min(RING_CORNER,s*ri/(1-s),s*ro/(1+s));
   var dO=Math.asin(cr/(ro-cr)),dI=Math.asin(cr/(ri+cr));
   var lO=(ro-cr)*Math.cos(dO),lI=(ri+cr)*Math.cos(dI);
+  var sO=rs?dO:0,sI=rs?dI:0,eO=re?dO:0,eI=re?dI:0;
   function P(a,r){return (50+r*Math.sin(a)).toFixed(2)+' '+(50-r*Math.cos(a)).toFixed(2);}
-  var c=cr.toFixed(2)+' '+cr.toFixed(2)+' 0 0 1 ';
-  return '<path fill="'+col+'" d="M'+P(a0,lI)+'L'+P(a0,lO)
-    +'A'+c+P(a0+dO,ro)
-    +'A'+ro+' '+ro+' 0 '+(span-2*dO>Math.PI?1:0)+' 1 '+P(a1-dO,ro)
-    +'A'+c+P(a1,lO)
-    +'L'+P(a1,lI)
-    +'A'+c+P(a1-dI,ri)
-    +'A'+ri+' '+ri+' 0 '+(span-2*dI>Math.PI?1:0)+' 0 '+P(a0+dI,ri)
-    +'A'+c+P(a0,lI)+'Z"></path>';
+  var c='A'+cr.toFixed(2)+' '+cr.toFixed(2)+' 0 0 1 ';
+  var d='M'+P(a0,rs?lI:ri)+'L'+P(a0,rs?lO:ro);
+  if(rs)d+=c+P(a0+dO,ro);
+  d+='A'+ro+' '+ro+' 0 '+((a1-eO)-(a0+sO)>Math.PI?1:0)+' 1 '+P(a1-eO,ro);
+  if(re)d+=c+P(a1,lO);
+  d+='L'+P(a1,re?lI:ri);
+  if(re)d+=c+P(a1-dI,ri);
+  d+='A'+ri+' '+ri+' 0 '+((a1-eI)-(a0+sI)>Math.PI?1:0)+' 0 '+P(a0+sI,ri);
+  if(rs)d+=c+P(a0,lI);
+  return '<path fill="'+col+'" d="'+d+'Z"></path>';
 }
 // The ring shows done + skipped together (pct): green for done, then the
-// skipped share in its own segment right after it. The skipped share rounds
-// UP and green is what's left, so it only ever takes away from green, never
-// adds to the total. A thin gap separates segments that touch (including
-// across 12 o'clock at 100%), so each shows its own rounded ends.
+// skipped share right after it. The skipped share rounds UP and green is
+// what's left, so it only ever takes away from green, never adds to the
+// total. Only the ring's two outer ends are rounded; where green meets
+// skipped it's a flat cut with no gap, like the stacked bars in the bar
+// chart. The skipped part is drawn first and reaches a hair under the green
+// at that cut (and under its start at 100%) so no seam shows between them.
 function renderPieChart(pct,skipped,target){
   var skipPct=(skipped&&target)?Math.min(pct,Math.ceil(skipped/target*100)):0;
-  var greenPct=pct-skipPct;
-  var segs=[];
-  if(greenPct>0)segs.push([0,greenPct/100,'#30d158']);
-  if(skipPct>0)segs.push([greenPct/100,pct/100,SKIP_COLOR]);
-  var full=pct>=100,G=RING_GAP/2;
-  var arcs=segs.map(function(sg,i){
-    if(segs.length===1&&full)return ringSegment(0,1,sg[2]);
-    var f0=sg[0]+(i>0||full?G:0),f1=sg[1]-(i<segs.length-1||full?G:0);
-    return f1>f0?ringSegment(f0,f1,sg[2]):'';
-  }).join('');
+  var greenPct=pct-skipPct,full=pct>=100,EPS=0.003,arcs='';
+  if(greenPct>0&&skipPct>0){
+    arcs=ringSegment(greenPct/100-EPS,pct/100+(full?EPS:0),SKIP_COLOR,false,!full)
+      +ringSegment(0,greenPct/100,'#30d158',!full,false);
+  } else if(pct>0){
+    var col=greenPct>0?'#30d158':SKIP_COLOR;
+    arcs=full?ringSegment(0,1,col):ringSegment(0,pct/100,col,true,true);
+  }
   return '<svg viewBox="0 0 100 100" style="width:150px;height:150px">'
     +'<circle class="hd-pie-track" cx="50" cy="50" r="42" fill="none" stroke-width="10"></circle>'
     +arcs
@@ -5061,7 +5025,8 @@ function buildPills(){
 }
 function updWL(){
   var sd=new Date(T);sd.setDate(T.getDate()+Nav.sd);
-  document.getElementById('wlbl').textContent=DN[wIdx(sd)]+', '+sd.getDate()+'.'+(sd.getMonth()+1)+'.'+sd.getFullYear();
+  // Same format and style (.tlbl) as the date next to Today's title.
+  document.getElementById('wlbl').textContent=sd.toLocaleDateString('de-CH',{weekday:'short',day:'numeric',month:'short'});
 }
 
 // ── HOLD TO COMPLETE ──────────────────────────────────────
@@ -5358,11 +5323,16 @@ function _overlayClose(id,instant){
 
 // The update screen says one thing the whole time ("Updating")
 // while the bar fills; nothing changes at the end, the app just reloads.
+// It counts as an open overlay like a sheet does, so the page behind it
+// gets the same scroll lock and every drag on it is cancelled (see the
+// "nothing behind it may scroll" touchmove handler).
 var UpdateOverlay={
+  _on:false,
   show:function(){
     document.getElementById('update-text').textContent='Updating';
     document.getElementById('update-bar-fill').style.width='0%';
     document.getElementById('update-overlay').classList.add('on');
+    if(!this._on){this._on=true;_overlayCount++;if(_overlayCount===1)_lockBodyScroll();}
   },
   progress:function(pct){
     document.getElementById('update-bar-fill').style.width=pct+'%';
@@ -5372,6 +5342,7 @@ var UpdateOverlay={
   },
   hide:function(){
     document.getElementById('update-overlay').classList.remove('on');
+    if(this._on){this._on=false;_overlayCount=Math.max(0,_overlayCount-1);if(_overlayCount===0)_unlockBodyScroll();}
   }
 };
 var WhatsNew={
@@ -5495,6 +5466,8 @@ function renderAllTaskViews(){
   if(Nav.cur==='today')renderToday();
 }
 
+// The Task window, for editing a task (open) or adding one (openNew — the
+// project page's "+"; key stays null until Save creates the task).
 var TaskSheet={
   pid:null,key:null,pri:'bs',moveToPid:null,
   open:function(pid,key){
@@ -5506,6 +5479,15 @@ var TaskSheet={
     this.renderRows();
     _overlayOpen('task-sheet-overlay');
     this.autosize();
+  },
+  openNew:function(pid){
+    this.pid=pid;this.key=null;this.pri='bs';this.moveToPid=pid;
+    document.getElementById('task-sheet-name').value='';
+    document.getElementById('task-sheet-desc').value='';
+    this.renderRows();
+    _overlayOpen('task-sheet-overlay');
+    this.autosize();
+    setTimeout(function(){document.getElementById('task-sheet-name').focus();},300);
   },
   autosize:function(){
     var el=document.getElementById('task-sheet-desc');
@@ -5521,8 +5503,10 @@ var TaskSheet={
       if(p.type==='todo'||p.type==='list')projs.push({value:id,label:p.name});
     }
     function row(title,sel){return '<div class="opt-row"><div class="opt-text"><div class="opt-title">'+title+'</div></div>'+sel+'</div>';}
+    // List projects don't sort by priority, so there's nothing to pick there.
+    var dest=DB.data.projects[this.moveToPid],isList=dest&&dest.type==='list';
     document.getElementById('task-sheet-rows').innerHTML=
-      row('Priority',customSelect(pri,this.pri,'TaskSheet.setPri(this.value)'))
+      (isList?'':row('Priority',customSelect(pri,this.pri,'TaskSheet.setPri(this.value)')))
       +row('Project',customSelect(projs,this.moveToPid,'TaskSheet.setProject(this.value)'));
   },
   setPri:function(v){this.pri=v;this.renderRows();},
@@ -5531,7 +5515,10 @@ var TaskSheet={
     var text=document.getElementById('task-sheet-name').value.trim();
     if(!text)return;
     var desc=document.getElementById('task-sheet-desc').value.trim();
-    if(this.moveToPid!==this.pid){
+    if(!this.key){
+      var key=DB.addTask(this.moveToPid,text,this.pri);
+      if(desc)DB.updateTask(this.moveToPid,key,{desc:desc});
+    } else if(this.moveToPid!==this.pid){
       DB.moveTask(this.pid,this.moveToPid,this.key,{text:text,pri:this.pri,desc:desc});
     } else {
       DB.updateTask(this.pid,this.key,{text:text,pri:this.pri,desc:desc});
@@ -5541,6 +5528,30 @@ var TaskSheet={
   },
   close:function(){_overlayClose('task-sheet-overlay');}
 };
+document.getElementById('task-sheet-name').addEventListener('keydown',function(e){if(e.key==='Enter')TaskSheet.save();});
+
+// New tracker entry — the tracker page's "+". The unit sits inside the
+// field on the right, so the title can just be the tracker's name.
+var TrackerAddSheet={
+  pid:null,
+  open:function(pid){
+    var p=DB.data.projects[pid];if(!p)return;
+    this.pid=pid;
+    document.getElementById('trk-add-title').textContent=p.name;
+    document.getElementById('trk-add-unit').textContent=p.unit||'';
+    var inp=document.getElementById('trk-add-val');inp.value='';
+    _overlayOpen('trk-add-sheet-overlay');
+    setTimeout(function(){inp.focus();},300);
+  },
+  save:function(){
+    var val=parseFloat(document.getElementById('trk-add-val').value);
+    if(isNaN(val))return;
+    A.addTrackerEntry(this.pid,val);
+    _overlayClose('trk-add-sheet-overlay');
+  },
+  close:function(){_overlayClose('trk-add-sheet-overlay');}
+};
+document.getElementById('trk-add-val').addEventListener('keydown',function(e){if(e.key==='Enter')TrackerAddSheet.save();});
 
 var TabBar={
   // Hides the footer tabs switched off in Settings > Menu (Settings itself
@@ -5605,17 +5616,9 @@ var TabPlus={
       ]);
       return;
     }
-    if(DB.data.projects[cur]){
-      var wrap=document.getElementById('addwrap-'+cur);
-      if(wrap)wrap.style.display='';
-      var trkWrap=document.getElementById('trk-addwrap-'+cur);
-      if(trkWrap)trkWrap.style.display='flex';
-      var inp=document.getElementById('inp-'+cur)||document.getElementById('trk-inp-'+cur);
-      if(inp){
-        var fab=document.getElementById('fab');if(fab)fab.style.display='none';
-        inp.scrollIntoView({behavior:'smooth',block:'center'});inp.focus();return;
-      }
-    }
+    var p=DB.data.projects[cur];
+    if(p&&p.type==='tracker'){TrackerAddSheet.open(cur);return;}
+    if(p&&(p.type==='todo'||p.type==='list')){TaskSheet.openNew(cur);return;}
     AddChoice.show('Add',[
       {icon:'',label:'Category',fn:function(){A.newCategory();}},
       {icon:'',label:'Project',fn:function(){A.newProject();}}
@@ -5679,7 +5682,7 @@ if(window.visualViewport){
 // the tab bar.
 (function(){
   var TAPPABLE='.tab-item,.fab,.hdr-add,.menu-btn,.menu-item,.acard,.opt-row,'
-    +'.back,.edit-proj-btn,.hh-btn,.hh-title-btn,.trash-act,.trash-x,.addbtn,.el-btn,.type-btn,.pri-pill,'
+    +'.back,.edit-proj-btn,.hh-btn,.hh-title-btn,.trash-act,.trash-x,.addbtn,.el-btn,.type-btn,'
     +'.cat-choice,.dpill,.sheet-save,.seg-btn';
   var sx=0,sy=0,moved=false,target=null;
   document.addEventListener('touchstart',function(e){

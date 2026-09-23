@@ -345,17 +345,49 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   open anything? If not, no grey.
 
 - Stats/habit-detail progress ring (`renderPieChart`): fully round ends
-  (`stroke-linecap="round"`) were called cheap-looking, and flat ends
-  (2.89) too spiky — so since 2.90 each segment is a filled path
-  (`ringSegment`) with corners rounded by `RING_CORNER` (2.5 = a quarter
-  of the ring's 10-unit thickness), and a `RING_GAP` between segments
-  that touch (green done / pale-green skipped, and across 12 o'clock at
-  100%) so each shows its own rounded ends. A stroke can only do sharp or
-  fully round ends, hence the path. The corner radius shrinks on very
-  short segments so corners never overlap (1% still renders as a
-  sliver); a single segment at 100% is a plain closed ring. Side benefit
-  over round caps: the arc length is exact (round caps added half the
-  stroke width at each end, so small percentages looked bigger).
+  (`stroke-linecap="round"`) were called cheap-looking, flat ends (2.89)
+  too spiky, and a gap between done and skipped (2.90) disliked too. Now
+  (2.91): segments are filled paths (`ringSegment(f0,f1,col,rs,re)`), only
+  the ring's two OUTER ends are rounded by `RING_CORNER` (2.5 = a quarter
+  of the ring's 10-unit thickness), and done→skipped is a flat cut with
+  no gap, "like the stacked bars in the bar chart". The skipped segment is
+  drawn first and reaches a hair (EPS) under the green where they meet
+  (and under green's start at 100%) so two shapes sharing an edge don't
+  show an anti-aliasing seam. A stroke can only do sharp or fully round
+  ends, hence the path. The corner radius shrinks on very short segments
+  so corners never overlap (1% still renders as a sliver); a single color
+  at 100% is a plain closed ring. Side benefit over round caps: the arc
+  length is exact.
+
+- Adding things on a project page (2.91): the header "+" (`TabPlus.tap`)
+  opens a slide-up window instead of revealing an inline bar under the
+  list — asked for as "a full new window". Tasks: the same Task window
+  used for editing, `TaskSheet.openNew(pid)` (key stays null until Save,
+  which calls `DB.addTask` then `updateTask` for notes). Trackers:
+  `TrackerAddSheet` (title = tracker name, unit shown inside the field).
+  Enter saves in both. The old inline bars (`addwrap-`, `trk-addwrap-`,
+  priority pills `.pri-row/.pri-pill`, `selPri`, `A.addTask`,
+  `.trk-addinp`) were removed outright; `.addrow/.addinp/.addbtn` stay
+  because Daily's category sheet still uses them. The Task window hides
+  its Priority row when the (destination) project is a List, in both add
+  and edit mode — List projects don't sort by priority.
+
+- The update screen (`UpdateOverlay`) counts as an open overlay
+  (`_overlayCount`, `_lockBodyScroll`) since 2.91 — it wasn't a
+  `.sheet-overlay`, so the page behind it could be scrolled while it
+  downloaded. Any other full-screen, non-sheet overlay needs the same.
+
+- Project cards on Overview (`.acard`) don't scale down on press (removed
+  `.acard:active{transform:scale(.95)}`, 2.91) — only the grey press
+  color remains. Dragging still scales up via `.dragging`.
+
+- Dates next to page titles look the same everywhere (2.91): Today's
+  `#tlbl` and Daily's `#wlbl` are both `.tlbl` (13/500 grey), right of the
+  title, format `toLocaleDateString('de-CH',{weekday:'short',day:
+  'numeric',month:'short'})`. Daily's title row is `.hh-titlerow` (title
+  button + date); its date follows the selected day (`updWL`). The two
+  TITLES still differ by design system (Today is a tab page, 20px; Daily
+  a pushed page, 26px).
 
 - The weekday picker in the habit add/edit sheet (`#daily-item-days`,
   `.type-grid.days .type-btn.active`) uses the same full `--ink` fill with

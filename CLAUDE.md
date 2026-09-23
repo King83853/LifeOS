@@ -275,9 +275,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   had the opposite arrangement (card padded, row unpadded, then a
   negative-margin hack to fix it back up) for no real reason. Fixed by
   making `.calsec` match `.opt-group`: `#today-daily .calsec,[id^="dp-"]
-  .calsec` padding is now `2px 0 0` (2px top only, for the gap under the
-  category title — no left/right at all), `.cali` itself carries
-  `padding:0 14px` directly, and the old `.calsec>.cali` margin hack plus
+  .calsec` padding is now `0` (2.88 still kept a 2px top padding "for the
+  gap under the category title" — but the title sits OUTSIDE the card, so
+  those 2px were white inside the card above the first row, reported in
+  2.89 as "a white strip at the top that isn't grey"; removed), `.cali`
+  itself carries `padding:0 14px` directly, and the old `.calsec>.cali`
+  margin hack plus
   the `.sw.h`/`.sw-row` margin/padding/`.sw-act` offset overrides are all
   gone outright — with the card unpadded, `.sw.h` is naturally already
   flush, so none of that compensation is needed whether a row is wrapped
@@ -308,6 +311,43 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   the same `swipeWrap`/`.sw-row` structure and hasn't been reported
   broken or misaligned, so it was deliberately left as-is; if it ever
   is, this same box-model mismatch is the first thing to check.
+  Removing `.calsec`'s horizontal padding in 2.88 also silently left the
+  "No habits" placeholder (`.cal-none`, the only non-row child of a
+  Daily card) flush against the card's left edge — it had relied on the
+  card's padding. Fixed in 2.89 (`.cal-none` carries its own 14px). When
+  moving padding from a container onto its rows, check every OTHER kind
+  of child that container can hold, not just the rows.
+  2.89 — habit rows (`ci()`/`ciEdit()`, class `cali split`) are two
+  buttons that between them cover every point of the row, asked for
+  explicitly ("one for the tick off where it doesn't get grey and the
+  rest of the bar where it does"): `.cali-tick` (a span around the
+  checkbox, padding `0 12px 0 14px`, full row height) — a tap anywhere
+  in it ticks via `tickZone()` (forwards to `cb.click()` unless the tap
+  landed on the checkbox itself, which toggles natively, and does
+  nothing in hold-to-complete mode) and never greys; and the label,
+  stretched to full height (`align-self:stretch;line-height:47px`,
+  line-height rather than flex-centering so its ellipsis keeps working)
+  and to the right edge (`padding-right:14px`) — opens the habit and
+  greys the whole row. Before this, the 14px left padding, the 12px gap
+  and the strips above/below the label text were dead zones that greyed
+  the row but did nothing. The press-grey JS bails on
+  `closest('input,.cali-tick')`, and Skip's swipe start check uses the
+  tick zone's right edge instead of the checkbox's. One-time rows
+  (`onceRow`) and tracker rows (`ciTracker`) are NOT split — a one-time
+  row's label already ticks it, and a tracker row is one link.
+
+- Stats/habit-detail progress ring (`renderPieChart`) uses
+  `stroke-linecap="butt"` (flat ends) since 2.89 — the round ends were
+  called cheap-looking. Side benefit: round caps extended every arc by
+  half the stroke width at each end, so small percentages looked bigger
+  than they were; butt caps draw the exact length.
+
+- The weekday picker in the habit add/edit sheet (`#daily-item-days`,
+  `.type-grid.days .type-btn.active`) uses the same full `--ink` fill with
+  `--card` text as the selected day on Daily's day strip (`.dpill.sel`),
+  not the blue tint the other `.type-btn` option buttons use (2.89, asked
+  to match "the full black fill"). Other `.type-btn` pickers (project
+  type etc.) still use the blue tint — only day selection was asked for.
 
 - Page-open/close slide (`navForward`/`navBack`, via `_slideUnit`) was
   160ms forward / 180ms back — reported as feeling too quick, wanted
@@ -433,6 +473,19 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   accumulating projects/categories added by earlier `javascript_exec`
   calls across what looked like separate navigations. `DB.data=DB._blank()`
   at the start of a test scenario is what actually gets a clean slate.
+  The same goes for monkey-patches: a test that wrapped
+  `A.toggleDailyItemFor` and then threw before restoring it left the
+  wrapper installed across a `navigate`, and a second test's
+  `var orig=...` (global scope, same name) turned the old wrapper into
+  one that called itself — "Maximum call stack size exceeded" and ticks
+  that never saved, which looked exactly like an app bug and wasn't.
+  Wrap test code in an IIFE (no globals), restore patches in `finally`,
+  and when a result looks impossible, check `fn.toString()` for a leftover
+  wrapper first. Closing the tab and opening a new one (`tabs_close` +
+  `preview_start`) is the only reliable full reset. Also: `DB._blank()`
+  has "Hold to complete" ON (the fresh-install default), where a plain
+  tap on a habit deliberately doesn't tick — turn it off in a test before
+  concluding that ticking is broken.
   Two unrelated fixes landed in the same 2.85 pass while looking at this
   screen's presses: (a) the pressed-grey on a `.ti`/`.cali`/`.wri` row
   was appearing when pressing the CHECKBOX too, since CSS `:active`

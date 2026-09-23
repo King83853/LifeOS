@@ -272,6 +272,14 @@ html[data-theme="light"] .sw.h .sw-row{background:#fff}
 .cali.skipped label::after{content:' \00b7 skipped';color:#30d158;font-size:12px;font-weight:600}
 html[lang="de"] .cali.skipped label::after{content:' \00b7 übersprungen'}
 .cali label{font-size:14px;flex:1;cursor:pointer}
+/* The two buttons of a habit row (see ci()): both stretch to the row's full
+   height, and between them they cover its full width, so every point of the
+   row belongs to exactly one of them. The tick zone's padding reproduces
+   the row's usual 14px edge + 12px gap, so nothing moves visually. */
+.cali.split{padding:0;gap:0}
+.cali-tick{align-self:stretch;display:flex;align-items:center;flex-shrink:0;padding:0 12px 0 14px;cursor:pointer}
+.cali.split>label{align-self:stretch;line-height:47px;padding-right:14px}
+.cali.split>svg{margin-right:14px}
 /* Status dot for a tracker linked into Daily (see ciTracker()) — not a
    checkbox, since a tracker's "done today" isn't a toggle a tap can
    flip, it's whatever value (if any) was logged today on the tracker's
@@ -585,12 +593,11 @@ html:not(#x) .wri:last-child{border-bottom:none}
 /* No (transparent) border on these cards: overflow:hidden clips at the
    padding edge, so a border would keep the dividers 1.5px short of the
    card's outer edge. */
-/* Today/Daily: the category title sits above its white card, not inside
-   it, hence the 2px top gap; no bottom padding at all (2.77 — it used to
-   leave a visible sliver of the card's own white below the last row
-   whenever that row's pressed-grey filled it) and, since 2.87, no
-   left/right padding either now that .cali carries its own 14px. */
-#today-daily .calsec,[id^="dp-"] .calsec{border:none;padding:2px 0 0;overflow:hidden}
+/* Today/Daily: no padding at all, exactly like .opt-group — any padding
+   here shows as a strip of the card's own white next to a pressed row's
+   grey (it did at the bottom until 2.77 and at the top until 2.89). The
+   rows carry their own 14px edge padding. */
+#today-daily .calsec,[id^="dp-"] .calsec{border:none;padding:0;overflow:hidden}
 html:not(#x) .archbox{border:none}
 /* project badge in task rows: a touch slimmer than the default 30px */
 .ti .bdg{height:27px;min-height:27px;display:inline-flex;align-items:center;padding-top:0;padding-bottom:0}
@@ -674,6 +681,10 @@ html:not(#x) .el-btn.danger{background:#dc2626}
 .type-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:14px}
 .type-grid.days{grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 html:not(#x) .type-grid.days .type-btn{padding:0;font-size:13px}
+/* Selected weekdays in the habit sheet: the same full ink fill as the
+   selected day on Daily's day strip (.dpill.sel), not the blue tint the
+   other option buttons use. */
+html:not(#x) .type-grid.days .type-btn.active{background:var(--ink);color:var(--card)}
 .row-num{width:64px;text-align:right;border:none;background:transparent;color:var(--ink);font-size:15px;font-weight:600;font-family:inherit;outline:none;padding:0}
 .sheet .opt-row{padding:0 14px;height:46px;min-height:46px;box-sizing:border-box}
 html:not(#x) .sheet .opt-row,html:not(#x) .sheet .opt-group{border:none}
@@ -700,7 +711,7 @@ html:not(#x) .pri-pill{justify-content:center;height:40px;min-height:40px;paddin
 html:not(#x) .pri-pill.on{opacity:1;border:none;box-shadow:inset 0 0 0 2px currentColor}
 html:not(#x) .card-list .ti{padding:8px 10px}
 html:not(#x) .ts-notes{height:auto;min-height:34vh}
-.cal-none{font-size:13px;font-weight:500;color:#bbb;padding:12px 0 14px}
+.cal-none{font-size:13px;font-weight:500;color:#bbb;padding:12px 14px 14px}
 .wdays{scrollbar-width:none}.wdays::-webkit-scrollbar{display:none}
 input,textarea,select{font-family:inherit}
 /* lighter weights: text 500 (was 600), titles and labels 700 (was 800) */
@@ -1194,7 +1205,7 @@ html:not(#x) #daily-cat-list .el-row:last-child{border-radius:0 0 14px 14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.88';
+var APP_VERSION='Beta 2.89';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1869,6 +1880,12 @@ var CHANGELOG=[
   {v:'Beta 2.88',notes:[
     'Habit rows now line up their edges exactly like Settings\' rows do, on both Today and Daily',
     'Slower, more graceful slide when opening or closing a page'
+  ]},
+  {v:'Beta 2.89',notes:[
+    'Habit rows are now two buttons: tap anywhere around the tick box to tick it off (no grey), tap the rest of the row to open the habit (turns grey)',
+    'Fixed: a thin white strip at the top of the habit card when pressing the first habit',
+    'Selected days when adding or editing a habit are now solid black, matching the day strip on the Daily page',
+    'The progress ring in Statistics and on each habit has flat ends instead of round ones'
   ]}
 ];
 var COLORS={
@@ -4006,15 +4023,26 @@ function hourLabel(h){h=+h;if(I18N.lang==='de')return String(h).padStart(2,'0')+
 function dStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function pDate(pi){var m=new Date(T);m.setDate(T.getDate()+pi);return dStr(m);}
 
+// A habit row is two buttons side by side: the tick zone (.cali-tick — the
+// checkbox plus the row's padding around it; a tap anywhere in it ticks,
+// and it never shows the pressed grey) and the bar (the label, stretched
+// to fill the rest of the row; opens the habit and shows the grey).
 function ci(itemId,text,dayIdx){
-  return '<div class="cali" data-id="'+itemId+'">'
-    +'<input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'" onchange="A.toggleDailyItemFor(this,'+dayIdx+')">'
+  return '<div class="cali split" data-id="'+itemId+'">'
+    +'<span class="cali-tick" onclick="tickZone(event,this)"><input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'" onchange="A.toggleDailyItemFor(this,'+dayIdx+')"></span>'
     +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label></div>';
+}
+function tickZone(e,zone){
+  var cb=zone.querySelector('input');
+  // A tap right on the checkbox toggles it natively; in hold-to-complete
+  // mode a tap must not tick at all (the hold gesture does that).
+  if(e.target===cb||DB.data.settings.holdToComplete)return;
+  cb.click();
 }
 var LOCK_SVG='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.6"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>';
 function ciEdit(itemId,text,dayIdx,locked){
-  return '<div class="cali'+(locked?' locked':'')+'" data-id="'+itemId+'">'
-    +'<input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'"'+(locked?' disabled':'')+' onchange="A.toggleDailyItemFor(this,'+dayIdx+')">'
+  return '<div class="cali split'+(locked?' locked':'')+'" data-id="'+itemId+'">'
+    +'<span class="cali-tick" onclick="tickZone(event,this)"><input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'"'+(locked?' disabled':'')+' onchange="A.toggleDailyItemFor(this,'+dayIdx+')"></span>'
     +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label>'+(locked?LOCK_SVG:'')+'</div>';
 }
 // The most recent tracker entry actually logged on calendar date `ds`
@@ -4211,7 +4239,7 @@ function renderPieChart(pct,skipped,target){
   var skipPct=(skipped&&target)?Math.min(pct,Math.ceil(skipped/target*100)):0;
   var greenPct=pct-skipPct;
   function arc(p,col){
-    return '<circle cx="50" cy="50" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+(circ*p/100).toFixed(1)+' '+circ.toFixed(1)+'" transform="rotate(-90 50 50)"></circle>';
+    return '<circle cx="50" cy="50" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="10" stroke-linecap="butt" stroke-dasharray="'+(circ*p/100).toFixed(1)+' '+circ.toFixed(1)+'" transform="rotate(-90 50 50)"></circle>';
   }
   return '<svg viewBox="0 0 100 100" style="width:150px;height:150px">'
     +'<circle class="hd-pie-track" cx="50" cy="50" r="'+r+'" fill="none" stroke-width="10"></circle>'
@@ -4693,14 +4721,14 @@ function swipeWrap(kind,inner){
 }
 // Press feedback for habit rows (Today and Daily — see the CSS comment
 // above ".pressed-row"): a manual class instead of :active, so excluding
-// the checkbox is a plain closest('input') check rather than relying on
-// :has(input:active) against a real, normally-sized touch target.
+// the tick zone (.cali-tick, see ci()) is a plain closest() check rather
+// than relying on :has(input:active) against a real touch target.
 (function(){
   var cur=null,sx=0,sy=0;
   function clear(){if(cur){cur.classList.remove('pressed-row');cur=null;}}
   document.addEventListener('touchstart',function(e){
     clear();
-    if(e.target.closest('input'))return;
+    if(e.target.closest('input,.cali-tick'))return;
     var row=e.target.closest('.cali');
     if(row){cur=row;row.classList.add('pressed-row');sx=e.touches[0].clientX;sy=e.touches[0].clientY;}
   },{passive:true});
@@ -4736,7 +4764,8 @@ var Skip=(function(){
     if(w.classList.contains('h')&&(!cb||cb.checked))return;
     // A press that starts on (or left of) the tick-off square never swipes,
     // so ticking something off with a slightly moving finger can't skip it.
-    if(cb&&e.touches[0].clientX<=cb.getBoundingClientRect().right+4)return;
+    var tz=w.querySelector('.cali-tick');
+    if(cb&&e.touches[0].clientX<=(tz?tz.getBoundingClientRect().right:cb.getBoundingClientRect().right+4))return;
     cur=w;sx=e.touches[0].clientX;sy=e.touches[0].clientY;dx=0;mode=1;
     THRESH=Math.min(110,w.offsetWidth*.35);
   },{passive:true});

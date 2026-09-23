@@ -442,6 +442,9 @@ html[data-theme="light"] .sheet{background:#fff}
    row each (no labels), and the notes box is the main thing in it. Scoped
    to #task-sheet-overlay so no other sheet changes. */
 #task-sheet-overlay .sheet{max-height:88vh;padding:18px 18px 20px}
+/* While the keyboard is up (see "must track the KEYBOARD"): never taller
+   than what's visible above it, below the status bar. */
+.sheet.kb{max-height:min(88vh,calc(var(--kbvh) - env(safe-area-inset-top) - 12px))!important}
 .ts-title{width:100%;font-size:21px;font-weight:800;line-height:1.25;border:none;background:transparent;color:inherit;outline:none;padding:2px 0;margin-bottom:12px;font-family:inherit}
 .ts-title::placeholder{color:#bbb}
 .ts-notes{min-height:40vh;resize:none;line-height:1.5;font-family:inherit;font-size:16px;padding:14px;margin-bottom:14px;display:block}
@@ -1246,7 +1249,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.95';
+var APP_VERSION='Beta 2.96';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1960,6 +1963,10 @@ var CHANGELOG=[
     'The pressed grey fades in and out more slowly and stays a moment after you let go',
     'Swiping a task or habit to skip no longer flashes grey — the grey only comes if you hold without sliding',
     'Fixed (Samsung/Android): switching tabs on or off in Settings > Menu made the whole tab bar disappear until you left the page — it now updates right away'
+  ]},
+  {v:'Beta 2.96',notes:[
+    'Fixed (Android): windows like New project could be pushed up past the top of the screen when the keyboard opened — a window now always fits above the keyboard and scrolls inside if needed',
+    'The page behind a window should no longer shift up when the keyboard opens'
   ]}
 ];
 var COLORS={
@@ -5524,6 +5531,7 @@ function _overlayOpen(id){
   var ov=document.getElementById(id);
   // Reopening during a close animation must cancel its pending hide.
   if(ov._closeTimer){clearTimeout(ov._closeTimer);ov._closeTimer=null;}
+  var sh=ov.querySelector('.sheet');if(sh&&!sh.contains(document.activeElement)){sh.style.bottom='';sh.classList.remove('kb');} // no stale keyboard lift from last time
   ov.classList.add('on'); // display:none -> block; sheet still off-screen
   _overlayCount++;
   if(_overlayCount===1){
@@ -5929,37 +5937,77 @@ document.addEventListener('focusout',function(e){
   if(_isTypingField(e.target))document.body.classList.remove('kb-open');
 });
 
-// The open sheet's own position must track the KEYBOARD, not just hide
-// like the tab bar does above — it's the thing being typed into. iOS's
-// position:fixed is anchored to the LAYOUT viewport, which does NOT
-// shrink when the keyboard opens (only the VISUAL viewport does), so a
-// sheet sitting at the real bottom edge ends up behind the keyboard from
-// iOS's point of view. iOS then "fixes" that itself by auto-scrolling the
-// whole document to bring the focused input back into view — and because
-// fixed positioning on iOS tracks that same scroll instead of staying put,
-// the sheet AND the page behind it both visibly jump together. Reported
-// as "it's not just the edit window that moves, the background does too."
-// Fix: track window.visualViewport ourselves and lift the open sheet by
-// exactly the keyboard's height via inline `bottom` (composes fine with
-// the existing open/close slide, which only ever touches `transform`) —
-// once the sheet is already sitting right above the keyboard, iOS has no
-// reason left to auto-scroll the document, so the background stops
-// moving too. Only runs while a sheet is actually open.
+// The open sheet's position and height must track the KEYBOARD. What's
+// visible above the keyboard is the VISUAL viewport; position:fixed is
+// anchored to the LAYOUT viewport. So while a typing field in a sheet has
+// focus:
+//  - the sheet is lifted by what the keyboard covers of the layout
+//    viewport (innerHeight - visual height - visual offsetTop — 0 on
+//    Android when it shrinks the layout viewport itself, the keyboard's
+//    height on iOS), and
+//  - its max-height is capped to the visible height (class .kb, --kbvh),
+//    so a tall sheet (New project) can't reach past the top of the screen
+//    — sized for the full screen and then lifted, it used to (Android
+//    especially), and its content scrolls inside it instead, with the
+//    focused field kept in view.
+// The page behind must not move either. iOS pans the view up to reveal the
+// focused field as the keyboard opens, before the lift above can make that
+// unnecessary, so (1) on iOS the sheet is lifted by the last known keyboard
+// height already on touchstart, BEFORE the field gets focus, so iOS sees a
+// field that's already above the keyboard; (2) any pan that still happens
+// is scrolled back (the page is scroll-locked while a sheet is open, see
+// _lockBodyScroll, so there is exactly one right scroll position).
 if(window.visualViewport){
   (function(){
-    function syncOpenSheetToKeyboard(){
-      var ov=document.querySelector('.sheet-overlay.on');
-      var sheet=ov&&ov.querySelector('.sheet');
-      if(!sheet)return;
-      var vv=window.visualViewport;
-      var kb=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);
+    var vv=window.visualViewport,IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    var lastKb=0;try{lastKb=+localStorage.getItem('lifeos-kb')||0;}catch(e){}
+    function typingInSheet(el){return el&&el.closest&&el.closest('.sheet-overlay.on .sheet')&&_isTypingField(el);}
+    function openSheet(){var ov=document.querySelector('.sheet-overlay.on');return ov&&ov.querySelector('.sheet');}
+    function place(sheet,kb,visH){
       sheet.style.bottom=kb+'px';
+      sheet.style.setProperty('--kbvh',visH+'px');
+      sheet.classList.add('kb');
     }
-    window.visualViewport.addEventListener('resize',syncOpenSheetToKeyboard);
-    window.visualViewport.addEventListener('scroll',syncOpenSheetToKeyboard);
+    function reset(){
+      document.querySelectorAll('.sheet-overlay .sheet').forEach(function(sh){sh.style.bottom='';sh.style.removeProperty('--kbvh');sh.classList.remove('kb');});
+    }
+    function keepFocusedVisible(sheet){
+      var a=document.activeElement;if(!a||!sheet.contains(a))return;
+      var ar=a.getBoundingClientRect(),sr=sheet.getBoundingClientRect();
+      if(ar.bottom>sr.bottom-12)sheet.scrollTop+=ar.bottom-sr.bottom+12;
+      else if(ar.top<sr.top+12)sheet.scrollTop-=sr.top+12-ar.top;
+    }
+    function sync(){
+      var sheet=openSheet();
+      if(!sheet||!typingInSheet(document.activeElement))return;
+      var kb=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);
+      var full=Math.max(0,window.innerHeight-vv.height);
+      if(full>120){lastKb=full;try{localStorage.setItem('lifeos-kb',String(full));}catch(e){}}
+      if(vv.offsetTop>0&&_overlayCount>0)window.scrollTo(0,_lockMode==='fixed'?0:_bodyLockY);
+      place(sheet,kb,vv.height);
+      keepFocusedVisible(sheet);
+    }
+    vv.addEventListener('resize',sync);
+    vv.addEventListener('scroll',sync);
+    document.addEventListener('focusin',function(e){if(typingInSheet(e.target))setTimeout(sync,0);});
+    // (1) iOS: lift before the field is focused (only when the keyboard
+    // isn't already up — then sync() is already keeping it right).
+    document.addEventListener('touchstart',function(e){
+      if(!IOS||!typingInSheet(e.target)||typingInSheet(document.activeElement))return;
+      var sheet=openSheet();if(!sheet)return;
+      var kb=lastKb||Math.round(window.innerHeight*0.4);
+      place(sheet,kb,window.innerHeight-kb);
+    },{passive:true,capture:true});
+    // ...and undo that if the touch didn't end up focusing a field (it
+    // became a scroll, or was cancelled).
+    function undoEarlyLift(){setTimeout(function(){if(!typingInSheet(document.activeElement))reset();},400);}
+    document.addEventListener('touchend',function(){if(IOS)undoEarlyLift();},{passive:true,capture:true});
+    document.addEventListener('touchcancel',function(){if(IOS)undoEarlyLift();},{passive:true,capture:true});
     document.addEventListener('focusout',function(e){
-      if(!e.target.matches('input,textarea'))return;
-      document.querySelectorAll('.sheet-overlay .sheet').forEach(function(sh){sh.style.bottom='';});
+      if(!_isTypingField(e.target))return;
+      // Moving from one field to the next blurs then focuses — only drop
+      // the lift once focus has really left the sheet's fields.
+      setTimeout(function(){if(!typingInSheet(document.activeElement))reset();},60);
     });
   })();
 }

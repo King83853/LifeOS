@@ -1095,6 +1095,28 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   to check is whether `visualViewport.offsetTop` is actually nonzero
   during the real keyboard animation (it's assumed to track any residual
   page scroll) rather than guessing at more one-off timers.
+  2.96 — reported: Android pushed tall sheets (New project) past the top
+  of the screen, and on iPhone the background still moved. Causes: (1)
+  nothing capped the sheet to the VISIBLE height — a 75vh/88vh sheet
+  (vh = the full screen) lifted above the keyboard, or placed in an
+  Android layout viewport the keyboard had already shrunk, simply didn't
+  fit; (2) the lift only happened after the keyboard animation, by which
+  time iOS had already panned the page up to reveal the field, and
+  nothing undid that pan. Now ("must track the KEYBOARD"): while a typing
+  field in a sheet has focus, the sheet gets `.kb` + `--kbvh` (max-height
+  = visible height - top safe area - 12px, beats per-sheet max-heights
+  with !important) and the focused field is scrolled into view inside
+  it; any visual-viewport pan (offsetTop>0) is scrolled back to the
+  locked position; and on iOS the sheet is pre-lifted on touchstart by
+  the last measured keyboard height (localStorage 'lifeos-kb', else 40%
+  of the screen) BEFORE the field focuses, undone if no focus follows.
+  The lift formula (innerHeight - vv.height - vv.offsetTop) already gives
+  0 on an Android that shrinks the layout viewport itself, so Android only
+  gets the height cap. Verified by overriding visualViewport.height/
+  offsetTop in the preview; whether the iOS pre-lift fully stops the pan
+  needs the real phone — if it doesn't, ship an on-device readout of
+  innerHeight/vv.height/vv.offsetTop/scrollY during focus (see the
+  "dead space" entry) before guessing again.
 
 - A single wrong CHANGELOG string (2.85) silently broke the ENTIRE app —
   worth internalizing exactly how, since nothing about it looked wrong at

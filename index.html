@@ -738,10 +738,19 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
    giving no feedback at all. `:active` bubbles up from ANY pressed
    descendant, including the checkbox — :not(:has(input:active)) keeps the
    grey to presses on the row itself (the bar/label), since the checkbox
-   already has its own tick animation and doesn't need this too. */
-html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .cali,html:not(#x) .cat-choice,html:not(#x) .color-field{transition:background .12s ease}
+   already has its own tick animation and doesn't need this too. This only
+   covers .cali as a DIRECT child of .calsec (Daily, or Today with Skip
+   habits off) — once "Skip habits" wraps a row in .sw.h/.sw-row (Today),
+   :has(input:active) stopped reliably excluding the real, normal-sized
+   checkbox there (unlike .switch's zero-size input, which never actually
+   receives the touch), and .cali itself sits inset by .sw-row's own
+   padding so a background on .cali alone fell short of the row's real
+   edges. See the .pressed-row JS below (search "swipe-wrapped habit
+   rows") for the wrapped case instead. */
+html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .cali,html:not(#x) .cat-choice,html:not(#x) .color-field,html:not(#x) .sw.h .sw-row{transition:background .12s ease}
 html:not(#x) .ti:active:not(:has(input:active)),html:not(#x) .wri:active:not(:has(input:active)),html:not(#x) .cat-choice:active,html:not(#x) .color-field:active{background:var(--press)}
-html:not(#x) .cali:not(.locked):active:not(:has(input:active)){background:var(--press)}
+html:not(#x) .calsec>.cali:not(.locked):active:not(:has(input:active)){background:var(--press)}
+html:not(#x) .sw.h .sw-row.pressed-row{background:var(--press)}
 html:not(#x) .acard:active{background:var(--press)}
 /* A row with no border-radius of its own relies entirely on its card's
    overflow:hidden clip to look rounded — but that clip only cuts a SHARP
@@ -1192,7 +1201,7 @@ html:not(#x) #daily-cat-list .el-row:last-child{border-radius:0 0 14px 14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.86';
+var APP_VERSION='Beta 2.87';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1859,6 +1868,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.86',notes:[
     'Fixed: with Skip habits turned on, pressing ANY habit rounded its corners like it was the only one in the list — every row now only rounds when it truly is the first or last'
+  ]},
+  {v:'Beta 2.87',notes:[
+    'Fixed: on Today, with Skip habits turned on, pressing a habit\'s tick box still turned the whole row grey',
+    'Fixed: that same pressed-grey on Today\'s habits didn\'t reach the row\'s edges'
   ]}
 ];
 var COLORS={
@@ -4681,6 +4694,29 @@ function swipeWrap(kind,inner){
   if(kind==='h'&&DB.data.settings.skipHabits===false)return inner;
   return '<div class="sw '+kind+'"><div class="sw-act"><span>Skip'+SKIP_ICON+'</span></div><div class="sw-row">'+inner+'</div></div>';
 }
+// Press feedback for Today's swipe-wrapped habit rows (see the CSS comment
+// above ".pressed-row"): a manual class instead of :active, so excluding
+// the checkbox is a plain closest('input') check rather than relying on
+// :has(input:active), and so the class lands on .sw-row — the element
+// that's actually full-bleed once wrapped — rather than the inset .cali.
+(function(){
+  var cur=null,sx=0,sy=0;
+  function clear(){if(cur){cur.classList.remove('pressed-row');cur=null;}}
+  document.addEventListener('touchstart',function(e){
+    clear();
+    if(e.target.closest('input'))return;
+    var wrap=e.target.closest('.sw.h');
+    var row=wrap&&wrap.querySelector('.sw-row');
+    if(row){cur=row;row.classList.add('pressed-row');sx=e.touches[0].clientX;sy=e.touches[0].clientY;}
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    if(!cur)return;
+    var t=e.touches[0];
+    if(Math.abs(t.clientX-sx)>10||Math.abs(t.clientY-sy)>10)clear();
+  },{passive:true});
+  document.addEventListener('touchend',clear,{passive:true});
+  document.addEventListener('touchcancel',clear,{passive:true});
+})();
 var Skip=(function(){
   // Swipe right past THRESH to skip; let go before that and the row springs
   // back. There's no half-open state.

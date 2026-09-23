@@ -256,6 +256,44 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   (already added). No emojis on categories, section titles, choice rows or
   type buttons (only user-chosen project icons remain).
 
+- The `.cali:not(.locked):active:not(:has(input:active))` press-grey rule
+  (see the "Task/habit/list rows" CSS comment) only reliably works when
+  `.cali` is a DIRECT CHILD of `.calsec` — true on Daily always (it never
+  goes through `swipeWrap`), and on Today only when Settings > Today >
+  "Skip habits" is OFF. With that setting ON, `swipeWrap('h',...)` wraps
+  every habit row in `.sw.h > .sw-row > .cali`, and reported (2.87) as two
+  separate symptoms on a real device: pressing the tick box still greyed
+  the row, and the grey didn't reach the row's edges. Root causes, found
+  by measuring actual rendered widths rather than guessing: (1) `.sw-row`
+  has `padding:0 10px` while `.sw.h` (its parent) carries the negative-
+  margin edge compensation — so `.sw-row` itself is genuinely full-bleed
+  (measured equal to `.calsec`'s width), but `.cali` nested inside it is
+  20px narrower, which is exactly the "doesn't reach the edges" report;
+  (2) unlike `.switch input` (deliberately `width:0;height:0` so it's
+  never the actual touch target — see the TAPPABLE bail-out below),
+  `.cali`'s checkbox is a real, normally-sized, visible input and IS what
+  the finger actually lands on — `:has(input:active)` could not be
+  confirmed reliable for excluding a real touch target on-device (only
+  testable here via synthetic DOM events, not real `:active` state, so
+  this couldn't be fully root-caused from this environment alone).
+  Rather than keep patching the `:active`/`:has()` approach for the
+  wrapped case, scoped the existing CSS rule to `.calsec>.cali` (the
+  known-working, unwrapped case only — Daily, or Today with the setting
+  off) and added a separate, explicit JS mechanism for the wrapped case:
+  a small touchstart/touchmove/touchend IIFE (search "swipe-wrapped habit
+  rows") that adds a `.pressed-row` class to `.sw-row` (the actually
+  full-bleed element) unless the touch started inside `input` — the same
+  `closest('input')`-style bail-out already used for TAPPABLE, rather
+  than trusting `:has()` against a real device's touch target. Movement
+  past 10px (matching TAPPABLE's own threshold) clears it, so a swipe
+  starting doesn't leave the grey stuck. Verified via dispatched
+  TouchEvents: checkbox press never adds the class, label/bar press does
+  and reaches the full measured width, movement clears it. If a similar
+  press-grey bug ever shows up on `.sw.t` (tasks) — which uses the exact
+  same `swipeWrap`/`.sw-row` structure and hasn't been reported broken,
+  so was deliberately left untouched this round — this is the same root
+  cause and the same fix shape applies.
+
 - A tracker-linked Daily item (`ciTracker()`) renders on BOTH Today and
   Daily now (since 2.53), sharing one function — but `_projFromDaily`
   (set right before navigating to the tracker's project page, so back

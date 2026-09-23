@@ -1259,7 +1259,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.99';
+var APP_VERSION='Beta 3.0';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1987,6 +1987,9 @@ var CHANGELOG=[
   {v:'Beta 2.99',notes:[
     'Statistics now looks like the rest of the app: same text styles, same white cards and spacing as Settings',
     'Best and worst score are one-line rows with an icon, like in Settings — tap one to open that habit, and going back returns to Statistics'
+  ]},
+  {v:'Beta 3.0',notes:[
+    'Simpler icons for best and worst score: a triangle pointing up and one pointing down'
   ]}
 ];
 var COLORS={
@@ -4564,8 +4567,10 @@ function oneTimeTaskStats(){
   return{avg:arr.length/days,total:arr.length};
 }
 
-var STAT_ICON_UP='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>';
-var STAT_ICON_DOWN='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>';
+// Best/worst score icons: a plain triangle up / down (corners softened by
+// the round-joined stroke, like the app's other icons).
+var STAT_ICON_UP='<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 6.5 19.5 17.5 4.5 17.5"/></svg>';
+var STAT_ICON_DOWN='<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 17.5 19.5 6.5 4.5 6.5"/></svg>';
 var Stats={
   view:'day',
   render:function(){

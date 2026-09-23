@@ -753,7 +753,7 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
    habits" wraps the row in .sw.h/.sw-row — no more direct-child scoping
    needed. */
 html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .cali,html:not(#x) .cat-choice,html:not(#x) .color-field{transition:background .12s ease}
-html:not(#x) .ti:active:not(:has(input:active)),html:not(#x) .wri:active:not(:has(input:active)),html:not(#x) .cat-choice:active,html:not(#x) .color-field:active{background:var(--press)}
+html:not(#x) .ti:not([data-once]):active:not(:has(input:active)),html:not(#x) .wri:active:not(:has(input:active)),html:not(#x) .cat-choice:active,html:not(#x) .color-field:active{background:var(--press)}
 html:not(#x) .cali:not(.locked).pressed-row{background:var(--press)}
 html:not(#x) .acard:active{background:var(--press)}
 /* A row with no border-radius of its own relies entirely on its card's
@@ -1205,7 +1205,7 @@ html:not(#x) #daily-cat-list .el-row:last-child{border-radius:0 0 14px 14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.89';
+var APP_VERSION='Beta 2.90';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1886,6 +1886,10 @@ var CHANGELOG=[
     'Fixed: a thin white strip at the top of the habit card when pressing the first habit',
     'Selected days when adding or editing a habit are now solid black, matching the day strip on the Daily page',
     'The progress ring in Statistics and on each habit has flat ends instead of round ones'
+  ]},
+  {v:'Beta 2.90',notes:[
+    'The progress ring now has softly rounded corners instead of sharp or fully round ends, with a thin gap between done and skipped',
+    'One-time tasks no longer turn grey when pressed, since there is no window to open for them — the grey only shows on rows that open something'
   ]}
 ];
 var COLORS={
@@ -4231,20 +4235,51 @@ function renderBarChart(periods,svgId){
   return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:120px;display:block" id="'+svgId+'">'+goal+bars+labels+'</svg>';
 }
 
-// The ring shows done + skipped together (pct). Skipped days are drawn in
-// amber on top of that total: the amber share rounds UP and green is what's
-// left, so amber only ever takes away from green, never adds to the total.
+// One segment of the progress ring (ring 37..47 around 50,50), from
+// fraction f0 to f1 clockwise from 12 o'clock, as a filled shape whose four
+// corners are rounded by a quarter of the ring's thickness — a stroke can
+// only do sharp or fully round ends. Each corner is a small circle tangent
+// to the segment's straight end and to the outer/inner edge; on a very
+// short segment the radius shrinks so the corners never overlap.
+var RING_CORNER=2.5,RING_GAP=0.006;
+function ringSegment(f0,f1,col){
+  var ro=47,ri=37,TAU=2*Math.PI,a0=f0*TAU,a1=f1*TAU,span=a1-a0;
+  if(span>=TAU-1e-6)return '<circle cx="50" cy="50" r="42" fill="none" stroke="'+col+'" stroke-width="10"></circle>';
+  var s=Math.sin(Math.min(span,Math.PI)/2);
+  var cr=Math.min(RING_CORNER,s*ri/(1-s),s*ro/(1+s));
+  var dO=Math.asin(cr/(ro-cr)),dI=Math.asin(cr/(ri+cr));
+  var lO=(ro-cr)*Math.cos(dO),lI=(ri+cr)*Math.cos(dI);
+  function P(a,r){return (50+r*Math.sin(a)).toFixed(2)+' '+(50-r*Math.cos(a)).toFixed(2);}
+  var c=cr.toFixed(2)+' '+cr.toFixed(2)+' 0 0 1 ';
+  return '<path fill="'+col+'" d="M'+P(a0,lI)+'L'+P(a0,lO)
+    +'A'+c+P(a0+dO,ro)
+    +'A'+ro+' '+ro+' 0 '+(span-2*dO>Math.PI?1:0)+' 1 '+P(a1-dO,ro)
+    +'A'+c+P(a1,lO)
+    +'L'+P(a1,lI)
+    +'A'+c+P(a1-dI,ri)
+    +'A'+ri+' '+ri+' 0 '+(span-2*dI>Math.PI?1:0)+' 0 '+P(a0+dI,ri)
+    +'A'+c+P(a0,lI)+'Z"></path>';
+}
+// The ring shows done + skipped together (pct): green for done, then the
+// skipped share in its own segment right after it. The skipped share rounds
+// UP and green is what's left, so it only ever takes away from green, never
+// adds to the total. A thin gap separates segments that touch (including
+// across 12 o'clock at 100%), so each shows its own rounded ends.
 function renderPieChart(pct,skipped,target){
-  var r=42,circ=2*Math.PI*r;
   var skipPct=(skipped&&target)?Math.min(pct,Math.ceil(skipped/target*100)):0;
   var greenPct=pct-skipPct;
-  function arc(p,col){
-    return '<circle cx="50" cy="50" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="10" stroke-linecap="butt" stroke-dasharray="'+(circ*p/100).toFixed(1)+' '+circ.toFixed(1)+'" transform="rotate(-90 50 50)"></circle>';
-  }
+  var segs=[];
+  if(greenPct>0)segs.push([0,greenPct/100,'#30d158']);
+  if(skipPct>0)segs.push([greenPct/100,pct/100,SKIP_COLOR]);
+  var full=pct>=100,G=RING_GAP/2;
+  var arcs=segs.map(function(sg,i){
+    if(segs.length===1&&full)return ringSegment(0,1,sg[2]);
+    var f0=sg[0]+(i>0||full?G:0),f1=sg[1]-(i<segs.length-1||full?G:0);
+    return f1>f0?ringSegment(f0,f1,sg[2]):'';
+  }).join('');
   return '<svg viewBox="0 0 100 100" style="width:150px;height:150px">'
-    +'<circle class="hd-pie-track" cx="50" cy="50" r="'+r+'" fill="none" stroke-width="10"></circle>'
-    +(skipPct>0?arc(pct,SKIP_COLOR):'')
-    +(greenPct>0?arc(greenPct,'#30d158'):'')
+    +'<circle class="hd-pie-track" cx="50" cy="50" r="42" fill="none" stroke-width="10"></circle>'
+    +arcs
     +'<text class="hd-pie-pct" x="50" y="57" text-anchor="middle" font-size="24" font-weight="800">'+pct+'%</text>'
     +'</svg>';
 }
@@ -4729,7 +4764,8 @@ function swipeWrap(kind,inner){
   document.addEventListener('touchstart',function(e){
     clear();
     if(e.target.closest('input,.cali-tick'))return;
-    var row=e.target.closest('.cali');
+    // Grey only on rows that open something — a one-time task has no window.
+    var row=e.target.closest('.cali:not([data-once])');
     if(row){cur=row;row.classList.add('pressed-row');sx=e.touches[0].clientX;sy=e.touches[0].clientY;}
   },{passive:true});
   document.addEventListener('touchmove',function(e){

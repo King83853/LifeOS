@@ -335,12 +335,27 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   tick zone's right edge instead of the checkbox's. One-time rows
   (`onceRow`) and tracker rows (`ciTracker`) are NOT split — a one-time
   row's label already ticks it, and a tracker row is one link.
+  Rule since 2.90 (asked for directly): the pressed grey only shows on
+  rows that OPEN something (a window/sheet or a page). Habit bars (habit
+  page), tracker rows (tracker page), task rows `.ti`/`.wri` (TaskSheet)
+  grey; one-time tasks have nothing to open, so neither `.cali[data-once]`
+  (Today/Daily, excluded in the press-grey JS) nor `.ti[data-once]`
+  (Tasks > Calendar, excluded in the `.ti:active` CSS rule) grey. A NEW
+  row type with a press-grey needs the same question asked: does a tap
+  open anything? If not, no grey.
 
-- Stats/habit-detail progress ring (`renderPieChart`) uses
-  `stroke-linecap="butt"` (flat ends) since 2.89 — the round ends were
-  called cheap-looking. Side benefit: round caps extended every arc by
-  half the stroke width at each end, so small percentages looked bigger
-  than they were; butt caps draw the exact length.
+- Stats/habit-detail progress ring (`renderPieChart`): fully round ends
+  (`stroke-linecap="round"`) were called cheap-looking, and flat ends
+  (2.89) too spiky — so since 2.90 each segment is a filled path
+  (`ringSegment`) with corners rounded by `RING_CORNER` (2.5 = a quarter
+  of the ring's 10-unit thickness), and a `RING_GAP` between segments
+  that touch (green done / pale-green skipped, and across 12 o'clock at
+  100%) so each shows its own rounded ends. A stroke can only do sharp or
+  fully round ends, hence the path. The corner radius shrinks on very
+  short segments so corners never overlap (1% still renders as a
+  sliver); a single segment at 100% is a plain closed ring. Side benefit
+  over round caps: the arc length is exact (round caps added half the
+  stroke width at each end, so small percentages looked bigger).
 
 - The weekday picker in the habit add/edit sheet (`#daily-item-days`,
   `.type-grid.days .type-btn.active`) uses the same full `--ink` fill with

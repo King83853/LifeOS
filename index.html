@@ -97,6 +97,9 @@ html[data-theme="dark"] .acard{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .acard{background:#fff;border-color:#e8e5e0}
 .acard:active{transform:scale(0.95)}
 .dragging{transform:scale(1.06)!important;box-shadow:0 10px 24px rgba(0,0,0,.22)!important;opacity:.97;pointer-events:none;transition:box-shadow .15s ease,transform .15s ease}
+/* Left behind in the flow at the dragged item's spot (see DragReorder) —
+   plain empty space, nothing to paint. */
+.drag-placeholder{background:transparent}
 .aico{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:27px;background:#f3f4f6;color:#374151;overflow:hidden}
 @media(prefers-color-scheme:dark){.aico{background:#1f2937;color:#9ca3af}}
 html[data-theme="dark"] .aico{background:#1f2937;color:#9ca3af}
@@ -732,11 +735,32 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
 .ts-date{font-size:12px;font-weight:500;color:#999;white-space:nowrap;flex-shrink:0}
 /* Task/habit/list rows and similar tappable white widgets flash the same
    darker grey as the buttons above while pressed (see 2.72), instead of
-   giving no feedback at all. */
+   giving no feedback at all. `:active` bubbles up from ANY pressed
+   descendant, including the checkbox — :not(:has(input:active)) keeps the
+   grey to presses on the row itself (the bar/label), since the checkbox
+   already has its own tick animation and doesn't need this too. */
 html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .cali,html:not(#x) .cat-choice,html:not(#x) .color-field{transition:background .12s ease}
-html:not(#x) .ti:active,html:not(#x) .wri:active,html:not(#x) .cat-choice:active,html:not(#x) .color-field:active{background:var(--press)}
-html:not(#x) .cali:not(.locked):active{background:var(--press)}
+html:not(#x) .ti:active:not(:has(input:active)),html:not(#x) .wri:active:not(:has(input:active)),html:not(#x) .cat-choice:active,html:not(#x) .color-field:active{background:var(--press)}
+html:not(#x) .cali:not(.locked):active:not(:has(input:active)){background:var(--press)}
 html:not(#x) .acard:active{background:var(--press)}
+/* A row with no border-radius of its own relies entirely on its card's
+   overflow:hidden clip to look rounded — but that clip only cuts a SHARP
+   corner down to the card's curve, it doesn't paint anything of its own
+   into the sliver this leaves outside that curve. At rest that sliver
+   just showed the card's own color (invisible, since the row's rest
+   background matched it), but with the row's own opaque press-color now
+   filling it, that sliver reveals whatever's behind the WHOLE card
+   instead — reported as the press color "not filling the full widget".
+   Giving the first/last row a matching radius on that side makes its own
+   fill reach the true rounded corner instead of relying on the clip. */
+html:not(#x) .card-list .ti:first-child,html:not(#x) .card-list .sw.t:first-child,
+html:not(#x) .cali:first-child,html:not(#x) .opt-group .opt-row:first-child,
+html:not(#x) .el-card .el-row:first-child,html:not(#x) .cat-choice:first-child,
+html:not(#x) #daily-cat-list .el-row:first-child{border-radius:14px 14px 0 0}
+html:not(#x) .card-list .ti:last-child,html:not(#x) .card-list .sw.t:last-child,
+html:not(#x) .cali:last-child,html:not(#x) .opt-group .opt-row:last-child,
+html:not(#x) .el-card .el-row:last-child,html:not(#x) .cat-choice:last-child,
+html:not(#x) #daily-cat-list .el-row:last-child{border-radius:0 0 14px 14px}
 /* tracker rows and entries */
 .trk-entry{padding:12px 0}
 </style>
@@ -1168,7 +1192,7 @@ html:not(#x) .acard:active{background:var(--press)}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.84';
+var APP_VERSION='Beta 2.85';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1827,6 +1851,11 @@ var CHANGELOG=[
   {v:'Beta 2.84',notes:[
     'Long-press a project, category or habit to pick it up — it pops up with a shadow — then drag to reorder it, like rearranging home-screen icons',
     'Works on Overview (categories and projects) and Daily (habits)'
+  ]},
+  {v:'Beta 2.85',notes:[
+    'Dragging to reorder now makes the other items slide out of the way to make room, instead of jumping straight to their new spot',
+    'The pressed-grey on a task/habit row no longer shows when you\'re pressing its tick box specifically — only the row itself',
+    'Fixed: the pressed-grey on a single-row card didn\'t quite reach the rounded corners'
   ]}
 ];
 var COLORS={
@@ -5610,7 +5639,7 @@ var TYPE_OPTS=[{value:'todo',label:'To-do'},{value:'list',label:'List'},{value:'
 // what keeps a drag from crossing into a different category — swap
 // targets are only ever looked for inside that same container.
 var DragReorder={
-  active:false,_timer:null,_el:null,_container:null,_itemSel:null,_mode:'grid',
+  active:false,_timer:null,_el:null,_ph:null,_container:null,_itemSel:null,_mode:'grid',
   _onDrop:null,_startX:0,_startY:0,_offX:0,_offY:0,_preMove:null,_preEnd:null,
   _onMove:null,_onEnd:null,
   init:function(container,handleSel,itemSel,mode,onDrop){
@@ -5642,6 +5671,18 @@ var DragReorder={
     if(this._preMove){document.removeEventListener('touchmove',this._preMove,{passive:true});this._preMove=null;}
     if(this._preEnd){document.removeEventListener('touchend',this._preEnd,{passive:true});this._preEnd=null;}
   },
+  // `el` becomes `position:fixed` to float with the finger, which pulls it
+  // OUT of the grid/list entirely — great for the floating part, but it
+  // means reordering IT among the real siblings can never make them
+  // visibly "move and make place": a fixed element doesn't participate in
+  // layout at all, so the siblings already did their one-time reflow to
+  // close its gap the instant it went fixed, and shuffling its DOM
+  // position after that changes nothing further about their layout, no
+  // matter how the pointer moves. A plain, invisible placeholder — same
+  // size, left behind in the flow at el's spot — is what actually gets
+  // reordered among the real siblings instead; THAT causes real reflow
+  // every swap, which the FLIP animation below can actually animate. `el`
+  // itself just floats on top the whole time, oblivious to any of it.
   _begin:function(){
     this._timer=null;this._cancelPre();
     this.active=true;
@@ -5649,6 +5690,11 @@ var DragReorder={
     try{if(navigator.vibrate)navigator.vibrate(8);}catch(e){}
     var el=this._el,r=el.getBoundingClientRect();
     this._offX=this._startX-r.left;this._offY=this._startY-r.top;
+    var ph=document.createElement('div');
+    ph.className='drag-placeholder';
+    ph.style.width=r.width+'px';ph.style.height=r.height+'px';
+    el.parentNode.insertBefore(ph,el.nextSibling);
+    this._ph=ph;
     el.style.width=r.width+'px';el.style.height=r.height+'px';
     el.style.position='fixed';el.style.left=r.left+'px';el.style.top=r.top+'px';
     el.style.zIndex='999';el.style.margin='0';
@@ -5676,37 +5722,77 @@ var DragReorder={
     var t=e.touches[0],el=this._el;
     el.style.left=(t.clientX-this._offX)+'px';
     el.style.top=(t.clientY-this._offY)+'px';
-    var items=[].slice.call(this._container.querySelectorAll(this._itemSel));
+    // Real siblings only — the placeholder stands in for `el` among them
+    // and is never itself a swap candidate.
+    var items=[].slice.call(this._container.querySelectorAll(this._itemSel)).filter(function(x){return x!==el;});
     for(var i=0;i<items.length;i++){
       var it=items[i];
-      if(it===el)continue;
-      // A swap pulls `it` into the gap `el` just vacated, which can shift
-      // `it`'s own rect enough that the SAME pointer position still (or
-      // again) overlaps it on the very next move — swapping straight back
-      // and oscillating between the two orders every other frame. A short
-      // cooldown on re-swapping the SAME pair blocks that bounce without
-      // blocking a genuine, deliberate reversal (the user dragging back
-      // the other way for real takes longer than this).
+      // A swap pulls `it` into the gap the placeholder just vacated, which
+      // can shift `it`'s own rect enough that the SAME pointer position
+      // still (or again) overlaps it on the very next move — swapping
+      // straight back and oscillating between the two orders every other
+      // frame. A short cooldown on re-swapping the SAME pair blocks that
+      // bounce without blocking a genuine, deliberate reversal (the user
+      // dragging back the other way for real takes longer than this).
       if(it===this._lastSwapWith&&Date.now()-this._lastSwapAt<250)continue;
       var r=it.getBoundingClientRect();
-      if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom){
-        var elIdx=items.indexOf(el);
-        if(elIdx<i)it.parentNode.insertBefore(el,it.nextSibling);
-        else it.parentNode.insertBefore(el,it);
+      // The "invisible bubble": a swap only fires once the pointer is
+      // meaningfully INSIDE the neighbor (its middle 60%), not the moment
+      // it grazes an edge — same deliberate-feeling threshold Android/iOS
+      // home-screen reordering uses, rather than triggering on first touch.
+      var mx=r.width*0.2,my=r.height*0.2;
+      if(t.clientX>=r.left+mx&&t.clientX<=r.right-mx&&t.clientY>=r.top+my&&t.clientY<=r.bottom-my){
+        this._swap(it);
         this._lastSwapWith=it;this._lastSwapAt=Date.now();
         break;
       }
     }
   },
+  // FLIP (First-Last-Invert-Play, https://aerotwist.com/blog/flip-your-animations/)
+  // — the standard technique behind "make room" reordering on iOS/Android
+  // home screens: measure every real sibling BEFORE moving the placeholder
+  // in the DOM, move it, measure again, then offset each shifted sibling
+  // back to its OLD spot with a transform (invisible — pure position, no
+  // transition yet) and release that offset on the NEXT paint so the
+  // browser animates the slide from old to new instead of snapping there
+  // instantly. The double rAF (one frame isn't reliably enough — see the
+  // sheet-open animation elsewhere in this file for the same pattern)
+  // guarantees the "before" offset actually painted first.
+  _swap:function(it){
+    var ph=this._ph,el=this._el,itemSel=this._itemSel;
+    var kids=[].slice.call(this._container.children);
+    var phIdx=kids.indexOf(ph),itIdx=kids.indexOf(it);
+    var siblings=kids.filter(function(x){return x!==ph&&x!==el&&x.matches&&x.matches(itemSel);});
+    var before=new Map();
+    siblings.forEach(function(s){before.set(s,s.getBoundingClientRect());});
+    if(phIdx<itIdx)it.parentNode.insertBefore(ph,it.nextSibling);
+    else it.parentNode.insertBefore(ph,it);
+    siblings.forEach(function(s){
+      var b=before.get(s),a=s.getBoundingClientRect();
+      var dx=b.left-a.left,dy=b.top-a.top;
+      if(!dx&&!dy)return;
+      s.style.transition='none';
+      s.style.transform='translate('+dx+'px,'+dy+'px)';
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          s.style.transition='transform .22s cubic-bezier(.22,.8,.2,1)';
+          s.style.transform='';
+        });
+      });
+    });
+  },
   _end:function(e){
     e.preventDefault();
     e.stopPropagation();
-    var el=this._el;
+    var el=this._el,ph=this._ph;
     el.removeEventListener('touchmove',this._onMove,{passive:false});
     el.removeEventListener('touchend',this._onEnd,{passive:false});
     el.removeEventListener('touchcancel',this._onEnd,{passive:false});
     el.style.position='';el.style.left='';el.style.top='';el.style.width='';el.style.height='';el.style.zIndex='';el.style.margin='';
     el.classList.remove('dragging');
+    ph.parentNode.insertBefore(el,ph); // el takes over wherever the placeholder ended up
+    ph.remove();
+    this._ph=null;
     this.active=false;
     var container=this._container,onDrop=this._onDrop;
     this._el=null;this._container=null;this._onDrop=null;

@@ -336,6 +336,63 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   re-swapping the same pair is still in there as a real safety net against
   a swap's own reflow shifting the target enough to immediately re-trigger
   itself, just wasn't what that particular test artifact was showing.
+  Follow-up (2.85), asked for explicitly ("they should move and make
+  place like on Samsung/Google phones"): the swap above worked (the data
+  order was correct) but nothing ever visibly SLID — because `el` is
+  `position:fixed` the whole drag, which removes it from grid/list flow
+  entirely; the siblings already did their one-time, unanimated reflow
+  to close its gap the moment `_begin()` made it fixed, and reordering a
+  fixed element's DOM position among them afterward changes nothing
+  further about their layout no matter how many times it happens — so
+  the FLIP diff always measured zero movement. Fixed by leaving a plain
+  invisible `.drag-placeholder` (same size) in `el`'s spot instead: `el`
+  still floats fixed on top same as before, but it's the PLACEHOLDER —
+  a genuine flow participant — that actually gets swapped among the real
+  siblings, which now truly reflows them and gives the FLIP diff real
+  deltas to animate. `_end` swaps `el` back in for the placeholder at
+  drop.
+  This preview's `requestAnimationFrame` doesn't fire at all during
+  `javascript_exec` calls (confirmed separately — a counter incremented
+  in an rAF loop stayed at 0 after a real 300ms wait), on top of the
+  `setTimeout` throttling already noted above — so the FLIP animation's
+  before-offset was verified correct (a real `translate()` delta showed
+  up immediately after a swap, proving the placeholder approach fixed
+  the "nothing moves" bug) but the animation's OWN cleanup (the thing
+  that's supposed to release the offset with a transition so it slides
+  rather than snaps) could only be verified by manually flushing a
+  monkey-patched rAF queue, not by actually watching a frame render. If
+  a future report says the slide still just snaps instead of easing, get
+  that confirmed on a real device before assuming this code is at fault
+  — this preview cannot exercise that path at all.
+  Also from this same round: don't trust `navigate`-ing this file to a
+  new `?v=N` query as a clean reset between test scenarios — this file
+  lives outside the configured preview root and renders as a static
+  `data:` snapshot (confirmed: `localStorage` throws `SecurityError:
+  Storage is disabled inside 'data:' URLs` here), and `DB.data` kept
+  accumulating projects/categories added by earlier `javascript_exec`
+  calls across what looked like separate navigations. `DB.data=DB._blank()`
+  at the start of a test scenario is what actually gets a clean slate.
+  Two unrelated fixes landed in the same 2.85 pass while looking at this
+  screen's presses: (a) the pressed-grey on a `.ti`/`.cali`/`.wri` row
+  was appearing when pressing the CHECKBOX too, since CSS `:active`
+  bubbles up from any pressed descendant — scoped it to the row itself
+  with `:active:not(:has(input:active))`, since the checkbox already has
+  its own tick animation and didn't need the row flashing on top of it.
+  (b) a row with no border-radius of its own (by design — dividers run
+  edge-to-edge) relies entirely on its card's `overflow:hidden` clip to
+  look rounded at the top/bottom row — but that clip only ever cuts a
+  sharp corner down to the curve, it was never actually PAINTING anything
+  of its own into the sliver that sits outside that curve but inside the
+  square. At rest that sliver just showed the card's own color (invisible
+  — the row's rest background matched it exactly), but the row's own
+  OPAQUE press-color filling it revealed whatever's behind the WHOLE
+  card instead of the card's color, in every single first/last row
+  across the app, not just Today (same root cause as the white-sliver
+  fix two versions earlier, just the corners instead of the bottom edge).
+  Fixed the same way: `:first-child`/`:last-child` on every row-in-card
+  type get the matching corner radius directly, so their own fill
+  reaches the true rounded boundary instead of depending on the parent's
+  clip to fake it.
 
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
@@ -759,6 +816,35 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   to check is whether `visualViewport.offsetTop` is actually nonzero
   during the real keyboard animation (it's assumed to track any residual
   page scroll) rather than guessing at more one-off timers.
+
+- A single wrong CHANGELOG string (2.85) silently broke the ENTIRE app —
+  worth internalizing exactly how, since nothing about it looked wrong at
+  a glance and it slipped past writing the edit AND a first look at the
+  diff. A changelog line was written as `'...when you\\'re pressing...'`
+  — double backslash before the apostrophe. In the tool call that WROTE
+  it, that was meant to produce a single escaped `\'` in the file; instead
+  it put a literal `\\'` into the file — an escaped backslash (`\\`,
+  a real backslash character) immediately followed by an UNescaped `'`,
+  which closes the string right there. Everything after that point in the
+  array literal is now bare, invalid tokens, so the whole (single, giant)
+  `<script>` tag fails to parse — and since it's one classic script, not a
+  module, a parse failure anywhere in it means NONE of it runs, not just
+  the broken part. Every top-level `var` stays hoisted-but-`undefined`
+  (`DB`, `A`, `APP_VERSION`, all of it) — so the page still LOOKS fine
+  (HTML+CSS render normally, tab bar and all) but every screen is empty
+  and every interaction does nothing, because there is, functionally, no
+  app running at all. Console logging didn't surface this in the tool
+  used to check it — `read_console_messages` came back empty even with no
+  filter — so absence of a logged error is NOT proof the script loaded.
+  What actually caught it: `typeof APP_VERSION` (or any top-level var)
+  coming back `"undefined"` after a fresh load, and `new Function(document
+  .scripts[0].textContent)` to get a real `SyntaxError` with a message to
+  grep for (`grep -n "\\\\'" index.html` immediately found both broken
+  lines — the actual fix search that worked). The general lesson: after
+  ANY edit that adds a JS string with an apostrophe via escaping, verify
+  by loading the page fresh and checking that a top-level global is
+  actually defined — a page that "looks right" (renders its static shell)
+  is not proof the script executed; only a defined global proves it did.
 
 ## Definition of "done" for a change
 0. If index.html (or any other cached asset) changed, bump `CACHE_NAME` in

@@ -551,8 +551,8 @@ html[data-theme="light"] .hh-btn{color:#1a1917}
 /* Settings-style rows grey through the same JS `.pressed-row` as task and
    habit rows (see "Press grey for task and habit rows"), so the grey and
    how it runs into the page slide are identical everywhere — and a row
-   holding a switch never greys: it does nothing itself (only its switch
-   toggles), and the grey is only for rows that open something. */
+   holding a switch or a dropdown never greys (the switch/dropdown is the
+   control, not the row). */
 .btn-row .opt-title{color:#007aff}
 html[data-theme="dark"] .btn-row .opt-title{color:#0a84ff}
 @media(prefers-color-scheme:dark){html:not([data-theme="light"]) .btn-row .opt-title{color:#0a84ff}}
@@ -743,6 +743,7 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
    must never flash grey either. */
 html:not(#x) .cat-choice:active,html:not(#x) .color-field:active{background:var(--press)}
 html:not(#x) .cali.pressed-row,html:not(#x) .ti.pressed-row,html:not(#x) .wri.pressed-row,html:not(#x) .opt-row.pressed-row{background:var(--press)}
+.press-now{transition:none!important}
 html:not(#x) .acard:active{background:var(--press)}
 /* White cards have no border anywhere (Today/Daily/Settings never had one;
    Statistics, a habit's page and a tracker page still carried an invisible
@@ -1254,7 +1255,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.1';
+var APP_VERSION='Beta 3.2';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1988,6 +1989,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.1',notes:[
     'Statistics: the one-time tasks section is gone for now'
+  ]},
+  {v:'Beta 3.2',notes:[
+    'Fixed: some Settings rows (Light, Dark, System, Reset skipped tasks) never turned grey when pressed',
+    'Rows with a dropdown (like Language) no longer turn grey — the dropdown is the control, not the row'
   ]}
 ];
 var COLORS={
@@ -4921,19 +4926,39 @@ function tickEdge(row){
 // so every row greys the exact same way — a manual class instead of
 // :active (which can't tell the tick zone apart reliably on a real device):
 //  - never in the tick zone, never on a row with nothing to open (one-time
-//    tasks) or a locked habit;
+//    tasks), a locked habit, or a row holding a switch or a dropdown;
 //  - it waits PRESS_DELAY before showing, and any movement (a swipe to skip,
 //    a scroll) cancels it, so a swipe never flashes grey; a quick tap that
-//    ends before the delay still gets the full flash (PRESS_TAP_MS).
+//    ends before the delay still gets the full flash (PRESS_TAP_MS);
+//  - a row that redraws its own list when tapped (Appearance's Light/Dark/
+//    System, Reset skipped tasks) is replaced by a fresh copy during the
+//    click, which took the grey with it — so the grey carries over to the
+//    copy now at the same spot, if it's the same row (same onclick: a
+//    different row moving up into the spot, e.g. after a Trash restore,
+//    isn't flashed instead).
 // The fade timing itself is CSS (see "Press grey timing").
 var PRESS_DELAY=110,PRESS_TAP_MS=200;
+var PRESS_ROWS='.cali:not([data-once]):not(.locked),.ti:not([data-once]),.wri,.opt-row:not(:has(.switch)):not(:has(.dsel-wrap))';
 (function(){
   var row=null,timer=null,sx=0,sy=0;
   function off(r){r.classList.remove('pressed-row');}
+  function flash(r){r.classList.add('pressed-row');setTimeout(function(){off(r);},PRESS_TAP_MS);}
+  function carryOver(r,x,y,wasGrey){
+    setTimeout(function(){
+      var sig=r.getAttribute('onclick');
+      if(document.body.contains(r)||!sig)return;
+      var n=document.elementFromPoint(x,y);n=n&&n.closest(PRESS_ROWS);
+      if(!n||n.getAttribute('onclick')!==sig)return;
+      if(!wasGrey){flash(n);return;}
+      // it was already fully grey: the copy starts grey too, then fades out
+      n.classList.add('press-now','pressed-row');void n.offsetWidth;
+      n.classList.remove('press-now','pressed-row');
+    },50);
+  }
   document.addEventListener('touchstart',function(e){
     if(timer){clearTimeout(timer);timer=null;}
     row=null;
-    var r=e.target.closest('.cali:not([data-once]):not(.locked),.ti:not([data-once]),.wri,.opt-row:not(:has(.switch))');
+    var r=e.target.closest(PRESS_ROWS);
     if(!r||e.target.closest('input')||e.touches[0].clientX<=tickEdge(r))return;
     row=r;sx=e.touches[0].clientX;sy=e.touches[0].clientY;
     timer=setTimeout(function(){timer=null;if(row)row.classList.add('pressed-row');},PRESS_DELAY);
@@ -4946,11 +4971,12 @@ var PRESS_DELAY=110,PRESS_TAP_MS=200;
       off(row);row=null;
     }
   },{passive:true});
-  document.addEventListener('touchend',function(){
+  document.addEventListener('touchend',function(e){
     if(!row)return;
-    var r=row;row=null;
-    if(timer){clearTimeout(timer);timer=null;r.classList.add('pressed-row');setTimeout(function(){off(r);},PRESS_TAP_MS);}
+    var r=row,t=e.changedTouches[0],quick=!!timer;row=null;
+    if(timer){clearTimeout(timer);timer=null;flash(r);}
     else off(r);
+    carryOver(r,t.clientX,t.clientY,!quick);
   },{passive:true});
   document.addEventListener('touchcancel',function(){
     if(timer){clearTimeout(timer);timer=null;}

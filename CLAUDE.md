@@ -418,6 +418,23 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   full grey; the JS version holds a full flash for PRESS_TAP_MS into the
   slide. When two things "feel" different but share their animation
   code, compare what runs AROUND the animation before touching it.
+  3.2 — "some Settings rows don't go grey": every row matched the press
+  selector; the misses were rows whose tap REDRAWS their own list
+  (Appearance Light/Dark/System re-render via renderAppearance, "Reset
+  skipped tasks" via renderSettings) — TAPPABLE's click runs on touchend,
+  the row element with `.pressed-row` is replaced by a fresh copy, and the
+  grey goes with it. Fix (generic, in the press IIFE): 50ms after
+  touchend, if the pressed row is detached, the row now at the touch point
+  gets the grey — only if it has the same `onclick` (so a different row
+  moving into the spot, e.g. after a Trash restore, doesn't flash); a row
+  that was already fully grey is re-greyed instantly (`.press-now` =
+  transition:none) and then fades out. Also: rows holding a dropdown
+  (`.dsel-wrap`: Language, Day starts at, the Task window's Priority/
+  Project…) no longer grey at all, by request — like switch rows, the
+  control is the dropdown, not the row. Selector is `PRESS_ROWS`.
+  To find which rows "don't do X", enumerate them all and test each
+  (`.click()` with navigation/dialogs stubbed, then check
+  `document.body.contains(row)`) instead of guessing from one.
 
 - Stats/habit-detail progress ring (`renderPieChart`): fully round ends
   (`stroke-linecap="round"`) were called cheap-looking, flat ends (2.89)

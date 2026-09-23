@@ -732,24 +732,20 @@ html:not(#x) .ti,html:not(#x) .cali,html:not(#x) .wri{height:48px;min-height:48p
 html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
 .ts-date{font-size:12px;font-weight:500;color:#999;white-space:nowrap;flex-shrink:0}
 /* Task/habit/list rows and similar tappable white widgets flash the same
-   darker grey as the buttons above while pressed (see 2.72), instead of
-   giving no feedback at all. `.ti`/`.wri` use :active:not(:has(input:active))
-   since their checkbox is small relative to the row and :has() has been
-   fine there. `.cali`'s checkbox is a real, normally-sized touch target
-   (unlike .switch's deliberately zero-size input, which is never actually
-   what the finger lands on), and :has(input:active) could not be
-   confirmed reliable for excluding it on a real device — so .cali uses a
-   plain JS-driven `.pressed-row` class instead (search "habit rows" below
-   for the touchstart/touchmove/touchend IIFE), checked with the same
-   closest('input') bail-out already used for TAPPABLE's synthetic clicks.
-   Since 2.87 .cali carries its own edge padding directly (like .opt-row
-   in .opt-group), so this now applies identically whether or not "Skip
-   habits" wraps the row in .sw.h/.sw-row — no more direct-child scoping
-   needed. */
-html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .cali,html:not(#x) .cat-choice,html:not(#x) .color-field{transition:background .12s ease}
-html:not(#x) .ti:not([data-once]):active:not(:has(input:active)),html:not(#x) .wri:active:not(:has(input:active)),html:not(#x) .cat-choice:active,html:not(#x) .color-field:active{background:var(--press)}
-html:not(#x) .cali:not(.locked).pressed-row{background:var(--press)}
+   darker grey as the buttons above while pressed. Task and habit rows
+   (.ti/.wri/.cali) grey through a JS-driven `.pressed-row` class, not
+   :active — see "Press grey for task and habit rows" — because their tick
+   box is a real touch target that must never grey, and a swipe to skip
+   must never flash grey either. */
+html:not(#x) .cat-choice:active,html:not(#x) .color-field:active{background:var(--press)}
+html:not(#x) .cali.pressed-row,html:not(#x) .ti.pressed-row,html:not(#x) .wri.pressed-row{background:var(--press)}
 html:not(#x) .acard:active{background:var(--press)}
+/* Press grey timing, every element that greys: fades in over .2s; after
+   release it stays .15s, then fades out over .4s. A transition uses the
+   timing of the state it's going TO, so the fade-in lives on the pressed
+   state and the linger + fade-out on the resting one. */
+html:not(#x) .opt-row,html:not(#x) .hdr-add,html:not(#x) .menu-btn,html:not(#x) .back,html:not(#x) .edit-proj-btn,html:not(#x) .addbtn,html:not(#x) .hh-btn,html:not(#x) .el-btn,html:not(#x) .sheet-save,html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .cali,html:not(#x) .cat-choice,html:not(#x) .color-field,html:not(#x) .acard{transition:background .4s ease .15s}
+html:not(#x) .opt-row:active,html:not(#x) .hdr-add:active,html:not(#x) .menu-btn:active,html:not(#x) .back:active,html:not(#x) .edit-proj-btn:active,html:not(#x) .addbtn:active,html:not(#x) .hh-btn:active,html:not(#x) .el-btn:active,html:not(#x) .sheet-save:active,html:not(#x) .cat-choice:active,html:not(#x) .color-field:active,html:not(#x) .acard:active,html:not(#x) .pressed-row{transition:background .2s ease}
 /* New tracker entry window: the tracker's unit sits inside the value field
    on the right. */
 .trk-add-row{position:relative}
@@ -1250,7 +1246,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.94';
+var APP_VERSION='Beta 2.95';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1958,6 +1954,12 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.94',notes:[
     'Resetting statistics now also resets tracked projects in Daily: their numbers stay in the tracker, but only what you log after the reset counts'
+  ]},
+  {v:'Beta 2.95',notes:[
+    'Tasks work like habits now: tapping anywhere around the tick box ticks it off without turning grey, the rest of the row opens the task',
+    'The pressed grey fades in and out more slowly and stays a moment after you let go',
+    'Swiping a task or habit to skip no longer flashes grey — the grey only comes if you hold without sliding',
+    'Fixed (Samsung/Android): switching tabs on or off in Settings > Menu made the whole tab bar disappear until you left the page — it now updates right away'
   ]}
 ];
 var COLORS={
@@ -4888,28 +4890,63 @@ function swipeWrap(kind,inner){
   if(kind==='h'&&DB.data.settings.skipHabits===false)return inner;
   return '<div class="sw '+kind+'"><div class="sw-act"><span>Skip'+SKIP_ICON+'</span></div><div class="sw-row">'+inner+'</div></div>';
 }
-// Press feedback for habit rows (Today and Daily — see the CSS comment
-// above ".pressed-row"): a manual class instead of :active, so excluding
-// the tick zone (.cali-tick, see ci()) is a plain closest() check rather
-// than relying on :has(input:active) against a real touch target.
+// Task and habit rows are two buttons each: the tick zone (a habit's
+// .cali-tick; for a task, its checkbox plus the row's padding around it —
+// everything left of tickEdge) and the bar (the rest: opens the habit or
+// the task). Returns the x where the tick zone ends, -1 if there's none.
+function tickEdge(row){
+  var tz=row.querySelector('.cali-tick');if(tz)return tz.getBoundingClientRect().right;
+  var cb=row.querySelector('input[type=checkbox]');return cb?cb.getBoundingClientRect().right+6:-1;
+}
+// Press grey for task and habit rows — a manual class instead of :active
+// (which can't tell the tick zone apart reliably on a real device):
+//  - never in the tick zone, never on a row with nothing to open (one-time
+//    tasks) or a locked habit;
+//  - it waits PRESS_DELAY before showing, and any movement (a swipe to skip,
+//    a scroll) cancels it, so a swipe never flashes grey; a quick tap that
+//    ends before the delay still gets the full flash (PRESS_TAP_MS).
+// The fade timing itself is CSS (see "Press grey timing").
+var PRESS_DELAY=110,PRESS_TAP_MS=200;
 (function(){
-  var cur=null,sx=0,sy=0;
-  function clear(){if(cur){cur.classList.remove('pressed-row');cur=null;}}
+  var row=null,timer=null,sx=0,sy=0;
+  function off(r){r.classList.remove('pressed-row');}
   document.addEventListener('touchstart',function(e){
-    clear();
-    if(e.target.closest('input,.cali-tick'))return;
-    // Grey only on rows that open something — a one-time task has no window.
-    var row=e.target.closest('.cali:not([data-once])');
-    if(row){cur=row;row.classList.add('pressed-row');sx=e.touches[0].clientX;sy=e.touches[0].clientY;}
+    if(timer){clearTimeout(timer);timer=null;}
+    row=null;
+    var r=e.target.closest('.cali:not([data-once]):not(.locked),.ti:not([data-once]),.wri');
+    if(!r||e.target.closest('input')||e.touches[0].clientX<=tickEdge(r))return;
+    row=r;sx=e.touches[0].clientX;sy=e.touches[0].clientY;
+    timer=setTimeout(function(){timer=null;if(row)row.classList.add('pressed-row');},PRESS_DELAY);
   },{passive:true});
   document.addEventListener('touchmove',function(e){
-    if(!cur)return;
+    if(!row)return;
     var t=e.touches[0];
-    if(Math.abs(t.clientX-sx)>10||Math.abs(t.clientY-sy)>10)clear();
+    if(Math.abs(t.clientX-sx)>10||Math.abs(t.clientY-sy)>10){
+      if(timer){clearTimeout(timer);timer=null;}
+      off(row);row=null;
+    }
   },{passive:true});
-  document.addEventListener('touchend',clear,{passive:true});
-  document.addEventListener('touchcancel',clear,{passive:true});
+  document.addEventListener('touchend',function(){
+    if(!row)return;
+    var r=row;row=null;
+    if(timer){clearTimeout(timer);timer=null;r.classList.add('pressed-row');setTimeout(function(){off(r);},PRESS_TAP_MS);}
+    else off(r);
+  },{passive:true});
+  document.addEventListener('touchcancel',function(){
+    if(timer){clearTimeout(timer);timer=null;}
+    if(row){off(row);row=null;}
+  },{passive:true});
 })();
+// A tap on a task row's own padding (not on its checkbox, text or badge)
+// used to do nothing: in the tick zone it now ticks (not in hold-to-complete
+// mode, where only a hold does), anywhere else it opens the task.
+document.addEventListener('click',function(e){
+  var r=e.target;
+  if(!r.matches||!r.matches('.ti,.wri'))return;
+  var cb=r.querySelector('input[type=checkbox]');if(!cb)return;
+  if(e.clientX<=tickEdge(r)){if(!DB.data.settings.holdToComplete&&!cb.disabled)cb.click();}
+  else{var bar=r.querySelector('[onclick*="TaskSheet.open"]');if(bar)bar.click();}
+});
 var Skip=(function(){
   // Swipe right past THRESH to skip; let go before that and the row springs
   // back. There's no half-open state.
@@ -4934,8 +4971,7 @@ var Skip=(function(){
     if(w.classList.contains('h')&&(tb?(tb.classList.contains('done')||tb.classList.contains('skip')):(!cb||cb.checked)))return;
     // A press that starts on (or left of) the tick-off square never swipes,
     // so ticking something off with a slightly moving finger can't skip it.
-    var tz=w.querySelector('.cali-tick');
-    if((tz||cb)&&e.touches[0].clientX<=(tz?tz.getBoundingClientRect().right:cb.getBoundingClientRect().right+4))return;
+    if(e.touches[0].clientX<=tickEdge(w))return;
     cur=w;sx=e.touches[0].clientX;sy=e.touches[0].clientY;dx=0;mode=1;
     THRESH=Math.min(110,w.offsetWidth*.35);
   },{passive:true});
@@ -5878,13 +5914,19 @@ var TabPlus={
 // Hide the bottom nav / FAB while the on-screen keyboard is open — iOS
 // repositions position:fixed elements above the keyboard instead of
 // keeping them pinned to the real viewport bottom, so they end up
-// floating awkwardly over the input. Hiding them while any input/
-// textarea is focused avoids that entirely.
+// floating awkwardly over the input. Only fields that bring up a keyboard
+// count: Android focuses a switch's/tick box's checkbox when it's tapped
+// (iOS doesn't), which hid the whole tab bar on a Samsung the moment a
+// Settings > Menu switch was flipped, until leaving the page.
+function _isTypingField(el){
+  if(el.tagName==='TEXTAREA')return true;
+  return el.tagName==='INPUT'&&!/^(checkbox|radio|range|button|submit|reset|color|file|hidden)$/i.test(el.type);
+}
 document.addEventListener('focusin',function(e){
-  if(e.target.matches('input,textarea'))document.body.classList.add('kb-open');
+  if(_isTypingField(e.target))document.body.classList.add('kb-open');
 });
 document.addEventListener('focusout',function(e){
-  if(e.target.matches('input,textarea'))document.body.classList.remove('kb-open');
+  if(_isTypingField(e.target))document.body.classList.remove('kb-open');
 });
 
 // The open sheet's own position must track the KEYBOARD, not just hide

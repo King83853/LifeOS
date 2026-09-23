@@ -389,6 +389,25 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   `.opt-row:active` grey is `:not(:has(.switch))`. (A structural `:has()`
   like this is fine; it's `:has(input:active)` — a live touch state —
   that proved unreliable on-device.)
+  2.95 — task rows (`.ti`/`.wri`) work like habit rows: two zones split
+  at `tickEdge(row)` (a habit's `.cali-tick` right edge, or a task's
+  checkbox right edge + 6px). A delegated click on the row's own padding
+  ticks (tick zone, not in hold mode) or opens the task (clicks the
+  `TaskSheet.open` element) — padding used to be a dead zone. ONE press-
+  grey IIFE ("Press grey for task and habit rows") drives `.pressed-row`
+  for `.cali/.ti/.wri`: never in the tick zone, never on one-time tasks or
+  locked habits, and only after `PRESS_DELAY` (110ms) with any >10px
+  movement cancelling it — so a swipe-to-skip never flashes grey (asked
+  for: "a slight delay to the grey… when I start sliding it doesn't come
+  but if I hold then it goes grey"); a tap shorter than the delay still
+  flashes for `PRESS_TAP_MS`. Skip's swipe-start check uses `tickEdge`
+  too. The old `.ti:active:not(:has(input:active))` rule is gone.
+  Press-grey timing for EVERY greying element is one CSS block ("Press grey
+  timing"): fade in .2s on the pressed state (`:active`/`.pressed-row`),
+  and on the resting state `.4s` fade-out after a `.15s` linger — a
+  transition takes the timing of the state it's going TO, which is what
+  makes the linger possible even for plain `:active`. New greying
+  elements need adding to both selector lists there.
 
 - Stats/habit-detail progress ring (`renderPieChart`): fully round ends
   (`stroke-linecap="round"`) were called cheap-looking, flat ends (2.89)
@@ -1014,6 +1033,15 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   color, making Version history taller. Lesson: also read an annotated
   screenshot literally — one of those guesses came from picking the
   easiest reading of a circled region.
+
+- `body.kb-open` (hides the tab bar/FAB while typing) is set on focusin
+  only for fields that bring up a keyboard (`_isTypingField`: textarea,
+  and inputs other than checkbox/radio/range/buttons/color/file/hidden).
+  It used to match any `input`: Android focuses a switch's checkbox on tap
+  (iOS doesn't), so on a Samsung flipping a Settings > Menu switch hid the
+  whole tab bar until leaving the page — looked like the Menu setting
+  didn't apply live, while it actually had. Anything Android-only that
+  "disappears until you navigate away" is worth checking against focus.
 
 - The footer tab bar is ALWAYS visible now (it used to hide on project
   pages / Daily and while a sheet was open, with a timed show/hide dance

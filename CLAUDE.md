@@ -71,11 +71,11 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   normal habit has its own `text` and is a boolean check-off
   (`dailyChecks`), rendered via `ci()`/`ciEdit()`; a tracker-linked item
   (`addTrackerDailyItem`) has `trackerPid` instead of `text` and no
-  boolean state of its own at all — "done today" is whatever
-  `trackerEntryForDate(trackerPid, ds)` finds in that project's OWN
-  `trackerEntries`, rendered via `ciTracker()` (a status dot, not a
-  checkbox — nothing to toggle inline, the row navigates to the
-  tracker's own project page to actually log a value). Its name/icon
+  boolean state of its own at all — its day value is whatever
+  `trackerDayValue(it, ds)` finds in that project's OWN `trackerEntries`
+  (and "done" is `habitDayVal`, below), rendered via `ciTracker()` (a
+  number box in the tick zone since 2.92; the bar opens the tracker's
+  own project page). Its name/icon
   are read from `DB.data.projects[trackerPid]` live on every render,
   never copied into the dailyItems entry, so renaming the tracker can't
   leave a stale label sitting in Daily.
@@ -93,6 +93,17 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   check-off") — reversed in 2.92 at the user's request: tracker habits
   now count in Stats, best/worst use `habitName(it)` (a tracker entry has
   no `text`).
+  Statistics reset (`DB.resetHabitStats`) covers tracker habits too since
+  2.94 (it used to skip them, so their history kept counting): like any
+  habit, `created`=today + `wasReset` (past days show locked on Daily:
+  `ciTracker(...,locked)` — lock icon, no logging), and additionally
+  `it.statsFrom`=now, because the tracker's entries are KEPT (they're the
+  tracker's own data) and some may be from earlier today. The habit reads
+  its day value only through `trackerDayValue(it,ds)` (latest entry that
+  day with ts >= statsFrom) — `trackerEntryForDate` is gone — and
+  `setTrackerDayValue(pid,ds,val,from)` never edits a pre-reset entry, it
+  adds a new one instead. The tracker page's own chart/entries list still
+  shows every entry.
   Tracker habit rows (`ciTracker`, Today and Daily) are split rows like
   habits: the tick zone shows a number box (`.trk-box`, that day's value;
   `--box` grey until done, `--go` green when done, skip style when

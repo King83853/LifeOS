@@ -1250,7 +1250,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.93';
+var APP_VERSION='Beta 2.94';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1955,6 +1955,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.93',notes:[
     'Rows with a switch no longer turn grey when pressed — the grey only shows on rows that open something'
+  ]},
+  {v:'Beta 2.94',notes:[
+    'Resetting statistics now also resets tracked projects in Daily: their numbers stay in the tracker, but only what you log after the reset counts'
   ]}
 ];
 var COLORS={
@@ -2261,13 +2264,16 @@ var DB={
   // Lists, tracker entries -> Entries, Daily -> its habits (Habits) and its
   // categories are removed. Returns how many things were moved.
   // Statistics reset: wipes a habit's check-off history (all habits when id
-  // is null) and starts its score again from today.
+  // is null) and starts its score again from today. A tracker habit's
+  // logged entries stay — they're the tracker's own data — but only ones
+  // logged after the reset count for the habit (`statsFrom`, see
+  // trackerDayValue), so even earlier today's value stops counting.
   resetHabitStats:function(id){
-    var d=this.data,today=dStr(new Date());
-    var ids=d.dailyItems.filter(function(it){return !it.trackerPid&&(!id||it.id===id);}).map(function(it){return it.id;});
+    var d=this.data,today=dStr(new Date()),now=Date.now();
+    var ids=d.dailyItems.filter(function(it){return !id||it.id===id;}).map(function(it){return it.id;});
     ids.forEach(function(hid){for(var ds in d.dailyChecks){delete d.dailyChecks[ds][hid];}});
     for(var ds in d.dailyChecks){if(!Object.keys(d.dailyChecks[ds]).length)delete d.dailyChecks[ds];}
-    d.dailyItems.forEach(function(it){if(ids.indexOf(it.id)!==-1){it.created=today;it.wasReset=true;}});
+    d.dailyItems.forEach(function(it){if(ids.indexOf(it.id)!==-1){it.created=today;it.wasReset=true;if(it.trackerPid)it.statsFrom=now;}});
     this.save();
     return ids.length;
   },
@@ -2347,17 +2353,21 @@ var DB={
     this.save();return id;
   },
   // A tracker habit holds one value per day: set it by changing that day's
-  // latest entry, or — if nothing was logged that day yet — adding one
-  // timestamped on that day (now, if that day is the calendar day it is
-  // now; otherwise noon), so trackerEntryForDate buckets it onto `ds`.
-  setTrackerDayValue:function(pid,ds,val){
+  // latest entry that counts (logged at/after `from`, the habit's
+  // statsFrom), or — if there's none — adding one timestamped on that day
+  // (now, if that day is the calendar day it is now; otherwise noon), so
+  // trackerDayValue buckets it onto `ds`. Entries from before a statistics
+  // reset are never edited here; they stay as they were.
+  setTrackerDayValue:function(pid,ds,val,from){
+    from=from||0;
     if(!this.data.trackerEntries)this.data.trackerEntries={};
     var list=this.data.trackerEntries[pid]=this.data.trackerEntries[pid]||[];
     var last=null;
-    list.forEach(function(e){if(dStr(new Date(e.ts))===ds&&(!last||e.ts>=last.ts))last=e;});
+    list.forEach(function(e){if(e.ts>=from&&dStr(new Date(e.ts))===ds&&(!last||e.ts>=last.ts))last=e;});
     if(last)last.val=val;
     else{
       var p=ds.split('-'),ts=dStr(new Date())===ds?Date.now():new Date(+p[0],+p[1]-1,+p[2],12).getTime();
+      if(ts<from&&dStr(new Date(from))===ds)ts=from;
       list.push({val:val,ts:ts});
     }
     this.save();
@@ -4149,14 +4159,16 @@ function ciEdit(itemId,text,dayIdx,locked){
     +'<span class="cali-tick" onclick="tickZone(event,this)"><input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'"'+(locked?' disabled':'')+' onchange="A.toggleDailyItemFor(this,'+dayIdx+')"></span>'
     +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label>'+(locked?LOCK_SVG:CALI_CHEV)+'</div>';
 }
-// The most recent tracker entry actually logged on calendar date `ds`
-// (local time, matching dStr/pDate everywhere else) — null if none.
+// The value a tracker habit counts for calendar date `ds` (local time,
+// matching dStr/pDate everywhere else): that day's latest entry, ignoring
+// entries logged before the habit's statistics were reset (it.statsFrom)
+// — those stay in the tracker, they just don't count. null if none.
 // Entries are timestamped, not bucketed by day at write time, so this
 // buckets them by day only when asked.
-function trackerEntryForDate(pid,ds){
-  var entries=((DB.data.trackerEntries||{})[pid])||[];
-  var match=null;
-  entries.forEach(function(e){if(dStr(new Date(e.ts))===ds)match=e.val;});
+function trackerDayValue(it,ds){
+  var from=it.statsFrom||0,entries=((DB.data.trackerEntries||{})[it.trackerPid])||[];
+  var match=null,mts=-1;
+  entries.forEach(function(e){if(e.ts>=from&&e.ts>=mts&&dStr(new Date(e.ts))===ds){match=e.val;mts=e.ts;}});
   return match;
 }
 // Remembers which tracker project a Daily row was opened from, so
@@ -4178,14 +4190,16 @@ var _trackerOrigin=null;
 // (see habitDayVal: goal reached, or anything logged when there's no goal).
 // Tapping it (holding, in hold-to-complete mode) opens TrackerDaySheet to
 // enter or adjust that day's value; the bar opens the tracker's own page.
-function ciTracker(it,dayIdx,editable){
+// `locked`: a day before the habit's statistics start (after a reset) —
+// dimmed with a lock like a locked habit row, and nothing to log there.
+function ciTracker(it,dayIdx,editable,locked){
   var p=DB.data.projects[it.trackerPid];
   if(!p)return ''; // its tracker project was deleted — orphaned link, nothing sane to show
-  var ds=pDate(dayIdx),val=trackerEntryForDate(it.trackerPid,ds),hv=habitDayVal(it,ds);
-  return '<div class="cali split trk-row" data-id="'+it.id+'" data-tracker="'+it.id+'" data-day="'+dayIdx+'">'
-    +'<span class="cali-tick" onclick="TrackerDaySheet.tap(\''+it.id+'\','+dayIdx+')"><span class="trk-box'+(hv==='skip'?' skip':(hv?' done':''))+'">'+(val!=null&&hv!=='skip'?esc(fmtTrk(val)):'')+'</span></span>'
+  var ds=pDate(dayIdx),val=trackerDayValue(it,ds),hv=habitDayVal(it,ds);
+  return '<div class="cali split trk-row'+(locked?' locked':'')+'" data-id="'+it.id+'" data-tracker="'+it.id+'" data-day="'+dayIdx+'">'
+    +'<span class="cali-tick"'+(locked?'':' onclick="TrackerDaySheet.tap(\''+it.id+'\','+dayIdx+')"')+'><span class="trk-box'+(hv==='skip'?' skip':(hv?' done':''))+'">'+(val!=null&&hv!=='skip'?esc(fmtTrk(val)):'')+'</span></span>'
     +'<label onclick="_projFromDaily=\''+it.trackerPid+'\';_trackerOrigin=\''+(editable?'habits':'today')+'\';Nav.go(\''+it.trackerPid+'\')">'+esc(p.name)+'</label>'
-    +CALI_CHEV+'</div>';
+    +(locked?LOCK_SVG:CALI_CHEV)+'</div>';
 }
 // A logged value as short as possible for the number box (no trailing .0).
 function fmtTrk(v){return String(Math.round(v*100)/100);}
@@ -4684,7 +4698,7 @@ function buildPanels(){
           // habit whose stats were reset is shown but locked (grey, can't be ticked).
           var before=ds<habitCreatedDs(it);
           if(before&&!it.wasReset)return;
-          h+=it.trackerPid?ciTracker(it,pi,true):ciEdit(it.id,it.text,pi,before);
+          h+=it.trackerPid?ciTracker(it,pi,true,before):ciEdit(it.id,it.text,pi,before);
         });
         h+='</div>';
       });
@@ -4741,7 +4755,7 @@ function dcv(ds,id){return DB.data.dailyChecks[ds]&&DB.data.dailyChecks[ds][id];
 // like any habit (swipe on Today, stored as 'skip' in dailyChecks).
 function habitDayVal(it,ds){
   if(!it.trackerPid)return dcv(ds,it.id);
-  var v=trackerEntryForDate(it.trackerPid,ds);
+  var v=trackerDayValue(it,ds);
   if(v!=null&&(!hasGoal(it)||v>=it.goal))return true;
   return dcv(ds,it.id)==='skip'?'skip':false;
 }
@@ -5260,7 +5274,7 @@ document.addEventListener('touchstart',function(e){
   var box=item.querySelector('.trk-box');
   if(box){
     var br=box.getBoundingClientRect(),bt=e.touches[0];
-    if(parseInt(item.getAttribute('data-day'),10)>0)return;
+    if(parseInt(item.getAttribute('data-day'),10)>0||item.classList.contains('locked'))return;
     if(bt.clientX<br.left-8||bt.clientX>br.right+8||bt.clientY<br.top-8||bt.clientY>br.bottom+8)return;
     holdSX=bt.clientX;holdSY=bt.clientY;
     item.classList.add('holding');
@@ -5761,7 +5775,7 @@ var TrackerDaySheet={
   open:function(itemId,dayIdx){
     var it=DB.data.dailyItems.find(function(x){return x.id===itemId;});
     var p=it&&DB.data.projects[it.trackerPid];
-    if(!p||dayIdx>0)return;
+    if(!p||dayIdx>0||pDate(dayIdx)<habitCreatedDs(it))return;
     this.itemId=itemId;this.dayIdx=dayIdx;
     var d=new Date(T);d.setDate(T.getDate()+dayIdx);
     document.getElementById('trk-day-title').textContent=p.name+(dayIdx?' · '+d.toLocaleDateString('de-CH',{weekday:'short',day:'numeric',month:'short'}):'');
@@ -5769,7 +5783,7 @@ var TrackerDaySheet={
     var g=document.getElementById('trk-day-goal');
     g.textContent=hasGoal(it)?'Goal: '+fmtTrk(it.goal)+(p.unit?' '+p.unit:''):'';
     g.style.display=hasGoal(it)?'':'none';
-    var v=trackerEntryForDate(it.trackerPid,pDate(dayIdx));
+    var v=trackerDayValue(it,pDate(dayIdx));
     var inp=document.getElementById('trk-day-val');inp.value=v!=null?fmtTrk(v):'';
     _overlayOpen('trk-day-sheet-overlay');
     setTimeout(function(){inp.focus();},300);
@@ -5779,7 +5793,7 @@ var TrackerDaySheet={
     var val=parseFloat(document.getElementById('trk-day-val').value);
     if(!it||isNaN(val))return;
     var ds=pDate(this.dayIdx);
-    DB.setTrackerDayValue(it.trackerPid,ds,val);
+    DB.setTrackerDayValue(it.trackerPid,ds,val,it.statsFrom);
     if(dcv(ds,it.id)==='skip')DB.toggleDailyCheck(it.id,ds,false);
     _overlayClose('trk-day-sheet-overlay');
     renderToday();buildPanels();restoreChecks(Nav.sd);renderGrids();renderTracker(it.trackerPid);

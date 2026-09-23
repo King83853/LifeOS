@@ -485,6 +485,11 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   tracker pages still carried an invisible 1.5px one. Stat text uses
   `.stat-note` (paragraph role 13/500 grey) and `.stat-num` (32/700, like
   a tracker's value) on Statistics, habit pages and tracker pages alike.
+  The "One-time tasks" section (average completed per day, from
+  `DB.data.archived` entries' `dateISO`) was removed from Statistics in
+  3.1 "for now" — markup, render code and `oneTimeTaskStats()` all went
+  (see commit history to bring it back). `dateISO` is still recorded on
+  every completion, so the history is intact if it returns.
 
 - Page-open/close slide (`navForward`/`navBack`, via `_slideUnit`) was
   160ms forward / 180ms back — reported as feeling too quick, wanted

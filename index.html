@@ -995,11 +995,6 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
   <div class="sl">Worst score</div>
   <div id="stats-worst"></div>
 
-  <div class="sl">One-time tasks</div>
-  <div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:22px 14px;gap:6px">
-    <div id="stats-avg-num" class="stat-num"></div>
-    <div id="stats-avg-text" class="stat-note"></div>
-  </div>
 </div>
 
 <div class="page" id="p-editlayout">
@@ -1259,7 +1254,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.0';
+var APP_VERSION='Beta 3.1';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1990,6 +1985,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.0',notes:[
     'Simpler icons for best and worst score: a triangle pointing up and one pointing down'
+  ]},
+  {v:'Beta 3.1',notes:[
+    'Statistics: the one-time tasks section is gone for now'
   ]}
 ];
 var COLORS={
@@ -4551,22 +4549,6 @@ function aggHabitPeriods(granularity,count){
   return out;
 }
 
-// Average one-time (project) tasks completed per calendar day, over the
-// span from the earliest recorded completion to today — includes zero-
-// task days in the average, not just active ones. Only archived entries
-// carrying dateISO count; entries completed before that field existed
-// are silently excluded rather than migrated (no reliable way to parse
-// the old locale-formatted display date back into a real one).
-function oneTimeTaskStats(){
-  var arr=(DB.data.archived||[]).filter(function(a){return a.dateISO;});
-  if(!arr.length)return{avg:0,total:0};
-  var minDs=arr[0].dateISO;
-  arr.forEach(function(a){if(a.dateISO<minDs)minDs=a.dateISO;});
-  var days=Math.floor((new Date(dStr(T)+'T00:00:00')-new Date(minDs+'T00:00:00'))/86400000)+1;
-  days=Math.max(1,days);
-  return{avg:arr.length/days,total:arr.length};
-}
-
 // Best/worst score icons: a plain triangle up / down (corners softened by
 // the round-joined stroke, like the app's other icons).
 var STAT_ICON_UP='<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 6.5 19.5 17.5 4.5 17.5"/></svg>';
@@ -4586,11 +4568,6 @@ var Stats={
     this.renderChart();
     document.getElementById('stats-best').innerHTML=this.habitRow(bestHabitConsistency(),STAT_ICON_UP,'#22c55e');
     document.getElementById('stats-worst').innerHTML=this.habitRow(worstHabitConsistency(),STAT_ICON_DOWN,'#ef4444');
-    var ts=oneTimeTaskStats();
-    document.getElementById('stats-avg-num').textContent=ts.total?ts.avg.toFixed(1):'0';
-    document.getElementById('stats-avg-text').innerHTML=ts.total
-      ?'average one-time tasks completed per day (<b>'+ts.total+'</b> total)'
-      :'No completed one-time tasks yet.';
   },
   // Best/worst habit as a one-line Settings row (icon, name, score, arrow)
   // that opens the habit's page — or a tracked project's page — with back

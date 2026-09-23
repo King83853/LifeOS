@@ -471,6 +471,20 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   to match "the full black fill"). Other `.type-btn` pickers (project
   type etc.) still use the blue tint — only day selection was asked for.
 
+- Statistics (2.99) is laid out like a Settings page: `#p-stats` has the
+  `.sp` class (Settings row sizing), `.sl` section labels, 14px between
+  cards; best/worst are one-line `.opt-row`s in an `.opt-group` with an
+  `.opt-ico` (green trend-up / red trend-down), score and arrow
+  (`Stats.habitRow`), tapping opens the habit page (`HabitDetail.open`,
+  origin 'stats') or a tracked project's page (`_trackerOrigin='stats'`);
+  back and swipe-back return to Statistics via `_backTarget`, and
+  `TabBar.current` keeps the Stats tab lit on both (also lights Today for
+  a tracker opened from Today, which used to light Overview). White cards
+  (`.calsec`) have no border anywhere now — Statistics, habit pages and
+  tracker pages still carried an invisible 1.5px one. Stat text uses
+  `.stat-note` (paragraph role 13/500 grey) and `.stat-num` (32/700, like
+  a tracker's value) on Statistics, habit pages and tracker pages alike.
+
 - Page-open/close slide (`navForward`/`navBack`, via `_slideUnit`) was
   160ms forward / 180ms back — reported as feeling too quick, wanted
   slower and more graceful. Both bumped to 280ms (same ease-out-cubic

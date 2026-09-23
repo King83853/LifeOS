@@ -744,6 +744,15 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
 html:not(#x) .cat-choice:active,html:not(#x) .color-field:active{background:var(--press)}
 html:not(#x) .cali.pressed-row,html:not(#x) .ti.pressed-row,html:not(#x) .wri.pressed-row,html:not(#x) .opt-row.pressed-row{background:var(--press)}
 html:not(#x) .acard:active{background:var(--press)}
+/* White cards have no border anywhere (Today/Daily/Settings never had one;
+   Statistics, a habit's page and a tracker page still carried an invisible
+   1.5px one). Statistics is laid out like a Settings page: .sl labels and
+   14px between cards. Stat text: .stat-note is the paragraph role (13/500
+   grey), .stat-num a big number (same as a tracker's value). */
+html:not(#x) .calsec{border:none}
+#p-stats .calsec{margin-bottom:14px}
+.stat-note{font-size:13px;font-weight:500;color:#999;text-align:center;line-height:1.5}
+.stat-num{font-size:32px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
 /* Press grey timing, every element that greys: fades in over .2s; after
    release it stays .15s, then fades out over .4s. A transition uses the
    timing of the state it's going TO, so the fade-in lives on the pressed
@@ -954,7 +963,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
   <div id="lockedin-list"></div>
 </div>
 
-<div class="page" id="p-stats">
+<div class="page sp" id="p-stats">
   <div class="dhdr" style="justify-content:space-between">
     <div style="display:flex;align-items:center;gap:14px">
       <div class="dico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg></div>
@@ -962,10 +971,10 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
     </div>
   </div>
 
-  <div class="shdr">Consistency score</div>
+  <div class="sl">Consistency score</div>
   <div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:22px 14px;gap:10px">
     <div id="stats-pie"></div>
-    <div id="stats-pie-text" style="font-size:13px;color:#999;text-align:center;line-height:1.5"></div>
+    <div id="stats-pie-text" class="stat-note"></div>
   </div>
 
   <div class="calsec" style="padding:12px 14px 10px">
@@ -980,16 +989,16 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
     <div id="stats-chart"></div>
   </div>
 
-  <div class="shdr">Best score</div>
-  <div class="calsec" id="stats-best" style="padding:16px;font-size:14px;text-align:center"></div>
+  <div class="sl">Best score</div>
+  <div id="stats-best"></div>
 
-  <div class="shdr">Worst score</div>
-  <div class="calsec" id="stats-worst" style="padding:16px;font-size:14px;text-align:center"></div>
+  <div class="sl">Worst score</div>
+  <div id="stats-worst"></div>
 
-  <div class="shdr">One-time tasks</div>
+  <div class="sl">One-time tasks</div>
   <div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:22px 14px;gap:6px">
-    <div id="stats-avg-num" style="font-size:32px;font-weight:800"></div>
-    <div id="stats-avg-text" style="font-size:13px;color:#999;text-align:center;line-height:1.5"></div>
+    <div id="stats-avg-num" class="stat-num"></div>
+    <div id="stats-avg-text" class="stat-note"></div>
   </div>
 </div>
 
@@ -1052,13 +1061,13 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
   <div class="shdr">Consistency</div>
   <div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:22px 14px;gap:10px">
     <div id="hd-pie"></div>
-    <div id="hd-streak-text" style="font-size:13px;color:#999;text-align:center;line-height:1.5"></div>
+    <div id="hd-streak-text" class="stat-note"></div>
   </div>
   <div class="shdr">Longest streak</div>
   <div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:18px 14px;gap:4px">
-    <div id="hd-best-streak" style="font-size:34px;font-weight:800;line-height:1.1"></div>
-    <div style="font-size:13px;color:#999;text-align:center">scheduled days in a row</div>
-    <div id="hd-cur-streak" style="font-size:13px;color:#999;text-align:center"></div>
+    <div id="hd-best-streak" class="stat-num"></div>
+    <div class="stat-note">scheduled days in a row</div>
+    <div id="hd-cur-streak" class="stat-note"></div>
   </div>
 </div>
 
@@ -1250,7 +1259,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.98';
+var APP_VERSION='Beta 2.99';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1974,6 +1983,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.98',notes:[
     'Settings rows now turn grey exactly like the rows on Today, so tapping one and sliding into its page feels the same everywhere'
+  ]},
+  {v:'Beta 2.99',notes:[
+    'Statistics now looks like the rest of the app: same text styles, same white cards and spacing as Settings',
+    'Best and worst score are one-line rows with an icon, like in Settings — tap one to open that habit, and going back returns to Statistics'
   ]}
 ];
 var COLORS={
@@ -2859,12 +2872,12 @@ var TrackerPage={
       +'<div class="shdr">Consistency</div>'
       +'<div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:22px 14px;gap:10px">'
       +renderPieChart(s.pct,s.skipped,s.target)
-      +'<div style="font-size:13px;color:#999;text-align:center;line-height:1.5"><b>'+s.completed+'</b> of <b>'+s.target+'</b> scheduled days completed'+(s.skipped?' ('+s.skipped+' skipped)':'')+'</div></div>'
+      +'<div class="stat-note"><b>'+s.completed+'</b> of <b>'+s.target+'</b> scheduled days completed'+(s.skipped?' ('+s.skipped+' skipped)':'')+'</div></div>'
       +'<div class="shdr">Longest streak</div>'
       +'<div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:18px 14px;gap:4px">'
-      +'<div style="font-size:34px;font-weight:800;line-height:1.1">'+st.best+'</div>'
-      +'<div style="font-size:13px;color:#999;text-align:center">scheduled days in a row</div>'
-      +'<div style="font-size:13px;color:#999;text-align:center">Current streak: '+st.current+'</div></div>';
+      +'<div class="stat-num">'+st.best+'</div>'
+      +'<div class="stat-note">scheduled days in a row</div>'
+      +'<div class="stat-note">Current streak: '+st.current+'</div></div>';
   },
   setView:function(pid,v){
     this.view[pid]=v;
@@ -4551,6 +4564,8 @@ function oneTimeTaskStats(){
   return{avg:arr.length/days,total:arr.length};
 }
 
+var STAT_ICON_UP='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>';
+var STAT_ICON_DOWN='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>';
 var Stats={
   view:'day',
   render:function(){
@@ -4564,19 +4579,27 @@ var Stats={
     });
     this.view='day';
     this.renderChart();
-    var best=bestHabitConsistency();
-    document.getElementById('stats-best').innerHTML=best
-      ?'<b>'+esc(habitName(best.item))+'</b> — <b>'+best.pct+'%</b>'
-      :'No scheduled habits yet.';
-    var worst=worstHabitConsistency();
-    document.getElementById('stats-worst').innerHTML=worst
-      ?'<b>'+esc(habitName(worst.item))+'</b> — <b>'+worst.pct+'%</b>'
-      :'No scheduled habits yet.';
+    document.getElementById('stats-best').innerHTML=this.habitRow(bestHabitConsistency(),STAT_ICON_UP,'#22c55e');
+    document.getElementById('stats-worst').innerHTML=this.habitRow(worstHabitConsistency(),STAT_ICON_DOWN,'#ef4444');
     var ts=oneTimeTaskStats();
     document.getElementById('stats-avg-num').textContent=ts.total?ts.avg.toFixed(1):'0';
     document.getElementById('stats-avg-text').innerHTML=ts.total
       ?'average one-time tasks completed per day (<b>'+ts.total+'</b> total)'
       :'No completed one-time tasks yet.';
+  },
+  // Best/worst habit as a one-line Settings row (icon, name, score, arrow)
+  // that opens the habit's page — or a tracked project's page — with back
+  // returning to Statistics (HabitDetail.origin / _trackerOrigin).
+  habitRow:function(r,icon,color){
+    if(!r)return '<div class="opt-group"><div class="cal-none">No scheduled habits yet.</div></div>';
+    var it=r.item,go=it.trackerPid
+      ?"_projFromDaily='"+it.trackerPid+"';_trackerOrigin='stats';Nav.go('"+it.trackerPid+"')"
+      :"HabitDetail.open('"+it.id+"')";
+    return '<div class="opt-group"><div class="opt-row" onclick="'+go+'">'
+      +'<div class="opt-ico" style="background:'+color+'">'+icon+'</div>'
+      +'<div class="opt-text"><div class="opt-title">'+esc(habitName(it))+'</div></div>'
+      +'<span style="margin-left:auto;font-size:15px;font-weight:500;color:#999">'+r.pct+'%</span>'
+      +'<span style="display:inline-flex;transform:rotate(-90deg);margin-left:-2px">'+ICON_CHEVRON+'</span></div></div>';
   },
   setView:function(v){
     this.view=v;
@@ -5885,7 +5908,8 @@ var TabBar={
     var cur=Nav.cur;
     if(['today','overview','lockedin','stats','blocker','settings'].indexOf(cur)!==-1)return cur;
     if(SETTINGS_SUBPAGES.indexOf(cur)!==-1)return 'settings';
-    if(cur==='habit-detail')return HabitDetail.origin==='today'?'today':'overview';
+    if(cur==='habit-detail'){var o=HabitDetail.origin;return o==='today'||o==='stats'?o:'overview';}
+    if(_projFromDaily&&cur===_projFromDaily&&(_trackerOrigin==='today'||_trackerOrigin==='stats'))return _trackerOrigin;
     return 'overview';
   },
   updateActive:function(){

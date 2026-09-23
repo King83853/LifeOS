@@ -548,10 +548,11 @@ html[data-theme="light"] .hh-btn{color:#1a1917}
 /* Buttons on settings pages: a normal white widget row with blue text (no
    icons on sub-pages; icons stay on the main settings list) */
 .btn-row{cursor:pointer;transition:background .12s ease}
-/* Every clickable white row/button flashes this same darker grey while
-   pressed — but only rows that open something: a row holding a switch
-   does nothing itself (only its switch toggles), so it never greys. */
-html:not(#x) .opt-row:not(:has(.switch)):active{background:var(--press)}
+/* Settings-style rows grey through the same JS `.pressed-row` as task and
+   habit rows (see "Press grey for task and habit rows"), so the grey and
+   how it runs into the page slide are identical everywhere — and a row
+   holding a switch never greys: it does nothing itself (only its switch
+   toggles), and the grey is only for rows that open something. */
 .btn-row .opt-title{color:#007aff}
 html[data-theme="dark"] .btn-row .opt-title{color:#0a84ff}
 @media(prefers-color-scheme:dark){html:not([data-theme="light"]) .btn-row .opt-title{color:#0a84ff}}
@@ -741,14 +742,14 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
    box is a real touch target that must never grey, and a swipe to skip
    must never flash grey either. */
 html:not(#x) .cat-choice:active,html:not(#x) .color-field:active{background:var(--press)}
-html:not(#x) .cali.pressed-row,html:not(#x) .ti.pressed-row,html:not(#x) .wri.pressed-row{background:var(--press)}
+html:not(#x) .cali.pressed-row,html:not(#x) .ti.pressed-row,html:not(#x) .wri.pressed-row,html:not(#x) .opt-row.pressed-row{background:var(--press)}
 html:not(#x) .acard:active{background:var(--press)}
 /* Press grey timing, every element that greys: fades in over .2s; after
    release it stays .15s, then fades out over .4s. A transition uses the
    timing of the state it's going TO, so the fade-in lives on the pressed
    state and the linger + fade-out on the resting one. */
 html:not(#x) .opt-row,html:not(#x) .hdr-add,html:not(#x) .menu-btn,html:not(#x) .back,html:not(#x) .edit-proj-btn,html:not(#x) .addbtn,html:not(#x) .hh-btn,html:not(#x) .el-btn,html:not(#x) .sheet-save,html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .cali,html:not(#x) .cat-choice,html:not(#x) .color-field,html:not(#x) .acard{transition:background .4s ease .15s}
-html:not(#x) .opt-row:active,html:not(#x) .hdr-add:active,html:not(#x) .menu-btn:active,html:not(#x) .back:active,html:not(#x) .edit-proj-btn:active,html:not(#x) .addbtn:active,html:not(#x) .hh-btn:active,html:not(#x) .el-btn:active,html:not(#x) .sheet-save:active,html:not(#x) .cat-choice:active,html:not(#x) .color-field:active,html:not(#x) .acard:active,html:not(#x) .pressed-row{transition:background .2s ease}
+html:not(#x) .hdr-add:active,html:not(#x) .menu-btn:active,html:not(#x) .back:active,html:not(#x) .edit-proj-btn:active,html:not(#x) .addbtn:active,html:not(#x) .hh-btn:active,html:not(#x) .el-btn:active,html:not(#x) .sheet-save:active,html:not(#x) .cat-choice:active,html:not(#x) .color-field:active,html:not(#x) .acard:active,html:not(#x) .pressed-row{transition:background .2s ease}
 /* New tracker entry window: the tracker's unit sits inside the value field
    on the right. */
 .trk-add-row{position:relative}
@@ -1249,7 +1250,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.97';
+var APP_VERSION='Beta 2.98';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1970,6 +1971,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 2.97',notes:[
     'Fixed (iPhone): tapping a field in a window moved the window up but the keyboard did not open'
+  ]},
+  {v:'Beta 2.98',notes:[
+    'Settings rows now turn grey exactly like the rows on Today, so tapping one and sliding into its page feels the same everywhere'
   ]}
 ];
 var COLORS={
@@ -4908,8 +4912,9 @@ function tickEdge(row){
   var tz=row.querySelector('.cali-tick');if(tz)return tz.getBoundingClientRect().right;
   var cb=row.querySelector('input[type=checkbox]');return cb?cb.getBoundingClientRect().right+6:-1;
 }
-// Press grey for task and habit rows — a manual class instead of :active
-// (which can't tell the tick zone apart reliably on a real device):
+// Press grey for task and habit rows — and Settings-style rows (.opt-row),
+// so every row greys the exact same way — a manual class instead of
+// :active (which can't tell the tick zone apart reliably on a real device):
 //  - never in the tick zone, never on a row with nothing to open (one-time
 //    tasks) or a locked habit;
 //  - it waits PRESS_DELAY before showing, and any movement (a swipe to skip,
@@ -4923,7 +4928,7 @@ var PRESS_DELAY=110,PRESS_TAP_MS=200;
   document.addEventListener('touchstart',function(e){
     if(timer){clearTimeout(timer);timer=null;}
     row=null;
-    var r=e.target.closest('.cali:not([data-once]):not(.locked),.ti:not([data-once]),.wri');
+    var r=e.target.closest('.cali:not([data-once]):not(.locked),.ti:not([data-once]),.wri,.opt-row:not(:has(.switch))');
     if(!r||e.target.closest('input')||e.touches[0].clientX<=tickEdge(r))return;
     row=r;sx=e.touches[0].clientX;sy=e.touches[0].clientY;
     timer=setTimeout(function(){timer=null;if(row)row.classList.add('pressed-row');},PRESS_DELAY);

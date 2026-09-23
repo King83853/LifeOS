@@ -408,6 +408,16 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   transition takes the timing of the state it's going TO, which is what
   makes the linger possible even for plain `:active`. New greying
   elements need adding to both selector lists there.
+  2.98 — Settings-style rows (`.opt-row`, not switch rows) moved onto the
+  same JS `.pressed-row` IIFE, asked for as "the slide and grey animation
+  in Today is perfect, make Settings the same". The page slide itself was
+  already identical (both go through navForward, 280ms; page renders
+  measured <1ms either way) — the felt difference was the grey: plain
+  `:active` starts instantly and starts fading the moment the finger
+  lifts, i.e. exactly when the slide begins, so a quick tap never reached
+  full grey; the JS version holds a full flash for PRESS_TAP_MS into the
+  slide. When two things "feel" different but share their animation
+  code, compare what runs AROUND the animation before touching it.
 
 - Stats/habit-detail progress ring (`renderPieChart`): fully round ends
   (`stroke-linecap="round"`) were called cheap-looking, flat ends (2.89)

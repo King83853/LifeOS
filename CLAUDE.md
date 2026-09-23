@@ -598,6 +598,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   has "Hold to complete" ON (the fresh-install default), where a plain
   tap on a habit deliberately doesn't tick — turn it off in a test before
   concluding that ticking is broken.
+  `location.reload()` doesn't reload this preview's data: snapshot (a
+  marker variable survives it), and a tab can't be put into the mobile
+  preset before its first load — so code that decides "is this iOS" at
+  load time always sees desktop here. To test such a path, eval the real
+  block from `document.scripts[0].textContent` with only the flag line
+  replaced (2.97 did this for the keyboard tap takeover).
   Screenshots only show what the pane last PAINTED: when the Browser pane
   is hidden (`document.visibilityState==='hidden'`) it stops repainting
   and every screenshot repeats the last frame even though the DOM has
@@ -1107,9 +1113,20 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   = visible height - top safe area - 12px, beats per-sheet max-heights
   with !important) and the focused field is scrolled into view inside
   it; any visual-viewport pan (offsetTop>0) is scrolled back to the
-  locked position; and on iOS the sheet is pre-lifted on touchstart by
-  the last measured keyboard height (localStorage 'lifeos-kb', else 40%
-  of the screen) BEFORE the field focuses, undone if no focus follows.
+  locked position; and on iOS the sheet is lifted by the last measured
+  keyboard height (localStorage 'lifeos-kb', else 40% of the screen)
+  BEFORE the field focuses. 2.96 did that lift on touchstart — the
+  background stopped moving, but the keyboard never opened: moving the
+  field out from under the finger mid-tap makes iOS drop the tap, so the
+  field never got focus. 2.97 takes the tap over instead: on touchend of
+  a real tap (no >10px move) on a text field in a sheet, with no field
+  focused yet, it preventDefault()s the native focus, lifts the sheet,
+  and calls `field.focus({preventScroll:true})` itself — still inside the
+  touch gesture, which is what lets iOS open the keyboard. Text fields
+  only (date/time open pickers); a tap on an already-focused field stays
+  native (caret placement); undone after 600ms if no focus followed.
+  General lesson: never move/restyle the element under the finger between
+  touchstart and touchend on iOS if the tap itself must still work.
   The lift formula (innerHeight - vv.height - vv.offsetTop) already gives
   0 on an Android that shrinks the layout viewport itself, so Android only
   gets the height cap. Verified by overriding visualViewport.height/

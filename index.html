@@ -1249,7 +1249,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.96';
+var APP_VERSION='Beta 2.97';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1967,6 +1967,9 @@ var CHANGELOG=[
   {v:'Beta 2.96',notes:[
     'Fixed (Android): windows like New project could be pushed up past the top of the screen when the keyboard opened — a window now always fits above the keyboard and scrolls inside if needed',
     'The page behind a window should no longer shift up when the keyboard opens'
+  ]},
+  {v:'Beta 2.97',notes:[
+    'Fixed (iPhone): tapping a field in a window moved the window up but the keyboard did not open'
   ]}
 ];
 var COLORS={
@@ -5953,10 +5956,10 @@ document.addEventListener('focusout',function(e){
 // The page behind must not move either. iOS pans the view up to reveal the
 // focused field as the keyboard opens, before the lift above can make that
 // unnecessary, so (1) on iOS the sheet is lifted by the last known keyboard
-// height already on touchstart, BEFORE the field gets focus, so iOS sees a
-// field that's already above the keyboard; (2) any pan that still happens
-// is scrolled back (the page is scroll-locked while a sheet is open, see
-// _lockBodyScroll, so there is exactly one right scroll position).
+// height BEFORE the field gets focus (see the tap takeover below), so iOS
+// sees a field that's already above the keyboard; (2) any pan that still
+// happens is scrolled back (the page is scroll-locked while a sheet is
+// open, see _lockBodyScroll, so there is exactly one right scroll position).
 if(window.visualViewport){
   (function(){
     var vv=window.visualViewport,IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
@@ -5990,19 +5993,39 @@ if(window.visualViewport){
     vv.addEventListener('resize',sync);
     vv.addEventListener('scroll',sync);
     document.addEventListener('focusin',function(e){if(typingInSheet(e.target))setTimeout(sync,0);});
-    // (1) iOS: lift before the field is focused (only when the keyboard
-    // isn't already up — then sync() is already keeping it right).
+    // (1) iOS, when no field is focused yet: a tap on a text field in a
+    // sheet is taken over — on touchend (a real tap: the finger didn't
+    // move) the native focus is cancelled, the sheet is lifted by the last
+    // known keyboard height, and THEN the field is focused ourselves, still
+    // inside the tap, which is what lets iOS open the keyboard. Lifting on
+    // touchstart instead (2.96) moved the field out from under the finger
+    // mid-tap; iOS then dropped the tap and the keyboard never opened.
+    // Only text fields: date/time inputs open pickers, not the keyboard.
+    function textField(el){
+      if(el.tagName==='TEXTAREA')return true;
+      return el.tagName==='INPUT'&&/^(text|search|email|tel|url|password|number|)$/i.test(el.getAttribute('type')||'');
+    }
+    var tap=null;
     document.addEventListener('touchstart',function(e){
-      if(!IOS||!typingInSheet(e.target)||typingInSheet(document.activeElement))return;
-      var sheet=openSheet();if(!sheet)return;
+      tap=null;
+      if(!IOS||!typingInSheet(e.target)||!textField(e.target)||typingInSheet(document.activeElement))return;
+      tap={el:e.target,x:e.touches[0].clientX,y:e.touches[0].clientY};
+    },{passive:true,capture:true});
+    document.addEventListener('touchmove',function(e){
+      if(tap&&(Math.abs(e.touches[0].clientX-tap.x)>10||Math.abs(e.touches[0].clientY-tap.y)>10))tap=null;
+    },{passive:true,capture:true});
+    document.addEventListener('touchcancel',function(){tap=null;},{passive:true,capture:true});
+    document.addEventListener('touchend',function(e){
+      var t=tap;tap=null;
+      var sheet=t&&openSheet();
+      if(!sheet||!sheet.contains(t.el))return;
+      e.preventDefault();
       var kb=lastKb||Math.round(window.innerHeight*0.4);
       place(sheet,kb,window.innerHeight-kb);
-    },{passive:true,capture:true});
-    // ...and undo that if the touch didn't end up focusing a field (it
-    // became a scroll, or was cancelled).
-    function undoEarlyLift(){setTimeout(function(){if(!typingInSheet(document.activeElement))reset();},400);}
-    document.addEventListener('touchend',function(){if(IOS)undoEarlyLift();},{passive:true,capture:true});
-    document.addEventListener('touchcancel',function(){if(IOS)undoEarlyLift();},{passive:true,capture:true});
+      t.el.focus({preventScroll:true});
+      // If the keyboard didn't come after all, don't leave the sheet up.
+      setTimeout(function(){if(!typingInSheet(document.activeElement))reset();},600);
+    },{passive:false,capture:true});
     document.addEventListener('focusout',function(e){
       if(!_isTypingField(e.target))return;
       // Moving from one field to the next blurs then focuses — only drop

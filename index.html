@@ -241,7 +241,7 @@ html[data-theme="light"] .hd-pie-pct{fill:#1a1917}
 @media(prefers-color-scheme:dark){.calsec{background:#1e1c1a;border-color:#2a2927}}
 html[data-theme="dark"] .calsec{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .calsec{background:#fff;border-color:#e8e5e0}
-.cali{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #f5f3ef;min-height:40px;position:relative;overflow:hidden}
+.cali{display:flex;align-items:center;gap:12px;padding:0 14px;border-bottom:1px solid #f5f3ef;position:relative;overflow:hidden}
 @media(prefers-color-scheme:dark){.cali{border-color:#252320}}
 html[data-theme="dark"] .cali{border-color:#252320}
 html[data-theme="light"] .cali{border-color:#f5f3ef}
@@ -577,27 +577,20 @@ html[data-theme="light"]{--line:#d5d7db;--pg:#f3f4f6;--card:#fff;--press:#d5d6db
 html:not(#x) .wri{background:transparent;border:none;border-bottom:0.5px solid var(--line);border-radius:0;margin:0;padding:8px 10px}
 html:not(#x) .wri:last-child{border-bottom:none}
 .wri .bdg{height:27px;min-height:27px;padding-top:0;padding-bottom:0}
-/* dividers inside a card run edge to edge, like in Settings (14px padding
-   + the card's 1.5px border) */
-.calsec .sw.h{margin:0 -15.5px}
-.calsec .sw.h .sw-row{padding:0 10px}
-.calsec .sw.h .sw-act{left:10px}
-.calsec>.cali{margin:0 -15.5px;padding-left:10px;padding-right:10px}
-/* the last row already has its own padding, so the card needs less below it */
+/* dividers inside a card run edge to edge, like in Settings — .cali carries
+   its own 14px edge padding directly (see .cali above), exactly like
+   .opt-row inside .opt-group, so .calsec itself needs none of its own
+   left/right padding and .sw.h/.sw-row need no compensating margin/padding
+   at all: they're already flush once their parent card has none. */
 /* No (transparent) border on these cards: overflow:hidden clips at the
    padding edge, so a border would keep the dividers 1.5px short of the
-   card's outer edge. Padding = old 14px + 1.5px border. */
-#today-daily .calsec,[id^="dp-"] .calsec{border:none;padding:13.5px 15.5px 2px;overflow:hidden}
-/* Today: the category title sits above its white card, not inside it */
-#today-daily .calsec,[id^="dp-"] .calsec{padding-top:2px}
-/* The bottom padding here left a visible sliver of the card's own white
-   below the last row whenever that row's pressed-grey (or anything else
-   opaque) fills it — invisible when everything was white-on-white, but
-   glaring once the press color got noticeably darker (2.77). No such gap
-   is wanted below the last row at all, so it's removed outright rather
-   than colored to match (matching would still show at the rounded corner
-   seam). Top keeps its 2px, for spacing under the category title. */
-#today-daily .calsec,[id^="dp-"] .calsec{padding-bottom:0}
+   card's outer edge. */
+/* Today/Daily: the category title sits above its white card, not inside
+   it, hence the 2px top gap; no bottom padding at all (2.77 — it used to
+   leave a visible sliver of the card's own white below the last row
+   whenever that row's pressed-grey filled it) and, since 2.87, no
+   left/right padding either now that .cali carries its own 14px. */
+#today-daily .calsec,[id^="dp-"] .calsec{border:none;padding:2px 0 0;overflow:hidden}
 html:not(#x) .archbox{border:none}
 /* project badge in task rows: a touch slimmer than the default 30px */
 .ti .bdg{height:27px;min-height:27px;display:inline-flex;align-items:center;padding-top:0;padding-bottom:0}
@@ -735,22 +728,22 @@ html:not(#x) .card-list .ti{padding-top:0;padding-bottom:0}
 .ts-date{font-size:12px;font-weight:500;color:#999;white-space:nowrap;flex-shrink:0}
 /* Task/habit/list rows and similar tappable white widgets flash the same
    darker grey as the buttons above while pressed (see 2.72), instead of
-   giving no feedback at all. `:active` bubbles up from ANY pressed
-   descendant, including the checkbox — :not(:has(input:active)) keeps the
-   grey to presses on the row itself (the bar/label), since the checkbox
-   already has its own tick animation and doesn't need this too. This only
-   covers .cali as a DIRECT child of .calsec (Daily, or Today with Skip
-   habits off) — once "Skip habits" wraps a row in .sw.h/.sw-row (Today),
-   :has(input:active) stopped reliably excluding the real, normal-sized
-   checkbox there (unlike .switch's zero-size input, which never actually
-   receives the touch), and .cali itself sits inset by .sw-row's own
-   padding so a background on .cali alone fell short of the row's real
-   edges. See the .pressed-row JS below (search "swipe-wrapped habit
-   rows") for the wrapped case instead. */
-html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .cali,html:not(#x) .cat-choice,html:not(#x) .color-field,html:not(#x) .sw.h .sw-row{transition:background .12s ease}
+   giving no feedback at all. `.ti`/`.wri` use :active:not(:has(input:active))
+   since their checkbox is small relative to the row and :has() has been
+   fine there. `.cali`'s checkbox is a real, normally-sized touch target
+   (unlike .switch's deliberately zero-size input, which is never actually
+   what the finger lands on), and :has(input:active) could not be
+   confirmed reliable for excluding it on a real device — so .cali uses a
+   plain JS-driven `.pressed-row` class instead (search "habit rows" below
+   for the touchstart/touchmove/touchend IIFE), checked with the same
+   closest('input') bail-out already used for TAPPABLE's synthetic clicks.
+   Since 2.87 .cali carries its own edge padding directly (like .opt-row
+   in .opt-group), so this now applies identically whether or not "Skip
+   habits" wraps the row in .sw.h/.sw-row — no more direct-child scoping
+   needed. */
+html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .cali,html:not(#x) .cat-choice,html:not(#x) .color-field{transition:background .12s ease}
 html:not(#x) .ti:active:not(:has(input:active)),html:not(#x) .wri:active:not(:has(input:active)),html:not(#x) .cat-choice:active,html:not(#x) .color-field:active{background:var(--press)}
-html:not(#x) .calsec>.cali:not(.locked):active:not(:has(input:active)){background:var(--press)}
-html:not(#x) .sw.h .sw-row.pressed-row{background:var(--press)}
+html:not(#x) .cali:not(.locked).pressed-row{background:var(--press)}
 html:not(#x) .acard:active{background:var(--press)}
 /* A row with no border-radius of its own relies entirely on its card's
    overflow:hidden clip to look rounded — but that clip only cuts a SHARP
@@ -1201,7 +1194,7 @@ html:not(#x) #daily-cat-list .el-row:last-child{border-radius:0 0 14px 14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 2.87';
+var APP_VERSION='Beta 2.88';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1872,6 +1865,10 @@ var CHANGELOG=[
   {v:'Beta 2.87',notes:[
     'Fixed: on Today, with Skip habits turned on, pressing a habit\'s tick box still turned the whole row grey',
     'Fixed: that same pressed-grey on Today\'s habits didn\'t reach the row\'s edges'
+  ]},
+  {v:'Beta 2.88',notes:[
+    'Habit rows now line up their edges exactly like Settings\' rows do, on both Today and Daily',
+    'Slower, more graceful slide when opening or closing a page'
   ]}
 ];
 var COLORS={
@@ -3728,7 +3725,7 @@ function navForward(id){
   cur.scrollTop=_scrollPos[cur.id]||0; // prevent top-flash when fixing
   _fixPage(next,100);
   _renderPage(id);
-  _slideUnit(next,cur,100,0,160,function(){
+  _slideUnit(next,cur,100,0,280,function(){
     document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');_unfix(p);});
     next.classList.add('active');
     window.scrollTo({top:0,behavior:'instant'}); // projects always start at top
@@ -3779,7 +3776,7 @@ function navBack(targetId){
   ov.scrollTop=savedY;
   _fixPage(ov,-100);
   _renderPage(targetId);
-  _slideUnit(cur,ov,0,100,180,function(){
+  _slideUnit(cur,ov,0,100,280,function(){
     _unfix(cur);cur.classList.remove('active');
     _unfix(ov);
     ov.classList.add('active');
@@ -4694,19 +4691,17 @@ function swipeWrap(kind,inner){
   if(kind==='h'&&DB.data.settings.skipHabits===false)return inner;
   return '<div class="sw '+kind+'"><div class="sw-act"><span>Skip'+SKIP_ICON+'</span></div><div class="sw-row">'+inner+'</div></div>';
 }
-// Press feedback for Today's swipe-wrapped habit rows (see the CSS comment
+// Press feedback for habit rows (Today and Daily — see the CSS comment
 // above ".pressed-row"): a manual class instead of :active, so excluding
 // the checkbox is a plain closest('input') check rather than relying on
-// :has(input:active), and so the class lands on .sw-row — the element
-// that's actually full-bleed once wrapped — rather than the inset .cali.
+// :has(input:active) against a real, normally-sized touch target.
 (function(){
   var cur=null,sx=0,sy=0;
   function clear(){if(cur){cur.classList.remove('pressed-row');cur=null;}}
   document.addEventListener('touchstart',function(e){
     clear();
     if(e.target.closest('input'))return;
-    var wrap=e.target.closest('.sw.h');
-    var row=wrap&&wrap.querySelector('.sw-row');
+    var row=e.target.closest('.cali');
     if(row){cur=row;row.classList.add('pressed-row');sx=e.touches[0].clientX;sy=e.touches[0].clientY;}
   },{passive:true});
   document.addEventListener('touchmove',function(e){

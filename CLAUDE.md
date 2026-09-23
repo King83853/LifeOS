@@ -256,43 +256,66 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   (already added). No emojis on categories, section titles, choice rows or
   type buttons (only user-chosen project icons remain).
 
-- The `.cali:not(.locked):active:not(:has(input:active))` press-grey rule
-  (see the "Task/habit/list rows" CSS comment) only reliably works when
-  `.cali` is a DIRECT CHILD of `.calsec` — true on Daily always (it never
-  goes through `swipeWrap`), and on Today only when Settings > Today >
-  "Skip habits" is OFF. With that setting ON, `swipeWrap('h',...)` wraps
-  every habit row in `.sw.h > .sw-row > .cali`, and reported (2.87) as two
-  separate symptoms on a real device: pressing the tick box still greyed
-  the row, and the grey didn't reach the row's edges. Root causes, found
-  by measuring actual rendered widths rather than guessing: (1) `.sw-row`
-  has `padding:0 10px` while `.sw.h` (its parent) carries the negative-
-  margin edge compensation — so `.sw-row` itself is genuinely full-bleed
-  (measured equal to `.calsec`'s width), but `.cali` nested inside it is
-  20px narrower, which is exactly the "doesn't reach the edges" report;
-  (2) unlike `.switch input` (deliberately `width:0;height:0` so it's
-  never the actual touch target — see the TAPPABLE bail-out below),
-  `.cali`'s checkbox is a real, normally-sized, visible input and IS what
-  the finger actually lands on — `:has(input:active)` could not be
+- `.cali`'s press-grey went through two rounds (2.87, then 2.88 — the
+  2.87 approach is superseded, don't resurrect it). First round tried to
+  keep `.cali`'s box model as-is (edge inset via a `.calsec>.cali{margin:
+  0 -15.5px;padding:0 10px}` hack) and patch around `swipeWrap('h',...)`
+  wrapping habit rows in `.sw.h > .sw-row > .cali` when Settings > Today
+  > "Skip habits" is ON: scoped the CSS rule to `.calsec>.cali` (direct
+  child only) and added a separate `.pressed-row` class on `.sw-row` for
+  the wrapped case. That fixed the two reported symptoms (checkbox press
+  greying the row; grey not reaching the edges) but still left `.cali`
+  laid out differently from Settings' `.opt-row`, and got flagged
+  immediately as still visibly misaligned ("the top is not aligning") —
+  told directly to stop patching and copy `.opt-row`'s actual layout
+  instead of reverse-engineering another fix. `.opt-row` never needs any
+  inset hack in the first place because `.opt-group` (its card) carries
+  NO padding of its own — `.opt-row` supplies its own `padding:0 14px`
+  directly and that alone reaches the card's true edge. `.cali`/`.calsec`
+  had the opposite arrangement (card padded, row unpadded, then a
+  negative-margin hack to fix it back up) for no real reason. Fixed by
+  making `.calsec` match `.opt-group`: `#today-daily .calsec,[id^="dp-"]
+  .calsec` padding is now `2px 0 0` (2px top only, for the gap under the
+  category title — no left/right at all), `.cali` itself carries
+  `padding:0 14px` directly, and the old `.calsec>.cali` margin hack plus
+  the `.sw.h`/`.sw-row` margin/padding/`.sw-act` offset overrides are all
+  gone outright — with the card unpadded, `.sw.h` is naturally already
+  flush, so none of that compensation is needed whether a row is wrapped
+  or not. This also means `.cali` is now uniformly the correctly-sized,
+  full-bleed element in EVERY case (Today or Daily, Skip habits on or
+  off), so the wrapped-vs-unwrapped CSS split from the 2.87 round is
+  gone too: one rule, `.cali:not(.locked).pressed-row`, covers all of
+  it. The checkbox-exclusion problem itself was real and stays fixed the
+  same way regardless of layout — `.cali`'s checkbox is a normal,
+  visibly-sized input and genuinely IS the touch target (unlike
+  `.switch input`, deliberately `width:0;height:0` so it's never what
+  the finger actually lands on), and `:has(input:active)` could not be
   confirmed reliable for excluding a real touch target on-device (only
-  testable here via synthetic DOM events, not real `:active` state, so
-  this couldn't be fully root-caused from this environment alone).
-  Rather than keep patching the `:active`/`:has()` approach for the
-  wrapped case, scoped the existing CSS rule to `.calsec>.cali` (the
-  known-working, unwrapped case only — Daily, or Today with the setting
-  off) and added a separate, explicit JS mechanism for the wrapped case:
-  a small touchstart/touchmove/touchend IIFE (search "swipe-wrapped habit
-  rows") that adds a `.pressed-row` class to `.sw-row` (the actually
-  full-bleed element) unless the touch started inside `input` — the same
-  `closest('input')`-style bail-out already used for TAPPABLE, rather
-  than trusting `:has()` against a real device's touch target. Movement
-  past 10px (matching TAPPABLE's own threshold) clears it, so a swipe
-  starting doesn't leave the grey stuck. Verified via dispatched
-  TouchEvents: checkbox press never adds the class, label/bar press does
-  and reaches the full measured width, movement clears it. If a similar
-  press-grey bug ever shows up on `.sw.t` (tasks) — which uses the exact
-  same `swipeWrap`/`.sw-row` structure and hasn't been reported broken,
-  so was deliberately left untouched this round — this is the same root
-  cause and the same fix shape applies.
+  testable here via synthetic DOM events, not real `:active` state). The
+  `.pressed-row` class is still JS-driven (search "Press feedback for
+  habit rows"): a touchstart/touchmove/touchend IIFE that bails out on
+  `closest('input')` — the same style of bail-out TAPPABLE already uses
+  — and clears on >10px movement so a swipe starting doesn't leave the
+  grey stuck. Verified via dispatched TouchEvents (checkbox press never
+  adds the class; bar press does and now measures exactly equal to
+  `.calsec`'s width in both Today and Daily) plus a visual screenshot.
+  Lesson worth keeping: when two structurally-identical widgets
+  (`.opt-row`/`.opt-group` vs `.cali`/`.calsec`) end up laid out
+  differently for no functional reason, matching the ALREADY-WORKING
+  one's actual box model is more reliable than layering CSS specificity
+  tricks on top of the divergent one — asked for explicitly here after
+  the narrower patch still visibly didn't match. `.sw.t` (tasks) uses
+  the same `swipeWrap`/`.sw-row` structure and hasn't been reported
+  broken or misaligned, so it was deliberately left as-is; if it ever
+  is, this same box-model mismatch is the first thing to check.
+
+- Page-open/close slide (`navForward`/`navBack`, via `_slideUnit`) was
+  160ms forward / 180ms back — reported as feeling too quick, wanted
+  slower and more graceful. Both bumped to 280ms (same ease-out-cubic
+  curve, untouched). Deliberately left the swipe-back gesture's own
+  `_slideUnit` calls (the 120ms ones, for the interactive drag-release
+  snap) alone — those are driven by the finger leaving the screen, not a
+  tap, and the request was specifically about tapping into/out of a page.
 
 - A tracker-linked Daily item (`ciTracker()`) renders on BOTH Today and
   Daily now (since 2.53), sharing one function — but `_projFromDaily`

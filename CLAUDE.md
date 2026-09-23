@@ -474,7 +474,8 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
 - Statistics (2.99) is laid out like a Settings page: `#p-stats` has the
   `.sp` class (Settings row sizing), `.sl` section labels, 14px between
   cards; best/worst are one-line `.opt-row`s in an `.opt-group` with an
-  `.opt-ico` (green trend-up / red trend-down), score and arrow
+  `.opt-ico` (green triangle up / red triangle down since 3.0 — trend
+  lines were too busy), score and arrow
   (`Stats.habitRow`), tapping opens the habit page (`HabitDetail.open`,
   origin 'stats') or a tracked project's page (`_trackerOrigin='stats'`);
   back and swipe-back return to Statistics via `_backTarget`, and

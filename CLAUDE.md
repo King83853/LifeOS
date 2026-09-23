@@ -717,6 +717,17 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   2.92 with an `:only-child` (and `.cali.row-first.row-last`) rule giving
   all four corners — every row type in that rule set is covered.
 
+- Status-bar blur (`.statusbar-blur`, shown once the page scrolls): its
+  mask used to end at 50% opacity, which drew a hard line where the blur
+  stopped. Since 3.3 the mask fades fully to transparent with an eased
+  curve over the last 44px, and the element is 28px taller so the
+  full-strength part reaches as far as before (height was "perfect",
+  only the edge was wrong). backdrop-filter and the mask must stay on the
+  SAME element: a mask/opacity on a parent turns it into a backdrop root,
+  and children's backdrop-filter would then have nothing to blur. The
+  preview has no notch (safe-area 0) — to eyeball it, temporarily set its
+  height to `calc(59px + 34px)` and put content under it.
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

@@ -23,7 +23,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 html[data-theme="dark"] body{background:#1f2937;color:#e8e6df}
 html[data-theme="light"] body{background:#f3f4f6;color:#1a1917}
 .page{display:none;padding:calc(env(safe-area-inset-top) + 14px) 16px 118px}.page.active{display:block}
-.statusbar-blur{position:fixed;top:-14px;left:0;right:0;height:calc(env(safe-area-inset-top) + 6px);background:rgba(243,244,246,.35);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);-webkit-mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.5) 100%);mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.5) 100%);z-index:140;pointer-events:none;opacity:0;transition:opacity .25s ease}
+/* Blur behind the status bar once content scrolls under it. It fades out
+   completely at the bottom (eased, over the last 44px) instead of ending
+   at half strength, which left a hard line; 28px taller than it used to
+   be so the full-strength part still reaches as far as before. */
+.statusbar-blur{position:fixed;top:-14px;left:0;right:0;height:calc(env(safe-area-inset-top) + 34px);background:rgba(243,244,246,.35);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 44px),rgba(0,0,0,.9) calc(100% - 37px),rgba(0,0,0,.72) calc(100% - 29px),rgba(0,0,0,.5) calc(100% - 22px),rgba(0,0,0,.28) calc(100% - 14px),rgba(0,0,0,.1) calc(100% - 7px),transparent 100%);mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 44px),rgba(0,0,0,.9) calc(100% - 37px),rgba(0,0,0,.72) calc(100% - 29px),rgba(0,0,0,.5) calc(100% - 22px),rgba(0,0,0,.28) calc(100% - 14px),rgba(0,0,0,.1) calc(100% - 7px),transparent 100%);z-index:140;pointer-events:none;opacity:0;transition:opacity .25s ease}
 .statusbar-blur.on{opacity:1}
 @media(prefers-color-scheme:dark){.statusbar-blur{background:rgba(26,25,23,.35)}}
 html[data-theme="dark"] .statusbar-blur{background:rgba(26,25,23,.35)}
@@ -1255,7 +1259,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.2';
+var APP_VERSION='Beta 3.3';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -1993,6 +1997,9 @@ var CHANGELOG=[
   {v:'Beta 3.2',notes:[
     'Fixed: some Settings rows (Light, Dark, System, Reset skipped tasks) never turned grey when pressed',
     'Rows with a dropdown (like Language) no longer turn grey — the dropdown is the control, not the row'
+  ]},
+  {v:'Beta 3.3',notes:[
+    'The blur under the status bar now fades out smoothly instead of ending in a hard line'
   ]}
 ];
 var COLORS={

@@ -817,7 +817,7 @@ html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
       <div><div class="dtitle">Overview</div></div>
     </div>
     <div class="hdr-r">
-      <button class="hdr-add" onclick="TabPlus.tap()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <button class="hdr-add" onclick="TabPlus.tap(this)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
     </div>
   </div>
   <div class="wr" id="war-box" style="display:none">
@@ -957,7 +957,7 @@ html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
       <div><div class="dtitle">Tasks</div></div>
     </div>
     <div class="hdr-r">
-      <button class="hdr-add" onclick="LockedIn.openViewMenu()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
+      <button class="hdr-add" onclick="LockedIn.openViewMenu(this)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
     </div>
   </div>
   <div id="lockedin-list"></div>
@@ -1254,7 +1254,7 @@ html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.26';
+var APP_VERSION='Beta 3.27';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2070,6 +2070,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.26',notes:[
     'A skipped habit no longer says "skipped" next to its name — its tick box already shows it'
+  ]},
+  {v:'Beta 3.27',notes:[
+    'The + on Overview and the view button in Tasks open a small dropdown under the button instead of a window from the bottom'
   ]}
 ];
 var COLORS={
@@ -3099,13 +3102,10 @@ var LockedIn={
     this.view=v;
     renderLockedIn();
   },
-  openViewMenu:function(){
+  // What the Tasks tab shows: a dropdown under the header button.
+  openViewMenu:function(btn){
     var self=this;
-    AddChoice.show('View',[
-      {icon:'',label:'Tasks',fn:function(){self.setView('tasks');}},
-      {icon:'',label:'List',fn:function(){self.setView('list');}},
-      {icon:'',label:'Calendar',fn:function(){self.setView('calendar');}}
-    ]);
+    DSel.menu(btn,[{value:'tasks',label:'Tasks'},{value:'list',label:'List'},{value:'calendar',label:'Calendar'}],this.view,function(v){self.setView(v);});
   }
 };
 
@@ -3283,28 +3283,32 @@ var DSel=(function(){
   function open(btn){
     var wrap=btn.closest('.dsel-wrap');if(!wrap)return;
     var opts=JSON.parse(wrap.getAttribute('data-opts')),cur=wrap.getAttribute('data-cur'),code=wrap.getAttribute('data-on');
+    // right under the row (the widget), tucked in a few px so it visually belongs to it
+    show(wrap,wrap.closest('.opt-row')||wrap,opts,cur,function(v){new Function(code).call({value:String(v)});},-5);
+  }
+  // The list itself: `anchor` is what it opens under (right-aligned with
+  // it), `gap` the px between them, `pick(value)` runs on a choice.
+  function show(ownerEl,anchor,opts,cur,pick,gap){
     menu=document.createElement('div');menu.className='dsel-menu';
     menu.innerHTML=opts.map(function(o,i){
-      return '<div class="dsel-opt'+(String(o.value)===cur?' sel':'')+'" data-i="'+i+'">'+esc(o.label)+'</div>';
+      return '<div class="dsel-opt'+(cur!=null&&String(o.value)===String(cur)?' sel':'')+'" data-i="'+i+'">'+esc(o.label)+'</div>';
     }).join('');
     menu.addEventListener('click',function(e){
       var it=e.target.closest('.dsel-opt');if(!it)return;
       var v=opts[+it.getAttribute('data-i')].value;
       close();
-      new Function(code).call({value:String(v)});
+      pick(v);
     });
     document.body.appendChild(menu);
-    owner=wrap;wrap.classList.add('open');
-    // right under the row (the widget), right-aligned with it, tucked in a
-    // few px so it visually belongs to it
-    var row=wrap.closest('.opt-row')||wrap,r=row.getBoundingClientRect();
+    owner=ownerEl;ownerEl.classList.add('open');
+    var r=anchor.getBoundingClientRect();
     var mh=menu.offsetHeight,mw=menu.offsetWidth,vh=window.innerHeight;
-    var top=r.bottom-5,below=vh-top-8;
+    var top=r.bottom+gap,below=vh-top-8;
     if(mh>below){
       // not enough room below: shrink to fit if it's still a usable size,
       // otherwise open above the row
       if(below>=140){menu.style.maxHeight=below+'px';}
-      else{var above=r.top+5-8;menu.style.maxHeight=Math.min(mh,above)+'px';top=r.top+5-Math.min(mh,above);}
+      else{var above=r.top-gap-8;menu.style.maxHeight=Math.min(mh,above)+'px';top=r.top-gap-Math.min(mh,above);}
     }
     menu.style.top=Math.max(8,top)+'px';
     menu.style.left=Math.max(12,Math.min(r.right-mw,window.innerWidth-mw-12))+'px';
@@ -3322,6 +3326,13 @@ var DSel=(function(){
       var same=owner&&owner===btn.closest('.dsel-wrap');
       close();
       if(!same)open(btn);
+    },
+    // The same dropdown under any button (Overview's +, Tasks' view button):
+    // opts [{value,label}], `cur` gets the check mark (null: none).
+    menu:function(btn,opts,cur,pick){
+      var same=owner===btn;
+      close();
+      if(!same)show(btn,btn,opts,cur,pick,6);
     },
     close:close
   };
@@ -6123,7 +6134,8 @@ var TabBar={
 };
 
 var TabPlus={
-  tap:function(){
+  // `btn`: the header button tapped (Overview's +), for a dropdown under it.
+  tap:function(btn){
     var cur=Nav.cur;
     if(cur==='habits'){
       AddChoice.show('Add task',[
@@ -6137,6 +6149,12 @@ var TabPlus={
     var p=DB.data.projects[cur];
     if(p&&p.type==='tracker'){TrackerAddSheet.open(cur);return;}
     if(p&&p.type!=='daily'){TaskSheet.openNew(cur);return;}
+    if(btn){
+      DSel.menu(btn,[{value:'category',label:'Category'},{value:'project',label:'Project'}],null,function(v){
+        if(v==='category')A.newCategory();else A.newProject();
+      });
+      return;
+    }
     AddChoice.show('Add',[
       {icon:'',label:'Category',fn:function(){A.newCategory();}},
       {icon:'',label:'Project',fn:function(){A.newProject();}}

@@ -1296,6 +1296,13 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   looked unfinished, so it has to be deferred until the moving page covers
   the bar and shown immediately when something slides back.
 
+- Header-button dropdowns (3.27): Overview's "+" (Category / Project) and
+  Tasks' view button (Tasks / List / Calendar, current one checked) open the
+  same floating list DSel uses, right under the button — `DSel.menu(btn,
+  opts,cur,pick)` (the list-building/positioning part of DSel is `show()`;
+  customSelect rows still go through `toggle`). They used to open AddChoice
+  bottom sheets; asked for as "a normal drop down". Daily's "+" and project
+  pages' "+" were not part of the request and still use their windows.
 - DSel dropdowns (customSelect/DSel — Language, Day starts at, Tasks shown,
   Reset a project, and since 2.61 the Task window's Priority/Project rows)
   render their open list (`.dsel-menu`) as a floating element appended

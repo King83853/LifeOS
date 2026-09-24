@@ -288,6 +288,13 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   inside an `.opt-row` need the `input` bail-out in the TAPPABLE handler
   (already added). No emojis on categories, section titles, choice rows or
   type buttons (only user-chosen project icons remain).
+  Count badges (3.17, asked for as "same font, size, style — color can
+  differ"): Trash's count in Settings (`.ab`), the counts next to each
+  priority in Tasks (`.sl-count`) and the War Room count on Overview
+  (`.wrb`) share one rule at the end of the CSS — a 22px pill, 12px/700
+  tabular numbers — and keep their own colors. Inside an 11px `.sl` label
+  the pill has -5px vertical margins so the label doesn't get taller. A new
+  count badge should join that rule instead of getting its own sizes.
 
 - `.cali`'s press-grey went through two rounds (2.87, then 2.88 — the
   2.87 approach is superseded, don't resurrect it). First round tried to

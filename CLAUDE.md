@@ -794,6 +794,31 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   2.92 with an `:only-child` (and `.cali.row-first.row-last`) rule giving
   all four corners — every row type in that rule set is covered.
 
+- Pages scroll inside their OWN frame (3.14), not the document: `.page` is
+  `position:fixed; top:0; bottom:var(--tb-h)` with `overflow-y:auto`, and
+  `.tabbar` has `height:var(--tb-h)` (71px + bottom safe area), so the tab
+  bar sits OUTSIDE every scroller, like a native app. Why: an on-device
+  readout (iOS 18.1, 3.13) proved iOS delivers NO event at all (no
+  touchstart/pointerdown/click) for the tap that stops a coasting scroll —
+  with the document scrolling, the tab bar was part of it, so the first tap
+  on the menu only ever stopped the scroll and no JS could react (3.10's
+  touchstart switch couldn't help). Consequences: the document never
+  scrolls; scroll position is `page.scrollTop` (`_saveScroll`,
+  `_pageScrollY()`), saved per page in `_scrollPos` (a display:none page
+  loses its scrollTop); `_fixPage/_unfix` only show/move/paint a page for a
+  slide (pages are already fixed scrollers); navForward/navSwitch start the
+  new page at scrollTop 0, navBack/swipe-back restore the saved one; the
+  status-bar blur listens to scroll in CAPTURE phase and reads the active
+  page (`_syncBlur()` after switches/slides); the sheet scroll lock
+  (`_lockBodyScroll`) is `overflow-y:hidden` on the active page (also stops
+  a coasting scroll; the old body position:fixed / html overflow:hidden
+  modes and `_bodyLockY/_lockMode` are gone); the keyboard code undoes any
+  visual pan with scrollTo(0,0). Page bottom padding is 24px (it was 118px
+  to clear the tab bar; `.proj-page`'s own 118px was removed too). Known
+  loss: tapping the iOS status bar no longer scrolls a page to the top
+  (iOS only does that for the document). Anything new that reads or sets
+  scroll must use the active page, never `window.scrollY`/`scrollTo`.
+
 - Status-bar blur (`.statusbar-blur`, shown once the page scrolls): its
   mask used to end at 50% opacity, which drew a hard line where the blur
   stopped. Since 3.3 the mask fades fully to transparent with an eased
@@ -904,16 +929,13 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   that stops a scroll apparently never reached touchend-based handling on
   their phone. Not scrolling, the tab bar still acts on touchend (so a
   scroll gesture that starts on the tab bar doesn't switch tabs).
-  3.13: reported that this did NOT help — the first tap on the menu while
-  the page coasts still only stops the scroll. Shipped a TEMPORARY readout
-  (search "TEMPORARY (3.13) readout") listing every touch/pointer/click
-  event the tab bar received within 2s of a scroll, to learn whether the
-  phone delivers that first tap to the page at all. If it doesn't, the
-  only fix is native-app structure: pages scrolling inside their own
-  container (not the document) so the tab bar sits outside the scroller —
-  a big change to slides/_scrollPos/statusbar blur/scroll lock; confirm the
-  blast radius with the user before doing it. Remove the readout (and
-  reword nothing in CHANGELOG — it was never listed there) once read.
+  3.13: reported that this did NOT help. A TEMPORARY readout (search
+  "TEMPORARY (3.13) readout": every touch/pointer/click event the tab bar
+  got within 2s of a scroll) showed on iOS 18.1 that the stopping tap is
+  never delivered to the page at all. Fixed structurally in 3.14 — see
+  "Pages scroll inside their OWN frame". The readout stays until the user
+  confirms on the phone that the first tap now shows up (and switches);
+  then remove it (it was never in CHANGELOG).
 
 - `checkForUpdate` (index.html, `A.checkForUpdate`) went through several
   broken iterations worth knowing about: (1) originally deleted all
@@ -1200,8 +1222,10 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   bottom 793 + strip; lock off -> 852, no strip. When a rendering bug is
   device-only and reproduction fails in preview, ship a diagnostic like
   that after the FIRST failed guess, not the fourth.
-  Fix: `_lockBodyScroll` uses `overflow:hidden` on `<html>` (no viewport
-  change) when `navigator.standalone===true`, and keeps the original
+  Fix (superseded in 3.14 — pages now scroll in their own frames and the
+  lock is overflow:hidden on the active page, see that entry):
+  `_lockBodyScroll` used `overflow:hidden` on `<html>` (no viewport
+  change) when `navigator.standalone===true`, and kept the original
   `position:fixed` body lock everywhere else. `_lockMode` remembers which
   was applied so unlock undoes the right one. Since 2.19 a document-level non-passive `touchmove` (search "While a
   sheet is open nothing behind it may scroll") also cancels any drag that

@@ -22,7 +22,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @media(prefers-color-scheme:dark){body{background:#1f2937;color:#e8e6df}}
 html[data-theme="dark"] body{background:#1f2937;color:#e8e6df}
 html[data-theme="light"] body{background:#f3f4f6;color:#1a1917}
-.page{display:none;padding:calc(env(safe-area-inset-top) + 14px) 16px 118px}.page.active{display:block}
+:root{--tb-h:calc(71px + env(safe-area-inset-bottom))}
+/* Every page scrolls inside its own frame, which ends where the tab bar
+   begins (like a native app): a tap on the tab bar never lands on what's
+   scrolling, so it works even while a page is still coasting — iOS eats the
+   tap that stops a scroll, and before this that included the tab bar. */
+.page{display:none;position:fixed;top:0;left:0;right:0;bottom:var(--tb-h);overflow-x:hidden;overflow-y:auto;overscroll-behavior:none;padding:calc(env(safe-area-inset-top) + 14px) 16px 24px}.page.active{display:block}
 /* Blur behind the status bar once content scrolls under it. It fades out
    completely at the bottom (eased, over the last 44px) instead of ending
    at half strength, which left a hard line; 28px taller than it used to
@@ -35,7 +40,7 @@ body.sliding .statusbar-blur{display:none}
 html[data-theme="dark"] .statusbar-blur{background:rgba(26,25,23,.35)}
 html[data-theme="light"] .statusbar-blur{background:rgba(243,244,246,.35)}
 
-.tabbar{position:fixed;left:0;right:0;bottom:0;background:#f3f4f6;border-top:1px solid #e8e5e0;display:flex;align-items:stretch;z-index:150;padding:10px 0 calc(env(safe-area-inset-bottom) + 6px)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;height:var(--tb-h);background:#f3f4f6;border-top:1px solid #e8e5e0;display:flex;align-items:stretch;z-index:150;padding:10px 0 calc(env(safe-area-inset-bottom) + 6px)}
 @media(prefers-color-scheme:dark){.tabbar{background:#1f2937;border-color:#2a2927}}
 html[data-theme="dark"] .tabbar{background:#1f2937;border-color:#2a2927}
 html[data-theme="light"] .tabbar{background:#f3f4f6;border-color:#e8e5e0}
@@ -131,10 +136,6 @@ html[data-theme="dark"] .dico{background:#1f2937;color:#e8e6df}
 html[data-theme="light"] .dico{background:#f3f4f6;color:#1a1917}
 .dtitle{font-size:20px;font-weight:800}
 .dsub{font-size:12px;color:#999;margin-top:3px}
-/* Project detail pages: back button, title/desc and the add-task "+"
-   button all sit in one header row (no floating FAB — see
-   TabPlus.tap()); the bottom tab bar stays visible */
-.proj-page{padding-bottom:118px}
 
 .ti,.wri{position:relative;overflow:hidden}
 .ti{display:flex;align-items:center;gap:12px;padding:8px;background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px;transition:opacity .3s}
@@ -1252,7 +1253,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.13';
+var APP_VERSION='Beta 3.14';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2027,6 +2028,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.13',notes:[
     'Tracker habits use the same tick box as every other habit: ticked when the goal is reached (or anything is logged, without a goal). The logged number sits on the right, in front of the arrow'
+  ]},
+  {v:'Beta 3.14',notes:[
+    'Pages now scroll inside their own frame above the menu bar, like a native app — tapping the menu while a page is still moving switches right away instead of only stopping the scroll'
   ]}
 ];
 var COLORS={
@@ -3941,21 +3945,21 @@ var A={
 
 // ── PAGE TRANSITIONS ──────────────────────────────────────
 var _scrollPos={};
-function _saveScroll(p){if(p)_scrollPos[p.id]=window.scrollY||0;}
+function _saveScroll(p){if(p)_scrollPos[p.id]=p.scrollTop||0;}
+// The active page's scroll position (each page scrolls in its own frame).
+function _pageScrollY(){var p=document.querySelector('.page.active');return p?p.scrollTop:0;}
+function _syncBlur(){var b=document.querySelector('.statusbar-blur');if(b)b.classList.toggle('on',_pageScrollY()>4);}
 
+// A page taking part in a slide: shown, opaque, moved sideways.
 function _fixPage(p,x){
   if(!p)return;
   p.style.display='block';
-  p.style.position='fixed';p.style.top='0';p.style.left='0';
-  p.style.right='0';p.style.bottom='0';p.style.overflow='auto';
   p.style.background=isDarkNow()?'#1f2937':'#f3f4f6';p.style.transform='translateX('+x+'%)';
 }
 function _unfix(p){
   if(!p)return;
-  p.style.position='';p.style.top='';p.style.left='';p.style.right='';
-  p.style.bottom='';p.style.overflow='';p.style.background='';
-  p.style.transform='';p.style.display='';
-  document.body.style.overflow=''; // always release body scroll
+  p.style.background='';p.style.transform='';p.style.display='';
+  document.body.style.overflow='';
 }
 
 function _slideUnit(a,b,from,to,dur,done){
@@ -4009,8 +4013,7 @@ function _slideStart(){
 }
 function _slideEnd(){
   _navBusyUntil=0;
-  var sbb=document.querySelector('.statusbar-blur');
-  if(sbb)sbb.classList.toggle('on',window.scrollY>4); // settle before it's shown again: no fade-in flash
+  _syncBlur(); // settle before it's shown again: no fade-in flash
   document.body.classList.remove('sliding');
 }
 function navForward(id){
@@ -4020,13 +4023,12 @@ function navForward(id){
   if(!_slideStart())return false;
   _saveScroll(cur);
   _fixPage(cur,0);
-  cur.scrollTop=_scrollPos[cur.id]||0; // prevent top-flash when fixing
   _fixPage(next,100);
+  next.scrollTop=0; // pages opened from elsewhere start at the top
   _renderPage(id);
   _slideUnit(next,cur,100,0,SLIDE_MS,function(){
-    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');_unfix(p);});
     next.classList.add('active');
-    window.scrollTo({top:0,behavior:'instant'}); // projects always start at top
+    document.querySelectorAll('.page').forEach(function(p){if(p!==next)p.classList.remove('active');_unfix(p);});
     _slideEnd();
   });
 }
@@ -4040,7 +4042,8 @@ function navSwitch(id){
   _renderPage(id);
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');_unfix(p);});
   next.classList.add('active');
-  window.scrollTo({top:0,behavior:'instant'});
+  next.scrollTop=0;
+  _syncBlur();
 }
 
 // Default back target is Overview for every page, EXCEPT habit-detail —
@@ -4080,15 +4083,12 @@ function navBack(targetId){
   if(!cur||!ov||cur===ov||!_slideStart())return;
   var savedY=_scrollPos['p-'+targetId]||0;
   _fixPage(cur,0);
-  ov.style.display='block';
-  ov.scrollTop=savedY;
   _fixPage(ov,-100);
   _renderPage(targetId);
+  ov.scrollTop=savedY; // back where you left it
   _slideUnit(cur,ov,0,100,SLIDE_MS,function(){
-    _unfix(cur);cur.classList.remove('active');
-    _unfix(ov);
-    ov.classList.add('active');
-    window.scrollTo({top:savedY,behavior:'instant'});
+    cur.classList.remove('active');_unfix(cur);
+    ov.classList.add('active');_unfix(ov);
     _popTo(targetId);Nav.cur=targetId;TabBar.updateActive();
     _slideEnd();
   });
@@ -4123,7 +4123,6 @@ function navBack(targetId){
       document.body.style.overflow='hidden';
       _renderPage(backTarget);
       _fixPage(cur,0);
-      ov.style.display='block';
       _fixPage(ov,-100);
       ov.scrollTop=savedY;
     }
@@ -4154,18 +4153,15 @@ function navBack(targetId){
     if((pct>25&&vel>=0)||(vel>0.2&&pct>5)){
       _slideUnit(cur,ov,pct,100,120,function(){
         document.body.style.overflow='';
-        _unfix(cur);cur.classList.remove('active');
-        _unfix(ov);
-        ov.classList.add('active');
-        window.scrollTo({top:savedY,behavior:'instant'});
+        cur.classList.remove('active');_unfix(cur);
+        ov.classList.add('active');_unfix(ov);
+        _syncBlur();
         _popTo(backTarget);Nav.cur=backTarget;TabBar.updateActive();
       });
     } else {
       _slideUnit(cur,ov,pct,0,120,function(){
         document.body.style.overflow='';
-        _unfix(ov);ov.style.display='';
-        window.scrollTo({top:_scrollPos[cur.id]||0,behavior:'instant'});
-        _unfix(cur);
+        _unfix(ov);_unfix(cur);
       });
     }
   },{passive:true});
@@ -5576,16 +5572,18 @@ document.addEventListener('touchmove',function(e){
 // Status bar blur only appears once content has actually scrolled up under
 // it — nothing to blur at rest, so no reason to show a bar there.
 var _sbb=null;
-window.addEventListener('scroll',function(){
+window.addEventListener('scroll',function(e){
+  var p=e.target;
+  if(!p.classList||!p.classList.contains('page')||!p.classList.contains('active'))return;
   if(!_sbb)_sbb=document.querySelector('.statusbar-blur');
-  _sbb.classList.toggle('on',window.scrollY>4);
-},{passive:true});
+  _sbb.classList.toggle('on',p.scrollTop>4);
+},{passive:true,capture:true});
 
 var _overlayCount=0;
 var _instantClose=false; // set by the swipe-down dismiss: its own slide already finished
-// While a sheet is open nothing behind it may scroll. overflow:hidden on
-// <html> isn't honored for touch scrolling on every iOS version, so this
-// also cancels any drag that would scroll the page: drags on the backdrop,
+// While a sheet is open nothing behind it may scroll. Besides the page's
+// overflow:hidden (_lockBodyScroll), this cancels any drag that would
+// scroll something behind the sheet: drags on the backdrop,
 // and drags inside a sheet that can't scroll any further in that direction
 // (no chaining into the page). Scrolling a sheet's own content still works.
 (function(){
@@ -5679,31 +5677,17 @@ var _instantClose=false; // set by the swipe-down dismiss: its own slide already
     }
   },{passive:true});
 })();
-// Scroll lock while any sheet is open. position:fixed on <body> (top:-scrollY,
-// restored on unlock) stops an already-running iOS momentum scroll dead,
-// which touchmove blocking can't. In the installed iPhone app it shrinks the
-// layout viewport by the top safe area (852 -> 793), leaving a strip under
-// every sheet and moving the fixed tab bar, so there it's overflow:hidden on
-// <html> instead. _lockMode remembers which was applied. See CLAUDE.md.
-var _bodyLockY=0,_lockMode='fixed';
+// Scroll lock while any sheet is open: the active page (each page scrolls in
+// its own frame) stops scrolling — overflow:hidden also stops a scroll that's
+// still coasting, and keeps its position. The document itself never scrolls.
+var _lockedPage=null;
 function _lockBodyScroll(){
-  _bodyLockY=window.scrollY||document.documentElement.scrollTop||0;
-  _lockMode=(navigator.standalone===true)?'overflow':'fixed';
-  if(_lockMode==='overflow'){
-    document.documentElement.style.overflow='hidden';
-  } else {
-    var b=document.body.style;
-    b.position='fixed';b.top=(-_bodyLockY)+'px';b.left='0';b.right='0';b.width='100%';
-  }
+  _lockedPage=document.querySelector('.page.active');
+  if(_lockedPage)_lockedPage.style.overflowY='hidden';
 }
 function _unlockBodyScroll(){
-  if(_lockMode==='overflow'){
-    document.documentElement.style.overflow='';
-  } else {
-    var b=document.body.style;
-    b.position='';b.top='';b.left='';b.right='';b.width='';
-    window.scrollTo(0,_bodyLockY);
-  }
+  if(_lockedPage)_lockedPage.style.overflowY='';
+  _lockedPage=null;
 }
 // Kept in sync with .sheet's "transition:transform .13s" — the close path
 // waits this long for the slide to finish before hiding the sheet.
@@ -6190,8 +6174,8 @@ document.querySelectorAll('.sheet-overlay .sheet').forEach(function(sh){
 //    (instead of laying the keyboard over it) would carry the window up
 //    with it, so there it's moved back down by the same amount; any pan of
 //    the view (iOS reveals a focused field that way) is scrolled back — the
-//    page is scroll-locked while a sheet is open (_lockBodyScroll), so
-//    there is exactly one right position.
+//    document itself never scrolls (pages scroll in their own frames), so
+//    its one right position is the top.
 //  - the window gets extra bottom padding for the part the keyboard covers,
 //    so what's under the keyboard can still be scrolled into view INSIDE
 //    it, and a field the keyboard would still cover (one too far down for
@@ -6219,7 +6203,7 @@ if(window.visualViewport){
       sheet.style.bottom=shrink?(-shrink)+'px':'';
       var kb=Math.round(base-vv.height);
       if(kb>120&&kb>KbFit.keyboard(base)){try{localStorage.setItem('lifeos-kb',String(kb));}catch(e){}}
-      if(vv.offsetTop>0&&_overlayCount>0)window.scrollTo(0,_lockMode==='fixed'?0:_bodyLockY);
+      if(vv.offsetTop>0&&_overlayCount>0)window.scrollTo(0,0); // the document never scrolls: any pan is the keyboard's
       var line=vv.offsetTop+vv.height;
       room(sheet,Math.max(0,sheet.getBoundingClientRect().bottom-line));
       reveal(sheet,a,line);
@@ -6271,7 +6255,7 @@ if(window.visualViewport){
 // left to the browser's own click, and the tab bar acts on touchstart while
 // the page is scrolling (both explained below).
 var _lastScrollAt=0;
-window.addEventListener('scroll',function(){_lastScrollAt=Date.now();},{passive:true});
+window.addEventListener('scroll',function(){_lastScrollAt=Date.now();},{passive:true,capture:true});
 // TEMPORARY (3.13) readout: which events the phone reports for a tap on the
 // tab bar within 2s of scrolling — to see why a tap there while the page is
 // still moving only stops the scroll (3.10's touchstart switch didn't help

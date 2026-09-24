@@ -446,6 +446,17 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   the finger, else only if it's the single match). Any render function
   that runs on navigation and rebuilds the page you're LEAVING will cause
   this; prefer setHTML-style "only if changed" writes there.
+  3.10 — "the grey in Settings still feels a touch weaker than Today's":
+  color, fade timings and slide were measured identical. The real
+  difference was WHO clicks: Today's rows open on the browser's own click,
+  which comes a moment after touchend, so the grey gets a head start before
+  the slide; Settings' `.opt-row`s were clicked by TAPPABLE synchronously
+  inside touchend, so the slide started in the same frame as the grey.
+  Rows that grey (`PRESS_ROWS` with an onclick) are now left to the native
+  click (TAPPABLE skips them), same path as Today by construction. The
+  carry-over now waits for that click (capture listener, 300ms fallback)
+  instead of a fixed 50ms. When two things "feel" different but measure
+  the same, compare which code path triggers them, not just the timings.
 
 - Stats/habit-detail progress ring (`renderPieChart`): fully round ends
   (`stroke-linecap="round"`) were called cheap-looking, flat ends (2.89)
@@ -635,6 +646,10 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   Fixed with a `dataset.dragWired` guard so that specific container is
   only ever wired once; the per-category `.agrid`s and Daily's `.calsec`s
   genuinely ARE fresh elements every render, so they need no such guard.
+  3.11: a habit row is picked up only from its BAR — a touch in the tick
+  zone (`input`, or x <= `tickEdge(row)`, the same split as the press
+  grey) never primes a drag (DragReorder.init's touchstart). Before, a
+  hold on the tick box both ticked (hold-to-complete) and started a drag.
   Only verified via synthetic `Touch`/`TouchEvent` dispatch in this desktop
   preview (real long-press timing and drag physics need a real phone) —
   one thing that surfaced there and is worth knowing before "debugging" it
@@ -868,6 +883,15 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   would have caught this before shipping — didn't happen. When adding
   ANY new interactive element inside an `.opt-row`, `.acard`, or other
   TAPPABLE container, check this bail-out list first.
+  3.10: rows that grey (PRESS_ROWS with an onclick) are no longer clicked
+  by TAPPABLE at all (see the press-grey entry) — so a tap on them during
+  a momentum scroll only stops the scroll, which the user wants ("I don't
+  want to click something when I just want to stop scrolling"). The one
+  exception they asked for is the tab bar: `.tab-item` clicks on TOUCHSTART
+  while the page is scrolling (`_lastScrollAt` < 150ms ago), since a tap
+  that stops a scroll apparently never reached touchend-based handling on
+  their phone. Not scrolling, the tab bar still acts on touchend (so a
+  scroll gesture that starts on the tab bar doesn't switch tabs).
 
 - `checkForUpdate` (index.html, `A.checkForUpdate`) went through several
   broken iterations worth knowing about: (1) originally deleted all
@@ -1267,6 +1291,26 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   needs the real phone — if it doesn't, ship an on-device readout of
   innerHeight/vv.height/vv.offsetTop/scrollY during focus (see the
   "dead space" entry) before guessing again.
+  3.10 — the lift itself was the problem: "it looks best if nothing moves
+  and the keyboard goes over everything", plus "make all the input windows
+  high enough so it doesn't cover them". The lift, the `.kb`/`--kbvh`
+  height cap and the iOS pre-lift are gone. Now `KbFit.fit(sheet)` runs in
+  `_overlayOpen` (before the slide-up, and again one frame later) for any
+  sheet with a text field and sets its `height` so every visible text field
+  (a tall notes box: its first 88px) ends 16px above the predicted keyboard
+  top, including the first `.sheet-save` when that still fits; capped at
+  screen - top safe area - 12px. Predicted keyboard = largest measured
+  (`lifeos-kb`, only ever raised; iOS number pad is shorter than the text
+  keyboard) or 46% of the screen. A MutationObserver re-fits (grow only)
+  when an open sheet's content changes. While typing, the sheet gets extra
+  bottom padding for the covered part so a field that still can't fit
+  (New project's emoji/Window size) is scrolled up INSIDE it; on iOS that
+  scroll happens in the tap takeover before focus (only for such fields —
+  fields above the line get a plain native tap). Android: viewport meta
+  has `interactive-widget=resizes-visual`, and if the layout viewport still
+  shrinks, the sheet gets a negative `bottom` so it stays put. Verified with
+  an overridden visualViewport.height in the preview; the real keyboard
+  height and iOS's pan behavior need the phone.
 
 - A single wrong CHANGELOG string (2.85) silently broke the ENTIRE app —
   worth internalizing exactly how, since nothing about it looked wrong at

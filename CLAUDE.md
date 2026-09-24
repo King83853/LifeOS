@@ -1383,6 +1383,18 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   phone before changing anything: slid>0 with 'tap' = preventScroll isn't
   enough on iOS; page height changing = the layout viewport resizes (then
   sync's negative `bottom` is what moves). Remove KbDiag once settled.
+  3.19 — confirmed on the phone: the first tap no longer bumps, but tapping
+  from one field to ANOTHER still did (it was left native). The takeover now
+  covers any tap on a text field that isn't the one already focused ('switch'
+  in KbDiag; the "covered?" line uses the real visible bottom when the
+  keyboard is up), and puts the caret at the end of the field's text
+  (setSelectionRange in try/catch — number inputs throw). A tap on the
+  focused field itself stays native so the caret can still be placed.
+  Also by request: no word suggestions/autocorrect anywhere — `_noSuggest`
+  sets autocomplete=off, autocorrect=off, spellcheck=false on every typing
+  field (at load, and on touchstart/focusin for fields rendered later). iOS
+  may still show an empty or AutoFill-only bar above the keyboard; pages
+  can't remove that bar entirely.
 
 - A single wrong CHANGELOG string (2.85) silently broke the ENTIRE app —
   worth internalizing exactly how, since nothing about it looked wrong at

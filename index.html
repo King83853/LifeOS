@@ -1261,7 +1261,7 @@ html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.18';
+var APP_VERSION='Beta 3.19';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2051,6 +2051,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.18',notes:[
     'Those counts are smaller now, and the War Room shows just the number'
+  ]},
+  {v:'Beta 3.19',notes:[
+    'Tapping from one text field to another no longer makes the app bump either',
+    'No more word suggestions or autocorrect while typing'
   ]}
 ];
 var COLORS={
@@ -6189,6 +6193,18 @@ document.querySelectorAll('.sheet-overlay .sheet').forEach(function(sh){
     else KbFit.fit(sh,true);
   }).observe(sh,{childList:true,subtree:true,attributes:true,attributeFilter:['style']});
 });
+// No word suggestions or autocorrect on any text field (asked for: the
+// suggestion bar above the keyboard). Set before focus — on load for every
+// field, and on touchstart for fields rendered later — since the keyboard
+// reads them when it opens.
+function _noSuggest(el){
+  if(!el||!_isTypingField(el)||el.hasAttribute('data-nosug'))return;
+  el.setAttribute('autocomplete','off');el.setAttribute('autocorrect','off');el.setAttribute('spellcheck','false');
+  el.setAttribute('data-nosug','');
+}
+document.querySelectorAll('input,textarea').forEach(_noSuggest);
+document.addEventListener('touchstart',function(e){_noSuggest(e.target);},{passive:true,capture:true});
+document.addEventListener('focusin',function(e){_noSuggest(e.target);},true);
 // Keyboard check (3.16): what the phone reported the last time the keyboard
 // opened for a window — how far the view slid (visual viewport offsetTop),
 // whether the page height changed, the keyboard height. Shown at the bottom
@@ -6257,18 +6273,20 @@ if(window.visualViewport){
     document.addEventListener('focusin',function(e){if(typingInSheet(e.target)){KbDiag.start('native');setTimeout(sync,0);}});
     // iOS slides the whole view up when a tapped field gets focus and the
     // keyboard opens — even for a field that's already above the keyboard —
-    // and undoing that slide made the app bump up and down. So the first tap
-    // on a text field in a window (the one that opens the keyboard) is taken
-    // over on touchend (a real tap: the finger didn't move): the native focus
-    // is cancelled, a field the keyboard would still cover is scrolled up
+    // and undoing that slide made the app bump up and down; it does the same
+    // when you tap from one field to another. So a tap on a text field in a
+    // window that isn't the one already being typed in is taken over on
+    // touchend (a real tap: the finger didn't move): the native focus is
+    // cancelled, a field the keyboard would (still) cover is scrolled up
     // inside its window, and THEN it's focused by us with preventScroll,
-    // still inside the tap, which is what lets iOS open the keyboard. Nothing
-    // may move under the finger between touchstart and touchend (2.96 did,
-    // and iOS dropped the tap).
+    // still inside the tap, which is what lets iOS open the keyboard; the
+    // caret goes to the end of its text. A tap on the field already being
+    // typed in stays native (placing the caret). Nothing may move under the
+    // finger between touchstart and touchend (2.96 did, and iOS dropped the tap).
     var tap=null;
     document.addEventListener('touchstart',function(e){
       tap=null;
-      if(!IOS||!typingInSheet(e.target)||!KbFit.textField(e.target)||typingInSheet(document.activeElement))return;
+      if(!IOS||!typingInSheet(e.target)||!KbFit.textField(e.target)||e.target===document.activeElement)return;
       tap={el:e.target,x:e.touches[0].clientX,y:e.touches[0].clientY};
     },{passive:true,capture:true});
     document.addEventListener('touchmove',function(e){
@@ -6279,14 +6297,16 @@ if(window.visualViewport){
       var t=tap;tap=null;
       var sheet=t&&t.el.closest('.sheet-overlay.on .sheet');
       if(!sheet)return;
-      var H=KbFit.baseH||window.innerHeight,line=H-KbFit.keyboard(H);
+      var open=typingInSheet(document.activeElement); // keyboard already up: switching fields
+      var H=KbFit.baseH||window.innerHeight,line=open?vv.offsetTop+vv.height:H-KbFit.keyboard(H);
       e.preventDefault();
       if(KbFit.end(t.el)>line-KbFit.GAP){ // the keyboard would cover it
         room(sheet,Math.max(0,sheet.getBoundingClientRect().bottom-line));
         reveal(sheet,t.el,line);
       }
-      KbDiag.start('tap');
+      KbDiag.start(open?'switch':'tap');
       t.el.focus({preventScroll:true});
+      try{var n=t.el.value.length;t.el.setSelectionRange(n,n);}catch(err){} // not every input type allows it
       setTimeout(function(){if(!typingInSheet(document.activeElement))reset();},600);
     },{passive:false,capture:true});
     document.addEventListener('focusout',function(e){

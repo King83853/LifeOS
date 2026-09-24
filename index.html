@@ -29,6 +29,7 @@ html[data-theme="light"] body{background:#f3f4f6;color:#1a1917}
    be so the full-strength part still reaches as far as before. */
 .statusbar-blur{position:fixed;top:-14px;left:0;right:0;height:calc(env(safe-area-inset-top) + 34px);background:rgba(243,244,246,.35);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 44px),rgba(0,0,0,.9) calc(100% - 37px),rgba(0,0,0,.72) calc(100% - 29px),rgba(0,0,0,.5) calc(100% - 22px),rgba(0,0,0,.28) calc(100% - 14px),rgba(0,0,0,.1) calc(100% - 7px),transparent 100%);mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 44px),rgba(0,0,0,.9) calc(100% - 37px),rgba(0,0,0,.72) calc(100% - 29px),rgba(0,0,0,.5) calc(100% - 22px),rgba(0,0,0,.28) calc(100% - 14px),rgba(0,0,0,.1) calc(100% - 7px),transparent 100%);z-index:140;pointer-events:none;opacity:0;transition:opacity .25s ease}
 .statusbar-blur.on{opacity:1}
+.data-notice{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 8px);z-index:700;background:var(--card,#fff);color:var(--ink,#1a1917);border-radius:14px;padding:12px 14px;font-size:13px;font-weight:500;line-height:1.45;box-shadow:0 6px 24px rgba(0,0,0,.16);cursor:pointer}
 @media(prefers-color-scheme:dark){.statusbar-blur{background:rgba(26,25,23,.35)}}
 html[data-theme="dark"] .statusbar-blur{background:rgba(26,25,23,.35)}
 html[data-theme="light"] .statusbar-blur{background:rgba(243,244,246,.35)}
@@ -1259,7 +1260,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.3';
+var APP_VERSION='Beta 3.4';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2000,6 +2001,11 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.3',notes:[
     'The blur under the status bar now fades out smoothly instead of ending in a hard line'
+  ]},
+  {v:'Beta 3.4',notes:[
+    'Your data is better protected: the app asks your phone to keep it even when storage runs low',
+    'If saved data ever can\'t be read, the app no longer starts empty and saves over it — it keeps it safe and tells you',
+    'If saving ever fails (for example when the phone is full), you now get a message instead of changes silently not sticking'
   ]}
 ];
 var COLORS={
@@ -2039,6 +2045,25 @@ var DEFAULT_SETTINGS={
   dayStartHour:3,todayHabitsDisappear:true,skipHabits:false,
   todayTaskCount:3,todayRefill:false,skipTasks:true,showWarRoom:true
 };
+// A plain notice card at the top of the screen for the rare data problems
+// in DB.load / DB.save — tap it to dismiss.
+var DataNotice={
+  _saveShown:false,
+  show:function(msg){
+    var el=document.getElementById('data-notice');
+    if(!el){el=document.createElement('div');el.id='data-notice';el.className='data-notice';el.onclick=function(){el.remove();};document.body.appendChild(el);}
+    el.textContent=msg;
+  },
+  loadFailed:function(kind){
+    this.show(kind==='unavailable'
+      ?"Your saved data couldn't be opened right now. Nothing will be saved over it — close the app completely and open it again."
+      :"Your saved data couldn't be read. It's kept safe and won't be overwritten — export a copy in Settings > Data. Changes you make now won't be saved.");
+  },
+  saveFailed:function(){
+    if(this._saveShown)return;this._saveShown=true;
+    this.show("Your latest changes couldn't be saved — your phone's storage refused them. Free up some space and export a backup in Settings > Data.");
+  }
+};
 var DB={
   KEY:'lifeos',
   data:null,
@@ -2051,9 +2076,27 @@ var DB={
       projectOrder:{},       // {catId:[projId,...]}
       settings:Object.assign({lastSeenVersion:APP_VERSION,blockerSeeded:true},JSON.parse(JSON.stringify(DEFAULT_SETTINGS)))};
   },
+  // If the saved data exists but can't be read (the phone's storage refused,
+  // or it isn't valid data), the app runs with an empty set in memory and
+  // NEVER saves over the stored copy (readOnly): starting empty and letting
+  // the next save write that over the real data — What's New saves right
+  // after every update — would turn a one-off hiccup into a wipe. The
+  // unreadable text is also kept under 'lifeos-unreadable' for recovery.
+  readOnly:false,loadProblem:null,
   load:function(){
-    try{var r=localStorage.getItem(this.KEY);if(r)this.data=JSON.parse(r);}catch(e){}
+    this.data=null;this.readOnly=false;this.loadProblem=null;
+    var raw=null;
+    try{raw=localStorage.getItem(this.KEY);}catch(e){this.readOnly=true;this.loadProblem='unavailable';}
+    if(raw){
+      try{var parsed=JSON.parse(raw);if(!parsed||typeof parsed!=='object')throw new Error('not data');this.data=parsed;}
+      catch(e){this.readOnly=true;this.loadProblem='unreadable';try{localStorage.setItem('lifeos-unreadable',raw);}catch(e2){}}
+    }
     if(!this.data)this.data=this._blank();
+    try{this._migrate();}catch(e){this.readOnly=true;this.loadProblem='unreadable';}
+    return this;
+  },
+  // Brings data saved by older versions up to date (run by load()).
+  _migrate:function(){
     var d=this.data;
     if(!d.projects)d.projects={};
     if(!d.categories)d.categories={};
@@ -2092,9 +2135,14 @@ var DB={
       return out;
     },[]);
     if(!d.dailyChecks)d.dailyChecks={};
+  },
+  // A failed save (e.g. the phone's storage is full) used to fail silently —
+  // changes just stopped sticking. Now it says so, once per session.
+  save:function(){
+    if(this.readOnly)return this;
+    try{localStorage.setItem(this.KEY,JSON.stringify(this.data));}catch(e){DataNotice.saveFailed();}
     return this;
   },
-  save:function(){try{localStorage.setItem(this.KEY,JSON.stringify(this.data));}catch(e){}return this;},
 
   addCategory:function(name,icon){
     var id='cat'+Date.now()+Math.random().toString(36).slice(2);
@@ -2499,7 +2547,7 @@ var I18N=(function(){
     'Every day':'Jeden Tag','Window size':'Fenstergröße','Moving average':'Gleitender Durchschnitt','Show moving average on chart':'Gleitenden Durchschnitt im Diagramm zeigen',
     'Unit (e.g. kg, kcal, h)':'Einheit (z. B. kg, kcal, h)','Category name':'Kategoriename','New category name':'Neuer Kategoriename','New category name…':'Neuer Kategoriename…',
     'Project name':'Projektname','Task name':'Aufgabenname','Short description (optional)':'Kurze Beschreibung (optional)','Add a task…':'Aufgabe hinzufügen…',
-    'Enter value':'Wert eingeben','Value':'Wert','Goal (optional)':'Ziel (optional)','Done when this is reached':'Erledigt, sobald erreicht','Daily habit':'Tägliche Gewohnheit','Goal':'Ziel','None':'Keins','New project':'Neues Projekt','Edit project':'Projekt bearbeiten','Daily categories':'Tageskategorien','Daily habits':'Tägliche Gewohnheiten',
+    'Enter value':'Wert eingeben','Value':'Wert',"Your saved data couldn't be opened right now. Nothing will be saved over it — close the app completely and open it again.":'Deine gespeicherten Daten konnten gerade nicht geöffnet werden. Es wird nichts darüber gespeichert — schliesse die App ganz und öffne sie wieder.',"Your saved data couldn't be read. It's kept safe and won't be overwritten — export a copy in Settings > Data. Changes you make now won't be saved.":'Deine gespeicherten Daten konnten nicht gelesen werden. Sie bleiben erhalten und werden nicht überschrieben — exportiere eine Kopie unter Einstellungen > Daten. Änderungen werden jetzt nicht gespeichert.',"Your latest changes couldn't be saved — your phone's storage refused them. Free up some space and export a backup in Settings > Data.":'Deine letzten Änderungen konnten nicht gespeichert werden — der Speicher deines Handys hat sie abgelehnt. Gib etwas Speicher frei und exportiere ein Backup unter Einstellungen > Daten.','Goal (optional)':'Ziel (optional)','Done when this is reached':'Erledigt, sobald erreicht','Daily habit':'Tägliche Gewohnheit','Goal':'Ziel','None':'Keins','New project':'Neues Projekt','Edit project':'Projekt bearbeiten','Daily categories':'Tageskategorien','Daily habits':'Tägliche Gewohnheiten',
     'e.g. Business':'z. B. Business','e.g. Chores':'z. B. Haushalt','e.g. Health':'z. B. Gesundheit','Category:':'Kategorie:',
     // priorities
     'High':'Hoch','Medium':'Mittel','Low':'Niedrig','Overdue':'Überfällig',
@@ -6564,6 +6612,15 @@ window.onerror=function(msg,src,line){
   document.body.appendChild(d);
 };
 DB.load();
+if(DB.loadProblem)DataNotice.loadFailed(DB.loadProblem);
+// Ask the browser to keep this app's data even when the phone runs low on
+// space — otherwise Android Chrome may clear a site's storage (all of it,
+// the app's own cached copy included) under storage pressure, which then
+// looks exactly like "the data vanished after an update". Installed apps
+// are normally granted this without asking the user.
+if(navigator.storage&&navigator.storage.persist){
+  navigator.storage.persisted().then(function(p){if(!p)return navigator.storage.persist();}).catch(function(){});
+}
 recomputeT();Nav.sd=0; // re-derive "today" now that the real dayStartHour setting is loaded
 buildProjPages();
 applyHoldMode();

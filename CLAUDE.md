@@ -728,6 +728,31 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   preview has no notch (safe-area 0) — to eyeball it, temporarily set its
   height to `calc(59px + 34px)` and put content under it.
 
+- Data safety (3.4), after a friend on Android (Pixel, probably) lost all
+  data twice "after updates". Nothing in the code deletes data on update
+  (update code only drops caches/SW; storage key has been 'lifeos' in all
+  291 versions; same origin), but two weak spots could turn a phone-side
+  problem into a wipe: (1) `DB.load` silently fell back to an empty set if
+  reading/parsing failed, and What's New saves ~0.4s after every update's
+  first launch — writing that empty set over the real data; (2) the app
+  never asked for persistent storage, so Android Chrome may evict the
+  whole origin (data + cached app) when the phone runs low on space, and
+  the next launch downloads the newest version fresh — indistinguishable
+  from "wiped after an update". Now: `DB.load` sets `DB.readOnly` +
+  `DB.loadProblem` ('unavailable' = storage threw, 'unreadable' = invalid
+  data or a migration threw; migrations moved into `DB._migrate`) and
+  `DB.save` does nothing while readOnly; unreadable text is also copied to
+  'lifeos-unreadable'; `DataNotice` (a tap-to-dismiss card) says what
+  happened; a throwing `setItem` (storage full) shows one notice per
+  session instead of failing silently; startup calls
+  `navigator.storage.persist()` if not yet persisted. NEVER reintroduce a
+  code path that starts with blank data and saves after a failed read.
+  Testing note: this preview blocks localStorage (data: URL), so every
+  load here now starts readOnly with the 'unavailable' notice — expected.
+  To test data paths, swap `window.localStorage` for a fake object via
+  `Object.defineProperty(window,'localStorage',{value:fake,...})` and call
+  `DB.load()`.
+
 ## Known gotchas
 - A past UI change caused cascading breakage across the app — before large
   structural changes to shared components (nav, panels, layout containers),

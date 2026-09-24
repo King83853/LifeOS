@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-visual">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Life OS">
@@ -450,7 +450,6 @@ html[data-theme="light"] .sheet{background:#fff}
 #task-sheet-overlay .sheet{max-height:88vh;padding:18px 18px 20px}
 /* While the keyboard is up (see "must track the KEYBOARD"): never taller
    than what's visible above it, below the status bar. */
-.sheet.kb{max-height:min(88vh,calc(var(--kbvh) - env(safe-area-inset-top) - 12px))!important}
 .ts-title{width:100%;font-size:21px;font-weight:800;line-height:1.25;border:none;background:transparent;color:inherit;outline:none;padding:2px 0;margin-bottom:12px;font-family:inherit}
 .ts-title::placeholder{color:#bbb}
 .ts-notes{min-height:40vh;resize:none;line-height:1.5;font-family:inherit;font-size:16px;padding:14px;margin-bottom:14px;display:block}
@@ -1261,7 +1260,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.9';
+var APP_VERSION='Beta 3.10';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2022,6 +2021,11 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.9',notes:[
     'Fixed: the + on a project page offered "Category / Project" instead of adding a task, for projects created before project types existed'
+  ]},
+  {v:'Beta 3.10',notes:[
+    'The keyboard now slides up over the window instead of pushing it up — nothing moves, and every window with a text field is tall enough that its fields stay above the keyboard',
+    'Settings rows grey exactly like Today\'s: the page no longer starts sliding in the same moment the grey starts',
+    'While the page is still scrolling, tapping a tab in the menu bar goes there right away instead of only stopping the scroll'
   ]}
 ];
 var COLORS={
@@ -5070,10 +5074,18 @@ var PRESS_ROWS='.cali:not([data-once]):not(.locked),.ti:not([data-once]),.wri,.o
   // list while the new page is already sliding in over the touch point.
   // Prefer the copy at the touch point; otherwise use it only if it's the
   // one row with that onclick, so the wrong row never flashes.
+  // Checked right after the row's click (the browser's own click can come a
+  // moment after touchend), or after 300ms if no click comes.
   function carryOver(r,x,y,wasGrey){
-    setTimeout(function(){
-      var sig=r.getAttribute('onclick');
-      if(document.body.contains(r)||!sig)return;
+    var sig=r.getAttribute('onclick'),done=false;
+    if(!sig)return;
+    function onClick(){setTimeout(check,0);}
+    document.addEventListener('click',onClick,true);
+    setTimeout(check,300);
+    function check(){
+      if(done)return;done=true;
+      document.removeEventListener('click',onClick,true);
+      if(document.body.contains(r))return;
       var at=document.elementFromPoint(x,y);at=at&&at.closest(PRESS_ROWS);
       var same=[].filter.call(document.querySelectorAll('.cali,.ti,.wri,.opt-row'),function(el){return el.getAttribute('onclick')===sig&&el.matches(PRESS_ROWS);});
       var n=(at&&same.indexOf(at)!==-1)?at:(same.length===1?same[0]:null);
@@ -5082,7 +5094,7 @@ var PRESS_ROWS='.cali:not([data-once]):not(.locked),.ti:not([data-once]),.wri,.o
       // it was already fully grey: the copy starts grey too, then fades out
       n.classList.add('press-now','pressed-row');void n.offsetWidth;
       n.classList.remove('press-now','pressed-row');
-    },50);
+    }
   }
   document.addEventListener('touchstart',function(e){
     if(timer){clearTimeout(timer);timer=null;}
@@ -5699,8 +5711,9 @@ function _overlayOpen(id){
   var ov=document.getElementById(id);
   // Reopening during a close animation must cancel its pending hide.
   if(ov._closeTimer){clearTimeout(ov._closeTimer);ov._closeTimer=null;}
-  var sh=ov.querySelector('.sheet');if(sh&&!sh.contains(document.activeElement)){sh.style.bottom='';sh.classList.remove('kb');} // no stale keyboard lift from last time
+  var sh=ov.querySelector('.sheet');if(sh&&!sh.contains(document.activeElement)){sh.style.bottom='';sh.style.paddingBottom='';} // nothing left over from the keyboard last time
   ov.classList.add('on'); // display:none -> block; sheet still off-screen
+  if(sh&&KbFit)KbFit.fit(sh); // tall enough that the keyboard won't cover its fields
   _overlayCount++;
   if(_overlayCount===1){
     _lockBodyScroll();
@@ -5710,6 +5723,7 @@ function _overlayOpen(id){
   // (Chrome skips the animation, iOS jumps partway). One rAF isn't reliably
   // enough; two guarantee a rendered closed state first.
   requestAnimationFrame(function(){
+    if(sh&&KbFit)KbFit.fit(sh,true); // content filled in right after opening
     requestAnimationFrame(function(){
       ov.classList.add('show');
     });
@@ -6108,75 +6122,122 @@ document.addEventListener('focusout',function(e){
   if(_isTypingField(e.target))document.body.classList.remove('kb-open');
 });
 
-// The open sheet's position and height must track the KEYBOARD. What's
-// visible above the keyboard is the VISUAL viewport; position:fixed is
-// anchored to the LAYOUT viewport. So while a typing field in a sheet has
-// focus:
-//  - the sheet is lifted by what the keyboard covers of the layout
-//    viewport (innerHeight - visual height - visual offsetTop — 0 on
-//    Android when it shrinks the layout viewport itself, the keyboard's
-//    height on iOS), and
-//  - its max-height is capped to the visible height (class .kb, --kbvh),
-//    so a tall sheet (New project) can't reach past the top of the screen
-//    — sized for the full screen and then lifted, it used to (Android
-//    especially), and its content scrolls inside it instead, with the
-//    focused field kept in view.
-// The page behind must not move either. iOS pans the view up to reveal the
-// focused field as the keyboard opens, before the lift above can make that
-// unnecessary, so (1) on iOS the sheet is lifted by the last known keyboard
-// height BEFORE the field gets focus (see the tap takeover below), so iOS
-// sees a field that's already above the keyboard; (2) any pan that still
-// happens is scrolled back (the page is scroll-locked while a sheet is
-// open, see _lockBodyScroll, so there is exactly one right scroll position).
+// Windows with a text field don't move when the keyboard opens: it comes
+// up OVER their lower part. So each one is sized as it opens (KbFit.fit)
+// to be tall enough that its text fields, and its Save button when that
+// still fits, end above where the keyboard will reach: height = keyboard
+// height + 16px + how far down the lowest field ends (a tall notes box
+// counts with its first lines only), at most up to just below the status
+// bar. The keyboard's height is measured whenever it opens (the largest
+// seen is kept in 'lifeos-kb'); until then 46% of the screen is assumed.
+var KbFit={
+  GAP:16,baseH:0,sync:null,
+  textField:function(el){
+    if(el.tagName==='TEXTAREA')return true;
+    return el.tagName==='INPUT'&&/^(text|search|email|tel|url|password|number|)$/i.test(el.getAttribute('type')||'');
+  },
+  keyboard:function(H){
+    var v=0;try{v=+localStorage.getItem('lifeos-kb')||0;}catch(e){}
+    return v>=H*.25&&v<=H*.62?v:Math.round(H*.46);
+  },
+  // How far down a field reaches, for sizing: only a tall box's first lines count.
+  end:function(el){var r=el.getBoundingClientRect();return r.top+Math.min(r.height,88);},
+  safeTop:function(){
+    if(this._stW!==window.innerWidth){
+      var p=document.createElement('div');
+      p.style.cssText='position:fixed;top:0;left:0;width:0;height:env(safe-area-inset-top);visibility:hidden;pointer-events:none';
+      document.body.appendChild(p);this._st=p.offsetHeight;p.remove();this._stW=window.innerWidth;
+    }
+    return this._st;
+  },
+  // growOnly: re-fit an open window after its content changed, never shrinking it.
+  fit:function(sheet,growOnly){
+    var fields=[].filter.call(sheet.querySelectorAll('input,textarea'),function(el){return KbFit.textField(el)&&el.getClientRects().length;});
+    if(!fields.length)return;
+    var a=document.activeElement;
+    if(!(this.baseH&&a&&_isTypingField(a)))this.baseH=window.innerHeight; // measured with the keyboard down
+    var H=this.baseH,cap=H-this.safeTop()-12;
+    if(!growOnly)sheet.style.height='';
+    sheet.style.maxHeight=cap+'px';
+    var origin=sheet.getBoundingClientRect().top-sheet.scrollTop,low=0;
+    fields.forEach(function(el){low=Math.max(low,KbFit.end(el)-origin);});
+    var kb=this.keyboard(H),need=kb+this.GAP+low;
+    var save=sheet.querySelector('.sheet-save');
+    if(save&&save.getClientRects().length){
+      var withSave=kb+this.GAP+save.getBoundingClientRect().bottom-origin;
+      if(withSave<=cap)need=Math.max(need,withSave);
+    }
+    var h=Math.min(cap,Math.max(sheet.scrollHeight,need));
+    if(growOnly)h=Math.max(h,sheet.offsetHeight);
+    sheet.style.height=Math.round(h)+'px';
+  }
+};
+// Content that changes while a window is open (New project's Unit row,
+// Daily categories' list) re-fits it; while typing, the keyboard code below
+// keeps the field in view instead.
+document.querySelectorAll('.sheet-overlay .sheet').forEach(function(sh){
+  if(!sh.querySelector('input,textarea'))return;
+  new MutationObserver(function(recs){
+    if(!sh.closest('.sheet-overlay.on')||recs.every(function(r){return r.target===sh;}))return;
+    var a=document.activeElement;
+    if(a&&sh.contains(a)&&_isTypingField(a)){if(KbFit.sync)KbFit.sync();}
+    else KbFit.fit(sh,true);
+  }).observe(sh,{childList:true,subtree:true,attributes:true,attributeFilter:['style']});
+});
+// While a field in a window is being typed in:
+//  - nothing moves. An Android that shrinks the page for the keyboard
+//    (instead of laying the keyboard over it) would carry the window up
+//    with it, so there it's moved back down by the same amount; any pan of
+//    the view (iOS reveals a focused field that way) is scrolled back — the
+//    page is scroll-locked while a sheet is open (_lockBodyScroll), so
+//    there is exactly one right position.
+//  - the window gets extra bottom padding for the part the keyboard covers,
+//    so what's under the keyboard can still be scrolled into view INSIDE
+//    it, and a field the keyboard would still cover (one too far down for
+//    the window's height) is scrolled up inside it. The window stays put.
 if(window.visualViewport){
   (function(){
     var vv=window.visualViewport,IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-    var lastKb=0;try{lastKb=+localStorage.getItem('lifeos-kb')||0;}catch(e){}
     function typingInSheet(el){return el&&el.closest&&el.closest('.sheet-overlay.on .sheet')&&_isTypingField(el);}
-    function openSheet(){var ov=document.querySelector('.sheet-overlay.on');return ov&&ov.querySelector('.sheet');}
-    function place(sheet,kb,visH){
-      sheet.style.bottom=kb+'px';
-      sheet.style.setProperty('--kbvh',visH+'px');
-      sheet.classList.add('kb');
+    function room(sheet,px){
+      if(!sheet.style.paddingBottom)sheet._pb=parseFloat(getComputedStyle(sheet).paddingBottom)||0;
+      sheet.style.paddingBottom=px>0?(sheet._pb+px)+'px':'';
+    }
+    function reveal(sheet,field,line){
+      var over=KbFit.end(field)-(line-KbFit.GAP);
+      if(over>0)sheet.scrollTop+=over;
     }
     function reset(){
-      document.querySelectorAll('.sheet-overlay .sheet').forEach(function(sh){sh.style.bottom='';sh.style.removeProperty('--kbvh');sh.classList.remove('kb');});
-    }
-    function keepFocusedVisible(sheet){
-      var a=document.activeElement;if(!a||!sheet.contains(a))return;
-      var ar=a.getBoundingClientRect(),sr=sheet.getBoundingClientRect();
-      if(ar.bottom>sr.bottom-12)sheet.scrollTop+=ar.bottom-sr.bottom+12;
-      else if(ar.top<sr.top+12)sheet.scrollTop-=sr.top+12-ar.top;
+      document.querySelectorAll('.sheet-overlay .sheet').forEach(function(sh){sh.style.bottom='';sh.style.paddingBottom='';});
     }
     function sync(){
-      var sheet=openSheet();
-      if(!sheet||!typingInSheet(document.activeElement))return;
-      var kb=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);
-      var full=Math.max(0,window.innerHeight-vv.height);
-      if(full>120){lastKb=full;try{localStorage.setItem('lifeos-kb',String(full));}catch(e){}}
+      var a=document.activeElement;
+      if(!typingInSheet(a)){if(!tap)reset();return;} // keyboard gone (no focusout on some paths)
+      var sheet=a.closest('.sheet'),base=KbFit.baseH||window.innerHeight;
+      var shrink=Math.max(0,base-window.innerHeight);
+      sheet.style.bottom=shrink?(-shrink)+'px':'';
+      var kb=Math.round(base-vv.height);
+      if(kb>120&&kb>KbFit.keyboard(base)){try{localStorage.setItem('lifeos-kb',String(kb));}catch(e){}}
       if(vv.offsetTop>0&&_overlayCount>0)window.scrollTo(0,_lockMode==='fixed'?0:_bodyLockY);
-      place(sheet,kb,vv.height);
-      keepFocusedVisible(sheet);
+      var line=vv.offsetTop+vv.height;
+      room(sheet,Math.max(0,sheet.getBoundingClientRect().bottom-line));
+      reveal(sheet,a,line);
     }
+    KbFit.sync=sync;
     vv.addEventListener('resize',sync);
     vv.addEventListener('scroll',sync);
     document.addEventListener('focusin',function(e){if(typingInSheet(e.target))setTimeout(sync,0);});
-    // (1) iOS, when no field is focused yet: a tap on a text field in a
-    // sheet is taken over — on touchend (a real tap: the finger didn't
-    // move) the native focus is cancelled, the sheet is lifted by the last
-    // known keyboard height, and THEN the field is focused ourselves, still
-    // inside the tap, which is what lets iOS open the keyboard. Lifting on
-    // touchstart instead (2.96) moved the field out from under the finger
-    // mid-tap; iOS then dropped the tap and the keyboard never opened.
-    // Only text fields: date/time inputs open pickers, not the keyboard.
-    function textField(el){
-      if(el.tagName==='TEXTAREA')return true;
-      return el.tagName==='INPUT'&&/^(text|search|email|tel|url|password|number|)$/i.test(el.getAttribute('type')||'');
-    }
+    // iOS pans the whole view to reveal a field the keyboard will cover. A
+    // field sized above the keyboard is left to the normal tap. For one that
+    // isn't, the tap is taken over on touchend (a real tap: the finger didn't
+    // move): the native focus is cancelled, the field is scrolled up inside
+    // its window, and THEN focused by us, still inside the tap, which is what
+    // lets iOS open the keyboard. Nothing may move under the finger between
+    // touchstart and touchend (2.96 did, and iOS dropped the tap).
     var tap=null;
     document.addEventListener('touchstart',function(e){
       tap=null;
-      if(!IOS||!typingInSheet(e.target)||!textField(e.target)||typingInSheet(document.activeElement))return;
+      if(!IOS||!typingInSheet(e.target)||!KbFit.textField(e.target)||typingInSheet(document.activeElement))return;
       tap={el:e.target,x:e.touches[0].clientX,y:e.touches[0].clientY};
     },{passive:true,capture:true});
     document.addEventListener('touchmove',function(e){
@@ -6185,31 +6246,31 @@ if(window.visualViewport){
     document.addEventListener('touchcancel',function(){tap=null;},{passive:true,capture:true});
     document.addEventListener('touchend',function(e){
       var t=tap;tap=null;
-      var sheet=t&&openSheet();
-      if(!sheet||!sheet.contains(t.el))return;
+      var sheet=t&&t.el.closest('.sheet-overlay.on .sheet');
+      if(!sheet)return;
+      var H=KbFit.baseH||window.innerHeight,line=H-KbFit.keyboard(H);
+      if(KbFit.end(t.el)<=line-KbFit.GAP)return; // already above the keyboard
       e.preventDefault();
-      var kb=lastKb||Math.round(window.innerHeight*0.4);
-      place(sheet,kb,window.innerHeight-kb);
+      room(sheet,Math.max(0,sheet.getBoundingClientRect().bottom-line));
+      reveal(sheet,t.el,line);
       t.el.focus({preventScroll:true});
-      // If the keyboard didn't come after all, don't leave the sheet up.
       setTimeout(function(){if(!typingInSheet(document.activeElement))reset();},600);
     },{passive:false,capture:true});
     document.addEventListener('focusout',function(e){
       if(!_isTypingField(e.target))return;
-      // Moving from one field to the next blurs then focuses — only drop
-      // the lift once focus has really left the sheet's fields.
+      // Moving from one field to the next blurs then focuses — only reset
+      // once focus has really left the sheet's fields.
       setTimeout(function(){if(!typingInSheet(document.activeElement))reset();},60);
     });
   })();
 }
 
-// Buttons/nav controls: act on touchend instead of relying solely on click.
-// iOS eats the click on the first tap while the page still has scroll
-// momentum (that tap only stops the scroll), forcing a second tap —
-// touchend still fires immediately in that case, so for anything
-// button-like we fire the click ourselves off touchend and suppress
-// the (possibly-absent) native one, everywhere in the app, not just
-// the tab bar.
+// Buttons/nav controls: act on touchend instead of relying solely on click
+// (iOS can eat the click of a tap that stops a scroll). Rows that grey are
+// left to the browser's own click, and the tab bar acts on touchstart while
+// the page is scrolling (both explained below).
+var _lastScrollAt=0;
+window.addEventListener('scroll',function(){_lastScrollAt=Date.now();},{passive:true});
 (function(){
   var TAPPABLE='.tab-item,.fab,.hdr-add,.menu-btn,.menu-item,.acard,.opt-row,'
     +'.back,.edit-proj-btn,.hh-btn,.hh-title-btn,.trash-act,.trash-x,.addbtn,.el-btn,.type-btn,'
@@ -6229,6 +6290,14 @@ if(window.visualViewport){
     if(e.target.closest('.switch,.dsel-real,input')){target=null;return;}
     target=e.target.closest(TAPPABLE);
     if(!target)return;
+    // Rows that grey open on the browser's own click, exactly like Today's
+    // habit and task rows. Clicking them ourselves at touchend started the
+    // page slide in the same frame as the grey, so Settings' grey looked
+    // weaker than Today's. (A tap that only stops a scroll now just stops it.)
+    if(target.hasAttribute('onclick')&&target.matches(PRESS_ROWS)){target=null;return;}
+    // The tab bar acts the moment it's touched while the page is still
+    // scrolling, instead of that touch only stopping the scroll.
+    if(target.matches('.tab-item')&&Date.now()-_lastScrollAt<150){var tab=target;target=null;tab.click();return;}
     moved=false;
     sx=e.touches[0].clientX;sy=e.touches[0].clientY;
   },{passive:true});

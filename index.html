@@ -266,8 +266,6 @@ html[data-theme="light"] .sw.h{border-color:#f5f3ef}
 @media(prefers-color-scheme:dark){.sw.h .sw-row{background:#1e1c1a}}
 html[data-theme="dark"] .sw.h .sw-row{background:#1e1c1a}
 html[data-theme="light"] .sw.h .sw-row{background:#fff}
-.cali.skipped label::after{content:' \00b7 skipped';color:#30d158;font-size:12px;font-weight:600}
-html[lang="de"] .cali.skipped label::after{content:' \00b7 übersprungen'}
 .cali label{font-size:14px;flex:1;cursor:pointer}
 /* The two buttons of a habit row (see ci()): both stretch to the row's full
    height, and between them they cover its full width, so every point of the
@@ -1256,7 +1254,7 @@ html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.25';
+var APP_VERSION='Beta 3.26';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2069,6 +2067,9 @@ var CHANGELOG=[
   {v:'Beta 3.25',notes:[
     'The Statistics ring counts today\'s habits too: right after a reset it says 0 / 3 and goes up as you tick them off',
     'Bar charts have an axis on the left with one number: how many the tallest bar is'
+  ]},
+  {v:'Beta 3.26',notes:[
+    'A skipped habit no longer says "skipped" next to its name — its tick box already shows it'
   ]}
 ];
 var COLORS={

@@ -161,7 +161,9 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   (score, streak, remaining count, disappear-when-checked) counts it as
   done with zero changes; read it with `dcv(ds,id)==='skip'` where the
   difference matters (amber bars in `renderBarChart`, `paintCheck`, the
-  "· N skipped" captions). Any new code that reads dailyChecks should use
+  "· N skipped" captions). A skipped habit ROW shows it only through its tick box
+  (skip style) and a dimmed name — the " · skipped" text after the name
+  (`.cali.skipped label::after`) was removed in 3.26 as redundant. Any new code that reads dailyChecks should use
   `dcv`/`paintCheck` rather than assuming a boolean, and any wrapper
   around Today rows means `.remove()` calls must remove the `.sw`, not
   just the inner row (see `A.doneLockedIn`).

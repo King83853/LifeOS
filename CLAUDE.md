@@ -435,6 +435,17 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   To find which rows "don't do X", enumerate them all and test each
   (`.click()` with navigation/dialogs stubbed, then check
   `document.body.contains(row)`) instead of guessing from one.
+  3.5 — the same thing again, on rows that NAVIGATE: opening Today/
+  Overview/Statistics from Settings runs `_renderPage` -> renderSettings(),
+  which rebuilt the Settings list itself too, replacing the tapped row
+  while the new page slid in over the touch point (so the point-based
+  carry-over couldn't find the copy). Root fix: renderSettings writes its
+  three list containers through `setHTML(id,html)`, which only touches
+  the DOM when the HTML changed — unchanged rows survive. The carry-over
+  also now finds the copy by `onclick` anywhere (preferring the one under
+  the finger, else only if it's the single match). Any render function
+  that runs on navigation and rebuilds the page you're LEAVING will cause
+  this; prefer setHTML-style "only if changed" writes there.
 
 - Stats/habit-detail progress ring (`renderPieChart`): fully round ends
   (`stroke-linecap="round"`) were called cheap-looking, flat ends (2.89)

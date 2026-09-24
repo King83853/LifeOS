@@ -1260,7 +1260,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.4';
+var APP_VERSION='Beta 3.5';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2006,6 +2006,9 @@ var CHANGELOG=[
     'Your data is better protected: the app asks your phone to keep it even when storage runs low',
     'If saved data ever can\'t be read, the app no longer starts empty and saves over it — it keeps it safe and tells you',
     'If saving ever fails (for example when the phone is full), you now get a message instead of changes silently not sticking'
+  ]},
+  {v:'Beta 3.5',notes:[
+    'Fixed: Today, Overview and Statistics in Settings didn\'t turn grey when tapped like the other rows'
   ]}
 ];
 var COLORS={
@@ -3320,6 +3323,15 @@ function renderGeneralTop(){
     +'</div>';
 }
 function renderGeneral(){renderGeneralTop();MenuPage.render();}
+// Sets a container's HTML only when it actually changed. Opening Today/
+// Overview/Statistics from Settings re-runs renderSettings(), which used to
+// rebuild the Settings list itself too — replacing the row that was just
+// tapped, so its press grey vanished mid-tap. Unchanged HTML now leaves the
+// existing rows (and their press state) alone.
+function setHTML(id,html){
+  var el=document.getElementById(id);
+  if(el&&el._html!==html){el.innerHTML=html;el._html=html;}
+}
 function renderSettings(){
   var chev='<span style="display:inline-flex;transform:rotate(-90deg);margin-left:-2px">'+ICON_CHEVRON+'</span>';
   var rowVal='margin-left:auto;font-size:15px;font-weight:500;color:#999';
@@ -3338,18 +3350,18 @@ function renderSettings(){
   var tabIco=function(t){var e=document.querySelector('.tab-item[data-tab="'+t+'"] svg');return e?e.outerHTML:'';};
   var dataIco='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>';
   var dataRow='<div class="opt-row" onclick="Nav.go(\'data\')"><div class="opt-ico" style="background:#71717a">'+dataIco+'</div><div class="opt-text"><div class="opt-title">Data</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>';
-  document.getElementById('settings-reset').innerHTML='<div class="opt-group"><div class="opt-row btn-row" onclick="A.resetSettings()"><div class="opt-text"><div class="opt-title">Reset settings</div></div></div></div>';
-  document.getElementById('settings-nav').innerHTML='<div class="opt-group">'+[
+  setHTML('settings-reset','<div class="opt-group"><div class="opt-row btn-row" onclick="A.resetSettings()"><div class="opt-text"><div class="opt-title">Reset settings</div></div></div></div>');
+  setHTML('settings-nav','<div class="opt-group">'+[
     ['settoday','Today','#38bdf8',tabIco('today')],['setoverview','Overview','#3b82f6',tabIco('overview')],
     ['settasks','Tasks','#8e8e93',tabIco('lockedin')],['setstats','Statistics','#22c55e',tabIco('stats')],['setblocker','Blocker','#ef4444',tabIco('blocker')]
   ].map(function(r){
     return '<div class="opt-row" onclick="Nav.go(\''+r[0]+'\')"><div class="opt-ico" style="background:'+r[2]+'">'+r[3]+'</div>'
       +'<div class="opt-text"><div class="opt-title">'+r[1]+'</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>';
-  }).join('')+'</div>';
+  }).join('')+'</div>');
   renderGeneral();
   // First white window: General, App, Language, Appearance, Data, Trash.
   var lang=DB.data.settings.language||'en',hold=DB.data.settings.holdToComplete,trashN=Trash.total();
-  document.getElementById('settings-main').innerHTML='<div class="opt-group">'
+  setHTML('settings-main','<div class="opt-group">'
     +'<div class="opt-row" onclick="Nav.go(\'general\')">'
     +'<div class="opt-ico" style="background:#6b7280"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></div>'
     +'<div class="opt-text"><div class="opt-title">General</div></div>'
@@ -3368,7 +3380,7 @@ function renderSettings(){
     +'<div class="opt-text"><div class="opt-title">Trash</div></div>'
     +'<span style="margin-left:auto;display:inline-flex;align-items:center;gap:8px"><span class="ab" id="ab2" style="margin-left:0;display:'+(trashN?'inline-flex':'none')+'">'+trashN+'</span>'+chev.replace('margin-left:-2px','margin-left:0')+'</span>'
     +'</div>'
-    +'</div>';
+    +'</div>');
 
   // Overview section: Edit layout + reset one project into the Trash
   var projOpts=[{value:'',label:'Choose…'}];
@@ -4998,12 +5010,19 @@ var PRESS_ROWS='.cali:not([data-once]):not(.locked),.ti:not([data-once]),.wri,.o
   var row=null,timer=null,sx=0,sy=0;
   function off(r){r.classList.remove('pressed-row');}
   function flash(r){r.classList.add('pressed-row');setTimeout(function(){off(r);},PRESS_TAP_MS);}
+  // The copy is found by its onclick, not only by what's under the finger:
+  // opening Today/Overview/Statistics from Settings redraws the Settings
+  // list while the new page is already sliding in over the touch point.
+  // Prefer the copy at the touch point; otherwise use it only if it's the
+  // one row with that onclick, so the wrong row never flashes.
   function carryOver(r,x,y,wasGrey){
     setTimeout(function(){
       var sig=r.getAttribute('onclick');
       if(document.body.contains(r)||!sig)return;
-      var n=document.elementFromPoint(x,y);n=n&&n.closest(PRESS_ROWS);
-      if(!n||n.getAttribute('onclick')!==sig)return;
+      var at=document.elementFromPoint(x,y);at=at&&at.closest(PRESS_ROWS);
+      var same=[].filter.call(document.querySelectorAll('.cali,.ti,.wri,.opt-row'),function(el){return el.getAttribute('onclick')===sig&&el.matches(PRESS_ROWS);});
+      var n=(at&&same.indexOf(at)!==-1)?at:(same.length===1?same[0]:null);
+      if(!n)return;
       if(!wasGrey){flash(n);return;}
       // it was already fully grey: the copy starts grey too, then fades out
       n.classList.add('press-now','pressed-row');void n.offsetWidth;

@@ -139,6 +139,15 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   best/worst. The bar charts skip pre-creation days too. If you add
   another place that counts "scheduled days" for a habit, use
   `habitCreatedDs`.
+  3.25: the Statistics RING (`aggHabitConsistency` ->
+  `habitConsistency(it,true)`) also counts today's scheduled habits before
+  they're ticked — asked for as "0 / x" right after a statistics reset
+  (it said nothing, since today only counted once ticked), rising 1 / x,
+  2 / x as you tick. A single habit's score (best/worst, habit page) keeps
+  counting today only once ticked, so it doesn't dip every morning.
+  Bar charts (`renderBarChart`, shared by Statistics, habit and tracker
+  pages) have a slim left axis with ONE number — the tallest bar's value,
+  at its height (by request: "don't put all the numbers").
 
 - Swipe-right-to-skip on Today (`Skip`, `swipeWrap`; rows are wrapped in
   `.sw` with the amber action behind `.sw-row`). Two different data

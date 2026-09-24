@@ -29,6 +29,7 @@ html[data-theme="light"] body{background:#f3f4f6;color:#1a1917}
    be so the full-strength part still reaches as far as before. */
 .statusbar-blur{position:fixed;top:-14px;left:0;right:0;height:calc(env(safe-area-inset-top) + 34px);background:rgba(243,244,246,.35);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 44px),rgba(0,0,0,.9) calc(100% - 37px),rgba(0,0,0,.72) calc(100% - 29px),rgba(0,0,0,.5) calc(100% - 22px),rgba(0,0,0,.28) calc(100% - 14px),rgba(0,0,0,.1) calc(100% - 7px),transparent 100%);mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 44px),rgba(0,0,0,.9) calc(100% - 37px),rgba(0,0,0,.72) calc(100% - 29px),rgba(0,0,0,.5) calc(100% - 22px),rgba(0,0,0,.28) calc(100% - 14px),rgba(0,0,0,.1) calc(100% - 7px),transparent 100%);z-index:140;pointer-events:none;opacity:0;transition:opacity .25s ease}
 .statusbar-blur.on{opacity:1}
+body.sliding .statusbar-blur{display:none}
 .data-notice{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 8px);z-index:700;background:var(--card,#fff);color:var(--ink,#1a1917);border-radius:14px;padding:12px 14px;font-size:13px;font-weight:500;line-height:1.45;box-shadow:0 6px 24px rgba(0,0,0,.16);cursor:pointer}
 @media(prefers-color-scheme:dark){.statusbar-blur{background:rgba(26,25,23,.35)}}
 html[data-theme="dark"] .statusbar-blur{background:rgba(26,25,23,.35)}
@@ -1260,7 +1261,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.5';
+var APP_VERSION='Beta 3.6';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2009,6 +2010,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.5',notes:[
     'Fixed: Today, Overview and Statistics in Settings didn\'t turn grey when tapped like the other rows'
+  ]},
+  {v:'Beta 3.6',notes:[
+    'Smoother page slides: the blurred strip behind the status bar is hidden while a page slides, and a page can no longer be opened twice at once — this made the slide stutter after holding a row in Settings'
   ]}
 ];
 var COLORS={
@@ -3973,10 +3977,32 @@ function _renderPage(id){
   if(id==='habit-detail')HabitDetail.render();
 }
 
+// While a page slides: (1) a second navigation is ignored — two slides at
+// once each drive the pages from their own loop and fight every frame; the
+// guard expires on its own so it can never block navigation for good.
+// (2) the status-bar blur is hidden (body.sliding): a backdrop-filter over
+// content that moves every frame is heavy on iOS, and a long hold on a
+// Settings row that drifts a few px scrolls the page just enough to switch
+// it on right as the slide starts — reported as a stuttery slide after a
+// long hold in Settings, smooth on (unscrollable) Today.
+var _navBusyUntil=0;
+function _slideStart(){
+  if(Date.now()<_navBusyUntil)return false;
+  _navBusyUntil=Date.now()+700;
+  document.body.classList.add('sliding');
+  return true;
+}
+function _slideEnd(){
+  _navBusyUntil=0;
+  var sbb=document.querySelector('.statusbar-blur');
+  if(sbb)sbb.classList.toggle('on',window.scrollY>4); // settle before it's shown again: no fade-in flash
+  document.body.classList.remove('sliding');
+}
 function navForward(id){
   var cur=document.querySelector('.page.active');
   var next=document.getElementById('p-'+id);
   if(!next)return;
+  if(!_slideStart())return false;
   _saveScroll(cur);
   _fixPage(cur,0);
   cur.scrollTop=_scrollPos[cur.id]||0; // prevent top-flash when fixing
@@ -3986,6 +4012,7 @@ function navForward(id){
     document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');_unfix(p);});
     next.classList.add('active');
     window.scrollTo({top:0,behavior:'instant'}); // projects always start at top
+    _slideEnd();
   });
 }
 
@@ -4026,7 +4053,7 @@ function navBack(targetId){
   targetId=targetId||_backTarget();
   var cur=document.querySelector('.page.active');
   var ov=document.getElementById('p-'+targetId);
-  if(!cur||!ov||cur===ov)return;
+  if(!cur||!ov||cur===ov||!_slideStart())return;
   var savedY=_scrollPos['p-'+targetId]||0;
   _fixPage(cur,0);
   ov.style.display='block';
@@ -4039,6 +4066,7 @@ function navBack(targetId){
     ov.classList.add('active');
     window.scrollTo({top:savedY,behavior:'instant'});
     Nav.cur=targetId;TabBar.updateActive();
+    _slideEnd();
   });
 }
 
@@ -4123,7 +4151,7 @@ function navBack(targetId){
 var Nav={cur:'today',sd:0,
   go:function(id){
     if(id===DB.data.habitsProjectId)id='habits';
-    navForward(id);
+    if(navForward(id)===false)return; // a slide is already running
     this.cur=id;
     TabBar.updateActive();
   }

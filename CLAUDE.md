@@ -519,6 +519,23 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   (see commit history to bring it back). `dateISO` is still recorded on
   every completion, so the history is intact if it returns.
 
+- Page slides (3.6), after "holding a Settings row long then letting go
+  makes the slide stutter; Today is fine": (1) nothing prevented a second
+  navForward/navBack while a slide ran — two slide loops each rewrite the
+  pages' transforms every frame and fight. `_slideStart()` now ignores a
+  navigation while one is running (guard self-expires after 700ms so it
+  can't block for good; `Nav.go` doesn't record a skipped one), and
+  `_slideEnd()` releases it. (2) the status-bar blur (backdrop-filter +
+  mask) re-blurs whatever moves under it every frame — heavy on iOS — and
+  a long hold that drifts a few px (still a tap: TAPPABLE's threshold is
+  10px) scrolls the scrollable Settings page just enough to switch it on
+  as the slide starts; Today is usually too short to scroll. `body.sliding`
+  now hides the blur (display:none) for the whole slide, and `_slideEnd`
+  settles its `.on` state from the final scroll position before showing it
+  again (no fade flash). Which of the two caused the reported stutter
+  can't be told from the preview; both are fixed. The interactive
+  swipe-back runs its own `_slideUnit` and isn't guarded.
+
 - Page-open/close slide (`navForward`/`navBack`, via `_slideUnit`) was
   160ms forward / 180ms back — reported as feeling too quick, wanted
   slower and more graceful. Both bumped to 280ms (same ease-out-cubic

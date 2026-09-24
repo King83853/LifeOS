@@ -1255,7 +1255,7 @@ html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.23';
+var APP_VERSION='Beta 3.24';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2061,6 +2061,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.23',notes:[
     'Holding a project\'s photo on Overview picks up the whole project to move it, like an emoji does, instead of dragging just the picture'
+  ]},
+  {v:'Beta 3.24',notes:[
+    'After resetting statistics, Stats says "No data yet" instead of "No scheduled habits yet" until something is ticked off'
   ]}
 ];
 var COLORS={
@@ -4710,12 +4713,18 @@ var STAT_ICON_UP='<svg width="20" height="20" viewBox="0 0 24 24" fill="currentC
 var STAT_ICON_DOWN='<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 17.5 19.5 6.5 4.5 6.5"/></svg>';
 var Stats={
   view:'day',
+  // With habits scheduled but nothing counted yet (e.g. right after a
+  // statistics reset: every habit starts today, and today only counts once
+  // ticked) there's just no data yet — not "no scheduled habits".
+  emptyText:function(){
+    return DB.data.dailyItems.some(function(it){return it.days&&it.days.length;})?'No data yet':'No scheduled habits yet.';
+  },
   render:function(){
     var agg=aggHabitConsistency();
     document.getElementById('stats-pie').innerHTML=renderPieChart(agg.pct,agg.skipped,agg.target);
     document.getElementById('stats-pie-text').innerHTML=agg.target
       ?'<b>'+agg.completed+'</b> / <b>'+agg.target+'</b> habits'+(agg.skipped?' \u00b7 '+agg.skipped+' skipped':'')
-      :'No scheduled habits yet.';
+      :this.emptyText();
     document.querySelectorAll('#stats-seg .seg-btn').forEach(function(b){
       b.classList.toggle('active',b.getAttribute('data-view')==='day');
     });
@@ -4728,7 +4737,7 @@ var Stats={
   // that opens the habit's page — or a tracked project's page — with back
   // returning to Statistics (HabitDetail.origin / _trackerOrigin).
   habitRow:function(r,icon,color){
-    if(!r)return '<div class="opt-group"><div class="cal-none">No scheduled habits yet.</div></div>';
+    if(!r)return '<div class="opt-group"><div class="cal-none">'+this.emptyText()+'</div></div>';
     var it=r.item,go=it.trackerPid
       ?"_projFromDaily='"+it.trackerPid+"';_trackerOrigin='stats';Nav.go('"+it.trackerPid+"')"
       :"HabitDetail.open('"+it.id+"')";

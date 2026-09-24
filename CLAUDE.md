@@ -550,6 +550,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   3.1 "for now" — markup, render code and `oneTimeTaskStats()` all went
   (see commit history to bring it back). `dateISO` is still recorded on
   every completion, so the history is intact if it returns.
+  Empty states (3.24): right after a statistics reset every habit starts
+  today and today only counts once ticked, so nothing is scored yet —
+  that used to show "No scheduled habits yet." (ring, best, worst), which
+  read as if the habits were gone. `Stats.emptyText()` says "No data yet"
+  when scheduled habits exist, and keeps "No scheduled habits yet." only
+  when there are none.
 
 - Back navigation (3.7) follows real history: `Nav.go` pushes the page
   you're leaving onto `Nav.stack`; `_backTarget()` returns the last entry

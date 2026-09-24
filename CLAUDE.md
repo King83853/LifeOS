@@ -616,7 +616,8 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   hold a Delete button, so removing its only delete path would leave it
   stuck in Daily permanently.
 
-- Drag-to-reorder (2.84, `DragReorder`): long-press (450ms, cancelled by
+- Drag-to-reorder (2.84, `DragReorder`): long-press (`DRAG_HOLD_MS`: 450ms, 900ms
+  since 3.20 — "double the time", cancelled by
   >10px movement before then) picks an item up — `position:fixed`, a
   `.dragging` class (scale+shadow, no shiver by request), tracked to the
   finger — then swaps it past whichever sibling it overlaps on drop.

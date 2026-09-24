@@ -1261,7 +1261,7 @@ html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.19';
+var APP_VERSION='Beta 3.20';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2055,6 +2055,9 @@ var CHANGELOG=[
   {v:'Beta 3.19',notes:[
     'Tapping from one text field to another no longer makes the app bump either',
     'No more word suggestions or autocorrect while typing'
+  ]},
+  {v:'Beta 3.20',notes:[
+    'Projects, categories and habits need to be held twice as long before they can be moved'
   ]}
 ];
 var COLORS={
@@ -6423,6 +6426,8 @@ var TYPE_OPTS=[{value:'todo',label:'To-do'},{value:'list',label:'List'},{value:'
 // group of siblings (one category's own .agrid, not the whole page) is
 // what keeps a drag from crossing into a different category — swap
 // targets are only ever looked for inside that same container.
+// How long a project, category or habit must be held before it can be moved (ms).
+var DRAG_HOLD_MS=900;
 var DragReorder={
   active:false,_timer:null,_el:null,_ph:null,_container:null,_itemSel:null,_mode:'grid',
   _onDrop:null,_startX:0,_startY:0,_offX:0,_offY:0,_preMove:null,_preEnd:null,
@@ -6446,7 +6451,7 @@ var DragReorder={
     this._el=el;this._container=container;this._itemSel=itemSel;this._mode=mode;this._onDrop=onDrop;
     this._startX=touch.clientX;this._startY=touch.clientY;
     var self=this;
-    this._timer=setTimeout(function(){self._begin();},450);
+    this._timer=setTimeout(function(){self._begin();},DRAG_HOLD_MS);
     this._preMove=function(e){
       var t=e.touches[0];
       if(Math.abs(t.clientX-self._startX)>10||Math.abs(t.clientY-self._startY)>10)self._cancelPre();

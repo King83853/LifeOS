@@ -792,13 +792,13 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 /* tracker rows and entries */
 .trk-entry{padding:12px 0}
 /* Count badges — Trash's count in Settings, the counts next to each priority
-   in Tasks, the War Room's count on Overview: one shape and type (a 22px
-   pill, 12px bold numbers), each keeps its own colors. `.ab`'s display is
-   switched inline by the code, so it isn't set here. */
-html:not(#x) .ab,html:not(#x) .sl-count,html:not(#x) .wrb{height:22px;min-width:22px;padding:0 7px;border-radius:99px;box-sizing:border-box;font-size:12px;font-weight:700;line-height:1;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums;white-space:nowrap;align-items:center;justify-content:center}
+   in Tasks, the War Room's count on Overview: one shape and type (an 18px
+   pill, 11px semibold numbers), each keeps its own colors. `.ab`'s display
+   is switched inline by the code, so it isn't set here. */
+html:not(#x) .ab,html:not(#x) .sl-count,html:not(#x) .wrb{height:18px;min-width:18px;padding:0 5px;border-radius:99px;box-sizing:border-box;font-size:11px;font-weight:600;line-height:1;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums;white-space:nowrap;align-items:center;justify-content:center}
 html:not(#x) .sl-count,html:not(#x) .wrb{display:inline-flex}
 /* inside an 11px section label: centered on it, without making it taller */
-html:not(#x) .sl .sl-count{margin:-5px 0 -5px 8px;vertical-align:middle}
+html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -832,7 +832,7 @@ html:not(#x) .sl .sl-count{margin:-5px 0 -5px 8px;vertical-align:middle}
         <div class="wrt">War Room</div>
         <div class="wrd">Nothing else matters until the War Room is clear.</div>
       </div>
-      <span class="wrb" id="wrb">0 active</span>
+      <span class="wrb" id="wrb">0</span>
     </div>
     <div class="wrbd"><div id="war-list"></div></div>
   </div>
@@ -1261,7 +1261,7 @@ html:not(#x) .sl .sl-count{margin:-5px 0 -5px 8px;vertical-align:middle}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.17';
+var APP_VERSION='Beta 3.18';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2048,6 +2048,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.17',notes:[
     'The count next to Trash, the counts next to each priority in Tasks and the War Room count all use the same size and type now'
+  ]},
+  {v:'Beta 3.18',notes:[
+    'Those counts are smaller now, and the War Room shows just the number'
   ]}
 ];
 var COLORS={
@@ -2620,7 +2623,6 @@ var I18N=(function(){
     'Blue':'Blau','Indigo':'Indigo','Violet':'Violett','Purple':'Lila','Fuchsia':'Fuchsia','Pink':'Pink','Slate':'Schiefer','Black':'Schwarz'
   };
   var RULES=[
-    [/^(\d+) active$/,'$1 aktiv'],
     [/^1 tasks?$/,'1 Aufgabe'],[/^(\d+) tasks$/,'$1 Aufgaben'],
     [/^(Skipped|Done|Not done) — (.*)$/,function(m,a,b){return DE[a]+' — '+b;}],
     [/^habits · (\d+) skipped$/,'Gewohnheiten · $1 übersprungen'],
@@ -2733,7 +2735,7 @@ function renderWar(){
   }
   var box=document.getElementById('war-box');
   box.style.display=(vis.length&&DB.data.settings.showWarRoom!==false)?'block':'none';
-  document.getElementById('wrb').textContent=vis.length+' active';
+  document.getElementById('wrb').textContent=vis.length;
 
   document.getElementById('war-list').innerHTML=vis.map(function(t){
     var col=COLORS[t.pcolor||'c-grey']||'#6b7280';

@@ -291,9 +291,11 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   Count badges (3.17, asked for as "same font, size, style — color can
   differ"): Trash's count in Settings (`.ab`), the counts next to each
   priority in Tasks (`.sl-count`) and the War Room count on Overview
-  (`.wrb`) share one rule at the end of the CSS — a 22px pill, 12px/700
-  tabular numbers — and keep their own colors. Inside an 11px `.sl` label
-  the pill has -5px vertical margins so the label doesn't get taller. A new
+  (`.wrb`) share one rule at the end of the CSS — an 18px pill, 11px/600
+  tabular numbers (3.18: the first 22px/12px bold version was called too
+  big and cheap-looking) — and keep their own colors. The War Room badge
+  shows only the number (it said "N active"). Inside an 11px `.sl` label
+  the pill has -3px vertical margins so the label doesn't get taller. A new
   count badge should join that rule instead of getting its own sizes.
 
 - `.cali`'s press-grey went through two rounds (2.87, then 2.88 — the

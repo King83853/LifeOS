@@ -474,6 +474,14 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   because Daily's category sheet still uses them. The Task window hides
   its Priority row when the (destination) project is a List, in both add
   and edit mode — List projects don't sort by priority.
+  3.9 — that change broke "+" on every project created before project
+  types existed: those have NO `type` saved (everything else treats that
+  as a to-do list), and TabPlus required `type==='todo'||'list'`, so they
+  fell through to Overview's "Category / Project" choice. `DB._migrate`
+  now sets `type:'todo'` on untyped projects (not the Daily project), and
+  TabPlus opens the Task window for anything that isn't a tracker. Real
+  data is older than the preview's blank data — when a new check keys on
+  a field, ask whether old saves have that field at all.
 
 - The update screen (`UpdateOverlay`) counts as an open overlay
   (`_overlayCount`, `_lockBodyScroll`) since 2.91 — it wasn't a

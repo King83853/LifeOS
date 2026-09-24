@@ -519,6 +519,19 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   (see commit history to bring it back). `dateISO` is still recorded on
   every completion, so the history is intact if it returns.
 
+- Back navigation (3.7) follows real history: `Nav.go` pushes the page
+  you're leaving onto `Nav.stack`; `_backTarget()` returns the last entry
+  that still exists (skipping e.g. a deleted project); arriving back —
+  via navBack or the swipe-back gesture — calls `_popTo(target)`;
+  `TabBar.go` (switching tabs) clears it. `TabBar.current()` lights the tab
+  the history started on (`Nav.stack[0]`). The older fixed rules
+  (SETTINGS_SUBPAGES -> Settings, HabitDetail.origin, _projFromDaily/
+  _trackerOrigin, default Overview) remain only as a fallback when there's
+  no history (e.g. right after the app reopens). Asked for as "always go
+  back to the page before" — e.g. Settings > Overview > Edit layout used to
+  jump back to Settings. New navigation should go through `Nav.go` (not
+  navForward directly) or it won't be in the history.
+
 - Page slides (3.6), after "holding a Settings row long then letting go
   makes the slide stutter; Today is fine": (1) nothing prevented a second
   navForward/navBack while a slide ran — two slide loops each rewrite the

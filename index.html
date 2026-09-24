@@ -1261,7 +1261,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.6';
+var APP_VERSION='Beta 3.7';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2013,6 +2013,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.6',notes:[
     'Smoother page slides: the blurred strip behind the status bar is hidden while a page slides, and a page can no longer be opened twice at once — this made the slide stutter after holding a row in Settings'
+  ]},
+  {v:'Beta 3.7',notes:[
+    'Back (the button or swiping) now always returns to the page you came from — for example Settings > Overview > Edit layout goes back to Overview, then Settings'
   ]}
 ];
 var COLORS={
@@ -4035,7 +4038,11 @@ function navSwitch(id){
 // right target without each call site needing to know about it.
 // Pages opened from the Settings list (back returns there; the Settings tab stays lit)
 var SETTINGS_SUBPAGES=['editlayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats','setblocker'];
+// Where back goes: the page this one was opened from (Nav.stack), skipping
+// any that no longer exist (e.g. a deleted project). The fixed rules below
+// only apply when there's no history (e.g. right after the app reopened).
 function _backTarget(){
+  for(var i=Nav.stack.length-1;i>=0;i--){if(document.getElementById('p-'+Nav.stack[i]))return Nav.stack[i];}
   var cur=document.querySelector('.page.active');
   if(cur&&cur.id==='p-habit-detail')return HabitDetail.origin||'overview';
   // Edit layout and Completed Tasks are only ever opened from Settings
@@ -4048,6 +4055,11 @@ function _backTarget(){
   // Overview-card path, so it only matches the page it was actually set for.
   if(cur&&_projFromDaily&&cur.id==='p-'+_projFromDaily)return _trackerOrigin||'habits';
   return 'overview';
+}
+// Back on `id`: it and whatever was opened after it leave the history.
+function _popTo(id){
+  var i=Nav.stack.lastIndexOf(id);
+  if(i!==-1)Nav.stack.length=i;
 }
 function navBack(targetId){
   targetId=targetId||_backTarget();
@@ -4065,7 +4077,7 @@ function navBack(targetId){
     _unfix(ov);
     ov.classList.add('active');
     window.scrollTo({top:savedY,behavior:'instant'});
-    Nav.cur=targetId;TabBar.updateActive();
+    _popTo(targetId);Nav.cur=targetId;TabBar.updateActive();
     _slideEnd();
   });
 }
@@ -4134,7 +4146,7 @@ function navBack(targetId){
         _unfix(ov);
         ov.classList.add('active');
         window.scrollTo({top:savedY,behavior:'instant'});
-        Nav.cur=backTarget;TabBar.updateActive();
+        _popTo(backTarget);Nav.cur=backTarget;TabBar.updateActive();
       });
     } else {
       _slideUnit(cur,ov,pct,0,120,function(){
@@ -4148,10 +4160,15 @@ function navBack(targetId){
 })();
 
 // ── NAVIGATION ────────────────────────────────────────────
-var Nav={cur:'today',sd:0,
+// Nav.stack: the pages you came through to get here (oldest first). Back
+// — the button or the swipe — returns to the last one; switching tabs
+// starts a new history (TabBar.go).
+var Nav={cur:'today',sd:0,stack:[],
   go:function(id){
     if(id===DB.data.habitsProjectId)id='habits';
+    var prev=this.cur;
     if(navForward(id)===false)return; // a slide is already running
+    if(prev&&prev!==id){this.stack.push(prev);if(this.stack.length>40)this.stack.shift();}
     this.cur=id;
     TabBar.updateActive();
   }
@@ -6008,15 +6025,17 @@ var TabBar={
   go:function(id){
     if(Nav.cur===id)return;
     navSwitch(id);
+    Nav.stack=[];
     Nav.cur=id;
     TabBar.updateActive();
   },
   // Which footer tab lights up: the page itself if it is a tab, otherwise
-  // the tab it belongs to (projects and Daily -> Overview, Edit layout and
-  // Trash -> Settings, a habit page -> where it was opened from).
+  // the tab its history started on (Nav.stack[0]); the fixed rules after
+  // that only apply when there's no history (e.g. right after reopening).
   current:function(){
-    var cur=Nav.cur;
-    if(['today','overview','lockedin','stats','blocker','settings'].indexOf(cur)!==-1)return cur;
+    var cur=Nav.cur,TABS=['today','overview','lockedin','stats','blocker','settings'];
+    if(TABS.indexOf(cur)!==-1)return cur;
+    if(Nav.stack.length&&TABS.indexOf(Nav.stack[0])!==-1)return Nav.stack[0]; // the tab this history started on
     if(SETTINGS_SUBPAGES.indexOf(cur)!==-1)return 'settings';
     if(cur==='habit-detail'){var o=HabitDetail.origin;return o==='today'||o==='stats'?o:'overview';}
     if(_projFromDaily&&cur===_projFromDaily&&(_trackerOrigin==='today'||_trackerOrigin==='stats'))return _trackerOrigin;

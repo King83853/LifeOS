@@ -87,14 +87,12 @@ html[data-theme="light"] .menu-panel{background:#f3f4f6}
 html[data-theme="dark"] .menu-item:active{background:#252320}
 html[data-theme="light"] .menu-item:active{background:#f0ede8}
 
-.ab{background:#e24b4a;color:#fff;border-radius:99px;min-width:22px;height:22px;padding:0 7px;font-size:12px;font-weight:700;margin-left:auto;display:none;align-items:center;justify-content:center}
 
 
 .wr{border-radius:16px;overflow:hidden;margin:10px 0 4px;background:var(--card)}
 .wrhdr{background:#e24b4a;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .wrt{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#fff}
 .wrd{font-size:11.5px;color:rgba(255,255,255,.85);margin-top:3px;line-height:1.35}
-.wrb{background:rgba(255,255,255,.25);color:#fff;font-size:12px;font-weight:700;padding:4px 11px;border-radius:99px;flex-shrink:0;white-space:nowrap}
 .wri{display:flex;align-items:center;gap:12px;padding:8px;background:#fafaf8;border:1.5px solid #f0ede8;border-radius:12px;margin-bottom:7px;position:relative;overflow:hidden;transition:opacity .3s}
 @media(prefers-color-scheme:dark){.wri{background:#252320;border-color:#333}}
 html[data-theme="dark"] .wri{background:#252320;border-color:#333}
@@ -569,12 +567,10 @@ html[data-theme="dark"] .btn-row .opt-title{color:#0a84ff}
    soft tint, see tintStyle); settings icon badges keep their colors */
 @media(prefers-color-scheme:dark){
   html:not([data-theme="light"]) .wrhdr{background:#7a2e2d}
-  html:not([data-theme="light"]) .wrb{background:rgba(255,255,255,.14)}
   html:not([data-theme="light"]) .wrd{color:rgba(255,255,255,.7)}
   html:not([data-theme="light"]) .bu{background:#7a2e2d}
 }
 html[data-theme="dark"] .wrhdr{background:#7a2e2d}
-html[data-theme="dark"] .wrb{background:rgba(255,255,255,.14)}
 html[data-theme="dark"] .wrd{color:rgba(255,255,255,.7)}
 html[data-theme="dark"] .bu{background:#7a2e2d}
 /* One divider look everywhere (1.5px, --line): a hair darker than the page
@@ -631,7 +627,7 @@ html:not(#x) .dhdr{min-height:40px}
 .albl{font-size:12px;font-weight:600}
 .acnt{font-size:11px;font-weight:500;color:#999}
 .wrt{font-weight:600}.wrd{font-size:12px;font-weight:500}
-.bdg,.wrb{font-size:12px;font-weight:600}
+.bdg{font-size:12px;font-weight:600}
 .seg-btn{font-size:12px;font-weight:600}
 .trash-act,.trash-x,.hh-btn.hh-txt{font-size:15px;font-weight:600}
 /* Sheets: grey grouped background, white inputs/rows, like a Settings page */
@@ -713,7 +709,7 @@ html:not(#x) .ts-notes{height:auto;min-height:34vh}
 .wdays{scrollbar-width:none}.wdays::-webkit-scrollbar{display:none}
 input,textarea,select{font-family:inherit}
 /* lighter weights: text 500 (was 600), titles and labels 700 (was 800) */
-html:not(#x) .opt-title,html:not(#x) .tt,html:not(#x) .cali label,html:not(#x) .wit,html:not(#x) .el-name,html:not(#x) .trk-entry-val,html:not(#x) .archi-title,html:not(#x) .cat-choice,html:not(#x) .color-field-label,html:not(#x) .albl,html:not(#x) .bdg,html:not(#x) .wrb,html:not(#x) .wrt,html:not(#x) .seg-btn,html:not(#x) .trash-act,html:not(#x) .trash-x,html:not(#x) .hh-btn.hh-txt,html:not(#x) .sheet-save,html:not(#x) .type-btn,html:not(#x) .sheet-inp,html:not(#x) .addinp,html:not(#x) .row-num,html:not(#x) #cat-btn-list .type-btn,html:not(#x) .dsel-opt,html:not(#x) .tlbl{font-weight:500}
+html:not(#x) .opt-title,html:not(#x) .tt,html:not(#x) .cali label,html:not(#x) .wit,html:not(#x) .el-name,html:not(#x) .trk-entry-val,html:not(#x) .archi-title,html:not(#x) .cat-choice,html:not(#x) .color-field-label,html:not(#x) .albl,html:not(#x) .bdg,html:not(#x) .wrt,html:not(#x) .seg-btn,html:not(#x) .trash-act,html:not(#x) .trash-x,html:not(#x) .hh-btn.hh-txt,html:not(#x) .sheet-save,html:not(#x) .type-btn,html:not(#x) .sheet-inp,html:not(#x) .addinp,html:not(#x) .row-num,html:not(#x) #cat-btn-list .type-btn,html:not(#x) .dsel-opt,html:not(#x) .tlbl{font-weight:500}
 html:not(#x) .dsel-opt.sel{font-weight:600}
 .dtitle,.hh-title,.sheet-title,.ts-title,.soon-t,.trk-val{font-weight:700}
 html:not(#x) .sl,html:not(#x) .shdr,html:not(#x) .caltitle,html:not(#x) .el-grp,html:not(#x) .sheet-label{font-weight:700}
@@ -791,12 +787,8 @@ html:not(#x) .el-card .el-row:only-child,html:not(#x) .cat-choice:only-child,
 html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 /* tracker rows and entries */
 .trk-entry{padding:12px 0}
-/* Count badges — Trash's count in Settings, the counts next to each priority
-   in Tasks, the War Room's count on Overview: one shape and type (an 18px
-   pill, 11px semibold numbers), each keeps its own colors. `.ab`'s display
-   is switched inline by the code, so it isn't set here. */
-html:not(#x) .ab,html:not(#x) .sl-count,html:not(#x) .wrb{height:18px;min-width:18px;padding:0 5px;border-radius:99px;box-sizing:border-box;font-size:11px;font-weight:600;line-height:1;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums;white-space:nowrap;align-items:center;justify-content:center}
-html:not(#x) .sl-count,html:not(#x) .wrb{display:inline-flex}
+/* Count next to each priority in Tasks: an 18px pill, 11px semibold numbers. */
+html:not(#x) .sl-count{display:inline-flex;height:18px;min-width:18px;padding:0 5px;border-radius:99px;box-sizing:border-box;font-size:11px;font-weight:600;line-height:1;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums;white-space:nowrap;align-items:center;justify-content:center}
 /* inside an 11px section label: centered on it, without making it taller */
 html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
 </style>
@@ -832,7 +824,6 @@ html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
         <div class="wrt">War Room</div>
         <div class="wrd">Nothing else matters until the War Room is clear.</div>
       </div>
-      <span class="wrb" id="wrb">0</span>
     </div>
     <div class="wrbd"><div id="war-list"></div></div>
   </div>
@@ -1261,7 +1252,7 @@ html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.20';
+var APP_VERSION='Beta 3.21';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2058,6 +2049,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.20',notes:[
     'Projects, categories and habits need to be held twice as long before they can be moved'
+  ]},
+  {v:'Beta 3.21',notes:[
+    'The counts next to Trash and in the War Room are gone; Tasks keeps its counts'
   ]}
 ];
 var COLORS={
@@ -2742,7 +2736,6 @@ function renderWar(){
   }
   var box=document.getElementById('war-box');
   box.style.display=(vis.length&&DB.data.settings.showWarRoom!==false)?'block':'none';
-  document.getElementById('wrb').textContent=vis.length;
 
   document.getElementById('war-list').innerHTML=vis.map(function(t){
     var col=COLORS[t.pcolor||'c-grey']||'#6b7280';
@@ -2758,7 +2751,6 @@ function renderGrids(){
   var h='';
   if(!d.categoryOrder.length){
     document.getElementById('overview-grid').innerHTML='';
-    var _ab=document.getElementById('ab');if(_ab){_ab.style.display=Trash.total()?'inline':'none';_ab.textContent=Trash.total();}
     return;
   }
   d.categoryOrder.forEach(function(catId){
@@ -2806,7 +2798,6 @@ function renderGrids(){
     h+='</div></div>';
   });
   document.getElementById('overview-grid').innerHTML=h;
-  var ab2=document.getElementById('ab2');if(ab2){ab2.style.display=Trash.total()?'inline-flex':'none';ab2.textContent=Trash.total();}
   wireOverviewDrag();
 }
 // Long-press a category title to drag the whole block (reorders
@@ -3408,7 +3399,7 @@ function renderSettings(){
   }).join('')+'</div>');
   renderGeneral();
   // First white window: General, App, Language, Appearance, Data, Trash.
-  var lang=DB.data.settings.language||'en',hold=DB.data.settings.holdToComplete,trashN=Trash.total();
+  var lang=DB.data.settings.language||'en',hold=DB.data.settings.holdToComplete;
   setHTML('settings-main','<div class="opt-group">'
     +'<div class="opt-row" onclick="Nav.go(\'general\')">'
     +'<div class="opt-ico" style="background:#6b7280"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></div>'
@@ -3426,7 +3417,7 @@ function renderSettings(){
     +'<div class="opt-row" onclick="Nav.go(\'archive\')">'
     +'<div class="opt-ico" style="background:#71717a">'+trashSvg(20,'currentColor')+'</div>'
     +'<div class="opt-text"><div class="opt-title">Trash</div></div>'
-    +'<span style="margin-left:auto;display:inline-flex;align-items:center;gap:8px"><span class="ab" id="ab2" style="margin-left:0;display:'+(trashN?'inline-flex':'none')+'">'+trashN+'</span>'+chev.replace('margin-left:-2px','margin-left:0')+'</span>'
+    +chev.replace('margin-left:-2px','margin-left:auto')
     +'</div>'
     +'</div>');
 

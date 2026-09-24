@@ -933,9 +933,10 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   "TEMPORARY (3.13) readout": every touch/pointer/click event the tab bar
   got within 2s of a scroll) showed on iOS 18.1 that the stopping tap is
   never delivered to the page at all. Fixed structurally in 3.14 — see
-  "Pages scroll inside their OWN frame". The readout stays until the user
-  confirms on the phone that the first tap now shows up (and switches);
-  then remove it (it was never in CHANGELOG).
+  "Pages scroll inside their OWN frame" — and confirmed on the iPhone; the
+  readout was removed in 3.15. The touchstart switch above stays: now that
+  the tab bar is outside the scroller, it just makes the switch happen on
+  touch-down while a page is still moving.
 
 - `checkForUpdate` (index.html, `A.checkForUpdate`) went through several
   broken iterations worth knowing about: (1) originally deleted all

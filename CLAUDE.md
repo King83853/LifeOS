@@ -667,6 +667,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   Fixed with a `dataset.dragWired` guard so that specific container is
   only ever wired once; the per-category `.agrid`s and Daily's `.calsec`s
   genuinely ARE fresh elements every render, so they need no such guard.
+  3.23: holding a project PHOTO (an <img>, not an emoji) on Overview
+  started iOS's own image drag — only the picture moved, the card didn't.
+  Project photos (`iconOrPhoto`) are `.proj-photo` (pointer-events:none,
+  draggable=false) so the touch lands on the card; all imgs also get
+  `-webkit-user-drag:none`. Any new <img> inside something draggable or
+  tappable needs the same.
   3.11: a habit row is picked up only from its BAR — a touch in the tick
   zone (`input`, or x <= `tickEdge(row)`, the same split as the press
   grey) never primes a drag (DragReorder.init's touchstart). Before, a

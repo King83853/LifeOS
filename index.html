@@ -18,6 +18,8 @@ html[data-theme="dark"]{background:#1f2937;color-scheme:dark}
 html[data-theme="light"]{background:#f3f4f6;color-scheme:light}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 input,textarea{-webkit-user-select:text;user-select:text}
+img{-webkit-user-drag:none}
+.proj-photo{pointer-events:none}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f3f4f6;color:#1a1917;min-height:100vh;overscroll-behavior:none}
 @media(prefers-color-scheme:dark){body{background:#1f2937;color:#e8e6df}}
 html[data-theme="dark"] body{background:#1f2937;color:#e8e6df}
@@ -1253,7 +1255,7 @@ html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.22';
+var APP_VERSION='Beta 3.23';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2056,6 +2058,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.22',notes:[
     'In dark mode, pressing a row makes it lighter instead of darker'
+  ]},
+  {v:'Beta 3.23',notes:[
+    'Holding a project\'s photo on Overview picks up the whole project to move it, like an emoji does, instead of dragging just the picture'
   ]}
 ];
 var COLORS={
@@ -6588,8 +6593,11 @@ var DragReorder={
     if(onDrop)onDrop(container,el);
   }
 };
+// A project's photo ignores touches (.proj-photo), so holding it picks up the
+// card like holding an emoji does — on iOS a held <img> otherwise starts the
+// system's own image drag and only the picture moves.
 function iconOrPhoto(p){
-  if(p&&p.photo)return '<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';
+  if(p&&p.photo)return '<img class="proj-photo" draggable="false" src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';
   return (p&&p.icon)||'📋';
 }
 var SheetEditor={

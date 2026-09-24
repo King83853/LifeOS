@@ -616,13 +616,20 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   category this way), and the whole `#overview-grid` once for `.cat-block`
   category reordering. Daily wires every day panel's own `.calsec`
   (harmless to wire all of them — a `display:none` panel's rows never
-  receive touches anyway) for habit reordering within a category;
-  `DB.reorderDailyItems` only touches that category's own relative order,
-  and explicitly keeps any same-category item NOT in the dropped set (a
-  habit not scheduled on whichever weekday you happened to drag on) in
-  place rather than dropping it — the naive version that just replaced the
-  whole category's slice with the visible subset would have silently
-  deleted every hidden-that-day habit from the array.
+  receive touches anyway) for habit reordering within a category.
+  3.12 — ONE universal habit order, asked for as "if meditation is above
+  reading it's always above reading… changing it on one day changes it
+  everywhere": `dailyItems`' array order IS that order (every day panel
+  and Today list habits in array order, filtered by day). The old
+  `DB.reorderDailyItems` put the visible (dragged-day) habits first and
+  appended every habit NOT shown that day after them, so a drag on Monday
+  pushed Tuesday-only habits to the bottom of their category — the order
+  shifted on other days. Replaced by `DB.moveDailyItem(id,beforeId,
+  afterId)`: only the dragged habit moves, to right before the visible
+  habit now below it (or right after the one above it when dropped last);
+  everything else keeps its place. DragReorder's onDrop now also gets the
+  dragged element (`onDrop(container,el)`). Never rebuild the whole list
+  from what one day shows — that day doesn't show every habit.
   Two real bugs from writing this, worth not repeating: (1) suppressing
   the tap TAPPABLE (the generic touch-feedback IIFE) would otherwise still
   fire on release used `stopPropagation()` from a SEPARATE listener on the

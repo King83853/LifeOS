@@ -1260,7 +1260,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.11';
+var APP_VERSION='Beta 3.12';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2029,6 +2029,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.11',notes:[
     'Habits in Daily are only picked up for reordering when you hold the bar, not the tick box'
+  ]},
+  {v:'Beta 3.12',notes:[
+    'Habits have one order everywhere: if Meditation is above Reading, it\'s above Reading on every day and in Today. Moving a habit on one day moves it everywhere, and habits not shown that day keep their place'
   ]}
 ];
 var COLORS={
@@ -2290,21 +2293,18 @@ var DB={
   // array in). Reordering therefore only needs to fix up this category's
   // own relative order; where its items end up relative to some OTHER
   // category's items in the underlying array doesn't matter at all.
-  reorderDailyItems:function(catId,orderedIds){
-    // orderedIds only covers whatever was actually on screen (a habit
-    // scheduled just on weekends never shows on a weekday panel, so it
-    // can't have been part of the drag) — anything in this category NOT
-    // mentioned keeps its old relative position, appended after the
-    // reordered ones, so a reorder done on one day can never silently
-    // drop a habit that just wasn't visible that day.
-    var d=this.data;
-    var mineAll=d.dailyItems.filter(function(it){return it.catId===catId;});
-    var rest=d.dailyItems.filter(function(it){return it.catId!==catId;});
-    var byId={};mineAll.forEach(function(it){byId[it.id]=it;});
-    var seen={};
-    var mine=orderedIds.map(function(id){if(byId[id]){seen[id]=1;return byId[id];}}).filter(Boolean);
-    mineAll.forEach(function(it){if(!seen[it.id])mine.push(it);});
-    d.dailyItems=rest.concat(mine);
+  // dailyItems' order is the ONE order of all habits: every day's list and
+  // Today show it (filtered to that day), so if A is above B, it's above B
+  // everywhere. A drag on one day moves only the dragged habit: right
+  // before the habit it now sits above (or right after the one above it,
+  // when dropped last). Habits not shown that day keep their place.
+  moveDailyItem:function(id,beforeId,afterId){
+    var d=this.data,i=d.dailyItems.findIndex(function(it){return it.id===id;});
+    if(i===-1||(!beforeId&&!afterId))return;
+    var it=d.dailyItems.splice(i,1)[0];
+    var j=d.dailyItems.findIndex(function(x){return x.id===(beforeId||afterId);});
+    if(j===-1){d.dailyItems.splice(i,0,it);return;}
+    d.dailyItems.splice(beforeId?j:j+1,0,it);
     this.save();
   },
   addTask:function(projId,text,pri){
@@ -4876,10 +4876,10 @@ function buildPanels(){
 function wireDailyDrag(){
   document.querySelectorAll('#dpanels .calsec[data-cat]').forEach(function(calsec){
     markEdgeRows(calsec,'.cali');
-    var catId=calsec.getAttribute('data-cat');
-    DragReorder.init(calsec,'.cali','.cali','list',function(container){
-      var ids=[].slice.call(container.querySelectorAll('.cali[data-id]')).map(function(el){return el.getAttribute('data-id');});
-      DB.reorderDailyItems(catId,ids);
+    DragReorder.init(calsec,'.cali','.cali','list',function(container,el){
+      var ids=[].slice.call(container.querySelectorAll('.cali[data-id]')).map(function(r){return r.getAttribute('data-id');});
+      var id=el&&el.getAttribute('data-id'),k=ids.indexOf(id);
+      if(k!==-1)DB.moveDailyItem(id,ids[k+1]||null,ids[k-1]||null);
       buildPanels();restoreChecks(Nav.sd);
     });
   });
@@ -6535,7 +6535,7 @@ var DragReorder={
     this.active=false;
     var container=this._container,onDrop=this._onDrop;
     this._el=null;this._container=null;this._onDrop=null;
-    if(onDrop)onDrop(container);
+    if(onDrop)onDrop(container,el);
   }
 };
 function iconOrPhoto(p){

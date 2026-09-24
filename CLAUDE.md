@@ -208,7 +208,13 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   trashed one by one, each carrying a snapshot of the category so
   restoring recreates it; old category/habitcat entries are split on load) and `DB.restoreTrash(id)` puts it back
   (recreating a missing parent category from the snapshot; an entry needs
-  its project to exist, else it returns a message). Completed tasks are
+  its project to exist, else it returns a message).
+  A project can also be deleted from its own edit window (3.30:
+  `SheetEditor.remove`, a red "Delete project" row shown only when editing
+  an existing project that isn't the Daily one) — same `DB.deleteProject`
+  as Edit layout. The confirm (a sheet on the same layer) opens after the
+  edit sheet has closed; if you're on that project's page, it navigates
+  back first and rebuilds the pages after the slide. Completed tasks are
   still `DB.data.archived` and are the first tab (labelled Tasks). A NEW delete path must
   push to trash too (use `DB._trash`, and `_takeProject`/`_putProject`
   for projects) — grep `filter(` on dailyItems/dailyCats/projects when
@@ -302,11 +308,13 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   inside an `.opt-row` need the `input` bail-out in the TAPPABLE handler
   (already added). No emojis on categories, section titles, choice rows or
   type buttons (only user-chosen project icons remain).
-  Count badges: only Tasks' per-priority counts (`.sl-count`, an 18px pill,
-  11px/600, -3px vertical margins inside the 11px `.sl` label) remain. The
-  Trash count in Settings (`.ab`/`#ab2`) and the War Room count on Overview
-  (`.wrb`) were made to match it in 3.17/3.18, then removed in 3.21 as
+  Count badges: none left. The Trash count in Settings (`.ab`/`#ab2`), the
+  War Room count on Overview (`.wrb`) and Tasks' per-priority counts
+  (`.sl-count`) were unified in 3.17/3.18, then all removed (3.21, 3.29) as
   unnecessary — don't bring them back unasked.
+  Skip icon: ONE arrow (3.29; it was a double arrow) — in a skipped tick
+  box (`.cali.skipped` checkbox background) and the swipe action
+  (`SKIP_ICON`).
 
 - `.cali`'s press-grey went through two rounds (2.87, then 2.88 — the
   2.87 approach is superseded, don't resurrect it). First round tried to
@@ -426,6 +434,10 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   but if I hold then it goes grey"); a tap shorter than the delay still
   flashes for `PRESS_TAP_MS`. Skip's swipe-start check uses `tickEdge`
   too. The old `.ti:active:not(:has(input:active))` rule is gone.
+  3.30: once a row has turned grey from being HELD (the PRESS_DELAY timer
+  fired — `_pressHeld`), that touch can't start a swipe-to-skip any more
+  (asked for: "a higher quality feel"); and a starting swipe cancels a
+  pending grey (`_pressCancel`), so no grey appears mid-swipe.
   Press-grey timing for EVERY greying element is one CSS block ("Press grey
   timing"): fade in .2s on the pressed state (`:active`/`.pressed-row`),
   and on the resting state `.4s` fade-out after a `.15s` linger — a
@@ -1315,6 +1327,10 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   customSelect rows still go through `toggle`). They used to open AddChoice
   bottom sheets; asked for as "a normal drop down". Daily's "+" and project
   pages' "+" were not part of the request and still use their windows.
+  3.30: after a dropdown was closed by tapping elsewhere, the next tap on
+  its button did nothing — DSel swallowed EVERY click for 450ms after an
+  outside press. Now it swallows only the closing tap's own click (a click
+  on the touched element or on a button containing it), within 700ms.
 - DSel dropdowns (customSelect/DSel — Language, Day starts at, Tasks shown,
   Reset a project, and since 2.61 the Task window's Priority/Project rows)
   render their open list (`.dsel-menu`) as a floating element appended
@@ -1437,6 +1453,14 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   field (at load, and on touchstart/focusin for fields rendered later). iOS
   may still show an empty or AutoFill-only bar above the keyboard; pages
   can't remove that bar entirely.
+  3.30 — still bumped when creating a category: windows that focus their
+  field by themselves (InputSheet, new task/habit/one-time/tracker value)
+  did so from a 300ms timer; on iOS that puts focus in the field WITHOUT
+  opening the keyboard, so the user's tap was "on the focused field" and
+  left native -> iOS slid the view. Now `_autoFocus` skips iOS (`IS_IOS`,
+  shared with the keyboard IIFE), and the takeover also handles a focused
+  field whose keyboard isn't up (`kbUp()`; it blurs and re-focuses so the
+  keyboard opens).
 
 - A single wrong CHANGELOG string (2.85) silently broke the ENTIRE app —
   worth internalizing exactly how, since nothing about it looked wrong at

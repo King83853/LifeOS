@@ -390,7 +390,6 @@ html[data-theme="light"] .switch-slider{background:#d1d1d1}
 .switch:active .switch-slider::before{width:27px}
 .switch:active input:checked+.switch-slider::before{transform:translateX(15px)}
 
-.sl-count{display:inline-block;margin-left:8px;min-width:18px;padding:1px 6px;border-radius:99px;background:rgba(127,127,127,.18);color:#888;font-size:10px;font-weight:800;letter-spacing:0;text-align:center;vertical-align:1px}
 /* One design for every sub title / category heading */
 .sl,.shdr,.caltitle,.el-grp{font-size:11px;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px;padding:0;border:0;line-height:1.3}
 
@@ -724,7 +723,7 @@ html[data-theme="light"]{--box:#eceef1;--tick-ink:url("data:image/svg+xml,%3Csvg
 html:not(#x) .ti input[type=checkbox],html:not(#x) .wri input[type=checkbox],html:not(#x) .cali input[type=checkbox]{-webkit-appearance:none;appearance:none;width:26px;height:26px;margin:0;border:none;border-radius:8px;background-color:var(--box);background-repeat:no-repeat;background-position:center;background-size:17px;flex-shrink:0;cursor:pointer;transition:background-color .18s ease}
 html:not(#x) .ti input[type=checkbox]:checked,html:not(#x) .wri input[type=checkbox]:checked{background-color:var(--ink);background-image:var(--tick-ink)}
 html:not(#x) .cali input[type=checkbox]:checked{background-color:var(--go);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
-html:not(#x) .cali.skipped input[type=checkbox]:checked{background-color:var(--go-skip);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 6l6 6-6 6M12.5 6l6 6-6 6' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html:not(#x) .cali.skipped input[type=checkbox]:checked{background-color:var(--go-skip);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l6 6-6 6' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 /* Every task/habit row is one line of the same height; long titles get an ellipsis */
 .tt,.cali label,.wit,.el-name,.trk-entry-val{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .ti>div,.wri>div,.cali>label{min-width:0}
@@ -789,10 +788,6 @@ html:not(#x) .el-card .el-row:only-child,html:not(#x) .cat-choice:only-child,
 html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 /* tracker rows and entries */
 .trk-entry{padding:12px 0}
-/* Count next to each priority in Tasks: an 18px pill, 11px semibold numbers. */
-html:not(#x) .sl-count{display:inline-flex;height:18px;min-width:18px;padding:0 5px;border-radius:99px;box-sizing:border-box;font-size:11px;font-weight:600;line-height:1;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums;white-space:nowrap;align-items:center;justify-content:center}
-/* inside an 11px section label: centered on it, without making it taller */
-html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -1148,6 +1143,9 @@ html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
     <div class="sheet-btns">
       <button class="sheet-save" onclick="SheetEditor.save()">Save</button>
     </div>
+    <div class="sheet-btns" id="proj-delete-row" style="display:none;margin-top:8px">
+      <button class="sheet-save danger" onclick="SheetEditor.remove()">Delete project</button>
+    </div>
   </div>
 </div>
 <div class="sheet-overlay" id="daily-cat-sheet-overlay" onclick="if(event.target===this)DailyCatSheet.close()">
@@ -1254,7 +1252,7 @@ html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.28';
+var APP_VERSION='Beta 3.30';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2076,6 +2074,16 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.28',notes:[
     'Opening the app in airplane mode no longer makes iOS show its Airplane Mode alert: the automatic update check waits until you\'re back online'
+  ]},
+  {v:'Beta 3.29',notes:[
+    'The counts next to each priority in Tasks are gone',
+    'Skipped habits show one arrow instead of two'
+  ]},
+  {v:'Beta 3.30',notes:[
+    'A project can be deleted from its own edit window (it goes to the Trash with its tasks)',
+    'Once a habit or task in Today has turned grey from holding it, sliding no longer skips it',
+    'Creating a category (and other windows that used to put the cursor in their field by themselves) no longer makes the app bump when the keyboard opens',
+    'After closing a dropdown by tapping somewhere else, the next tap on its button opens it right away'
   ]}
 ];
 var COLORS={
@@ -3133,7 +3141,7 @@ function renderLockedIn(){
   ['bu','bs','bp','bl'].forEach(function(pri){
     var items=all.filter(function(t){return t.pri===pri;});
     if(!items.length)return;
-    h+='<div class="sl">'+PLBL[pri]+'<span class="sl-count">'+items.length+'</span></div>';
+    h+='<div class="sl">'+PLBL[pri]+'</div>';
     h+='<div class="card-list">'+items.map(function(t){
       var col=COLORS[t.color||'c-grey']||'#6b7280';
       return '<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
@@ -3255,11 +3263,15 @@ function customSelect(opts,current,onchange){
 // tall with its own scroll, and closed by picking, tapping elsewhere or
 // scrolling the page. The native <select> couldn't be positioned.
 var DSel=(function(){
-  var menu=null,owner=null,swallowUntil=0;
-  // A tap/click that closes the list must do nothing else: while (and just
-  // after) it's open, the first press outside only closes it.
+  var menu=null,owner=null,swallowEl=null,swallowUntil=0;
+  // A tap that closes the list must do nothing else: its own click (on the
+  // element it touched, or the button around it) is dropped — only that one.
+  // It used to drop EVERY click for 450ms, so tapping + again right after
+  // closing the list did nothing and needed a second tap.
   document.addEventListener('click',function(e){
-    if(Date.now()<swallowUntil){e.stopPropagation();e.preventDefault();}
+    if(!swallowEl)return;
+    if(Date.now()>swallowUntil){swallowEl=null;return;}
+    if(e.target===swallowEl||(e.target.contains&&e.target.contains(swallowEl))){e.stopPropagation();e.preventDefault();swallowEl=null;}
   },true);
   function close(){
     if(menu){menu.remove();menu=null;}
@@ -3276,7 +3288,7 @@ var DSel=(function(){
   function isInside(e){return menu&&(menu.contains(e.target)||(owner&&owner.contains(e.target)));}
   function outsideStart(e){
     if(!menu||isInside(e))return;
-    swallowUntil=Date.now()+450; // the click that follows this press is dropped
+    swallowEl=e.target;swallowUntil=Date.now()+700; // the click that follows this press is dropped
     close();
   }
   function outside(e){
@@ -5108,7 +5120,7 @@ function renderToday(){
 // (DB.skipTask), and with "Refill automatically" on the next one takes its
 // place. Habits: stored as a 'skip' day (DB.skipDaily) — counts as done
 // but is amber in the charts. Only unchecked habits can be skipped.
-var SKIP_ICON='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 5 12 12 5 19"/><polyline points="13 5 20 12 13 19"/></svg>';
+var SKIP_ICON='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 5 16 12 9 19"/></svg>';
 function swipeWrap(kind,inner){
   // switched off in Settings > Today: the row is plain, nothing to swipe
   if(kind==='t'&&DB.data.settings.skipTasks===false)return inner;
@@ -5139,6 +5151,10 @@ function tickEdge(row){
 //    isn't flashed instead).
 // The fade timing itself is CSS (see "Press grey timing").
 var PRESS_DELAY=110,PRESS_TAP_MS=200;
+// The row that turned grey from being HELD during the current touch (null
+// if none) — a row held that long can't be swiped to skip any more (see
+// Skip) — and a way for a starting skip swipe to stop a pending grey.
+var _pressHeld=null,_pressCancel=function(){};
 var PRESS_ROWS='.cali:not([data-once]):not(.locked),.ti:not([data-once]),.wri,.opt-row:not(:has(.switch)):not(:has(.dsel-wrap))';
 (function(){
   var row=null,timer=null,sx=0,sy=0;
@@ -5171,13 +5187,14 @@ var PRESS_ROWS='.cali:not([data-once]):not(.locked),.ti:not([data-once]),.wri,.o
       n.classList.remove('press-now','pressed-row');
     }
   }
+  _pressCancel=function(){if(timer){clearTimeout(timer);timer=null;}if(row){off(row);row=null;}};
   document.addEventListener('touchstart',function(e){
     if(timer){clearTimeout(timer);timer=null;}
-    row=null;
+    row=null;_pressHeld=null;
     var r=e.target.closest(PRESS_ROWS);
     if(!r||e.target.closest('input')||e.touches[0].clientX<=tickEdge(r))return;
     row=r;sx=e.touches[0].clientX;sy=e.touches[0].clientY;
-    timer=setTimeout(function(){timer=null;if(row)row.classList.add('pressed-row');},PRESS_DELAY);
+    timer=setTimeout(function(){timer=null;if(row){row.classList.add('pressed-row');_pressHeld=row;}},PRESS_DELAY);
   },{passive:true});
   document.addEventListener('touchmove',function(e){
     if(!row)return;
@@ -5244,7 +5261,10 @@ var Skip=(function(){
       if(Math.abs(y)>10&&Math.abs(y)>Math.abs(x)){mode=0;cur=null;return;}
       if(Math.abs(x)<8)return;
       if(x<0){mode=0;cur=null;return;}
+      // held long enough to turn grey: this touch doesn't swipe any more
+      if(_pressHeld&&cur.contains(_pressHeld)){mode=0;cur=null;return;}
       mode=2;cur.classList.add('on');
+      _pressCancel(); // swiping: no grey from here on
       if(typeof _cancelHold==='function')_cancelHold();
     }
     dx=Math.max(0,Math.min(cur.offsetWidth,x));
@@ -5383,7 +5403,7 @@ var DailyItemSheet={
     this.showGoal(null);
     this.renderDays();
     _overlayOpen('daily-item-sheet-overlay');
-    if(!this.trackerPid)setTimeout(function(){document.getElementById('daily-item-inp').focus({preventScroll:true});},300);
+    if(!this.trackerPid)setTimeout(function(){_autoFocus(document.getElementById('daily-item-inp'));},300);
   },
   // Edit an existing habit: its name and the days it repeats on. Past
   // check-offs are kept, so the score just follows the new schedule.
@@ -5885,7 +5905,7 @@ var InputSheet={
     var f=document.getElementById('input-sheet-field');
     f.placeholder=placeholder||'';f.value='';
     _overlayOpen('input-sheet-overlay');
-    setTimeout(function(){f.focus({preventScroll:true});},300);
+    setTimeout(function(){_autoFocus(f);},300);
   },
   confirm:function(){
     var val=document.getElementById('input-sheet-field').value.trim();
@@ -5941,7 +5961,7 @@ var OnceAddSheet={
     document.getElementById('once-add-text').value='';
     document.getElementById('once-add-date').value='';
     _overlayOpen('once-add-sheet-overlay');
-    setTimeout(function(){document.getElementById('once-add-text').focus({preventScroll:true});},300);
+    setTimeout(function(){_autoFocus(document.getElementById('once-add-text'));},300);
   },
   save:function(){
     var text=document.getElementById('once-add-text').value.trim();
@@ -5983,7 +6003,7 @@ var TaskSheet={
     this.renderRows();
     _overlayOpen('task-sheet-overlay');
     this.autosize();
-    setTimeout(function(){document.getElementById('task-sheet-name').focus({preventScroll:true});},300);
+    setTimeout(function(){_autoFocus(document.getElementById('task-sheet-name'));},300);
   },
   autosize:function(){
     var el=document.getElementById('task-sheet-desc');
@@ -6037,7 +6057,7 @@ var TrackerAddSheet={
     document.getElementById('trk-add-unit').textContent=p.unit||'';
     var inp=document.getElementById('trk-add-val');inp.value='';
     _overlayOpen('trk-add-sheet-overlay');
-    setTimeout(function(){inp.focus({preventScroll:true});},300);
+    setTimeout(function(){_autoFocus(inp);},300);
   },
   save:function(){
     var val=parseFloat(document.getElementById('trk-add-val').value);
@@ -6075,7 +6095,7 @@ var TrackerDaySheet={
     var v=trackerDayValue(it,pDate(dayIdx));
     var inp=document.getElementById('trk-day-val');inp.value=v!=null?fmtTrk(v):'';
     _overlayOpen('trk-day-sheet-overlay');
-    setTimeout(function(){inp.focus({preventScroll:true});},300);
+    setTimeout(function(){_autoFocus(inp);},300);
   },
   save:function(){
     var id=this.itemId,it=DB.data.dailyItems.find(function(x){return x.id===id;});
@@ -6200,6 +6220,13 @@ document.addEventListener('focusout',function(e){
 // counts with its first lines only), at most up to just below the status
 // bar. The keyboard's height is measured whenever it opens (the largest
 // seen is kept in 'lifeos-kb'); until then 46% of the screen is assumed.
+var IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+// A window's first field gets focus by itself when it opens — except on
+// iOS: there a focus that doesn't come from a tap puts the caret in the
+// field without opening the keyboard, and the tap that then opens it was
+// left to iOS (the field already had focus), which slid the view up and
+// down. On iOS the user's tap focuses it (see the tap takeover below).
+function _autoFocus(el){if(el&&!IS_IOS)el.focus({preventScroll:true});}
 var KbFit={
   GAP:16,baseH:0,sync:null,
   textField:function(el){
@@ -6301,7 +6328,8 @@ var KbDiag={
 //    the window's height) is scrolled up inside it. The window stays put.
 if(window.visualViewport){
   (function(){
-    var vv=window.visualViewport,IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    var vv=window.visualViewport,IOS=IS_IOS;
+    function kbUp(){return (KbFit.baseH||window.innerHeight)-vv.height>120;}
     function typingInSheet(el){return el&&el.closest&&el.closest('.sheet-overlay.on .sheet')&&_isTypingField(el);}
     function room(sheet,px){
       if(!sheet.style.paddingBottom)sheet._pb=parseFloat(getComputedStyle(sheet).paddingBottom)||0;
@@ -6347,7 +6375,7 @@ if(window.visualViewport){
     var tap=null;
     document.addEventListener('touchstart',function(e){
       tap=null;
-      if(!IOS||!typingInSheet(e.target)||!KbFit.textField(e.target)||e.target===document.activeElement)return;
+      if(!IOS||!typingInSheet(e.target)||!KbFit.textField(e.target)||(e.target===document.activeElement&&kbUp()))return;
       tap={el:e.target,x:e.touches[0].clientX,y:e.touches[0].clientY};
     },{passive:true,capture:true});
     document.addEventListener('touchmove',function(e){
@@ -6358,7 +6386,8 @@ if(window.visualViewport){
       var t=tap;tap=null;
       var sheet=t&&t.el.closest('.sheet-overlay.on .sheet');
       if(!sheet)return;
-      var open=typingInSheet(document.activeElement); // keyboard already up: switching fields
+      var open=typingInSheet(document.activeElement)&&kbUp(); // keyboard already up: switching fields
+      if(t.el===document.activeElement)t.el.blur(); // focused but no keyboard: focus again so it opens
       var H=KbFit.baseH||window.innerHeight,line=open?vv.offsetTop+vv.height:H-KbFit.keyboard(H);
       e.preventDefault();
       if(KbFit.end(t.el)>line-KbFit.GAP){ // the keyboard would cover it
@@ -6682,6 +6711,7 @@ var SheetEditor={
     var mar=document.getElementById('ma-edit-row');if(mar)mar.style.display='none';
     document.getElementById('sheet-ma-enabled').checked=false;
     document.getElementById('sheet-ma-window').value=7;
+    document.getElementById('proj-delete-row').style.display='none';
     _overlayOpen('proj-sheet-overlay');
   },
     open:function(pid){
@@ -6701,6 +6731,8 @@ var SheetEditor={
     if(mar)mar.style.display=p.type==='tracker'?'block':'none';
     document.getElementById('sheet-ma-enabled').checked=!!p.maEnabled;
     document.getElementById('sheet-ma-window').value=p.maWindow||7;
+    // Delete: any project but the Daily one (that's the Habits page itself)
+    document.getElementById('proj-delete-row').style.display=pid===DB.data.habitsProjectId?'none':'';
     _overlayOpen('proj-sheet-overlay');
   },
 
@@ -6715,6 +6747,25 @@ var SheetEditor={
     document.getElementById('new-proj-type').innerHTML=customSelect(TYPE_OPTS,t,'SheetEditor.setType(this.value)');
     var sur2=document.getElementById('sheet-unit-row');if(sur2)sur2.style.display=t==='tracker'?'block':'none';
     var mar=document.getElementById('ma-edit-row');if(mar)mar.style.display=t==='tracker'?'block':'none';
+  },
+  // Moves the project (and its tasks/entries) to the Trash, like Edit
+  // layout's delete. The confirm window opens once this one has closed (both
+  // are sheets on the same layer); if you're on the project's page, the app
+  // goes back first and rebuilds the pages once that slide is done.
+  remove:function(){
+    var pid=this.pid,p=pid&&DB.data.projects[pid];
+    if(!p||pid===DB.data.habitsProjectId)return;
+    var catId=p.categoryId;
+    if(!catId||!(DB.data.projectOrder[catId]||[]).length)catId=Object.keys(DB.data.projectOrder).filter(function(c){return (DB.data.projectOrder[c]||[]).indexOf(pid)!==-1;})[0]||p.categoryId;
+    this.close();
+    setTimeout(function(){
+      ConfirmSheet.show(t('Move project "'+p.name+'" and all its tasks to the Trash?'),function(){
+        var onPage=Nav.cur===pid;
+        DB.deleteProject(catId,pid);
+        function rebuild(){buildProjPages();renderGrids();renderWar();renderEditLayout();buildPanels();restoreChecks(Nav.sd);}
+        if(onPage){navBack();setTimeout(rebuild,SLIDE_MS+80);}else rebuild();
+      });
+    },SHEET_ANIM_MS+30);
   },
   close:function(){
     _overlayClose('proj-sheet-overlay');

@@ -1254,7 +1254,7 @@ html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.27';
+var APP_VERSION='Beta 3.28';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2073,6 +2073,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.27',notes:[
     'The + on Overview and the view button in Tasks open a small dropdown under the button instead of a window from the bottom'
+  ]},
+  {v:'Beta 3.28',notes:[
+    'Opening the app in airplane mode no longer makes iOS show its Airplane Mode alert: the automatic update check waits until you\'re back online'
   ]}
 ];
 var COLORS={
@@ -2635,6 +2638,7 @@ var I18N=(function(){
     // updates
     'Updating':'Aktualisiere',
     'Nothing to update yet — close and reopen the app once first.':'Noch nichts zu aktualisieren — schließe die App einmal und öffne sie erneut.',
+    "You're offline — connect to the internet to check for updates.":'Du bist offline — verbinde dich mit dem Internet, um nach Updates zu suchen.',
     'Update failed — try again later. Nothing was changed.':'Update fehlgeschlagen — versuche es später erneut. Es wurde nichts geändert.',
     // confirms / alerts
     'Delete this forever?':'Endgültig löschen?','Move this entry to the Trash?':'Diesen Eintrag in den Papierkorb legen?','Move this habit to the Trash?':'Diese Gewohnheit in den Papierkorb legen?',
@@ -3730,6 +3734,14 @@ var A={
       if(btn){btn.classList.remove('spinning');btn.disabled=false;}
       UpdateOverlay.hide();
       if(msg&&!silent)alert(t(msg));
+    }
+    // Offline (airplane mode): don't even try. Any request made in airplane
+    // mode makes iOS show its "Airplane Mode is on" alert — this check ran
+    // on every launch, so the alert came up every time the app opened.
+    // A skipped automatic check runs once the phone is back online.
+    if(navigator.onLine===false){
+      if(silent)A._updateWhenOnline=true;
+      done("You're offline — connect to the internet to check for updates.");return;
     }
     if(!('serviceWorker' in navigator)){done("Updates aren't supported in this browser.");return;}
     navigator.serviceWorker.getRegistration().then(function(reg){
@@ -6894,6 +6906,12 @@ setTimeout(function(){WhatsNew.checkAndShow();},400);
 // automatic updates: check shortly after launch, and again when the app is reopened after a while
 var _lastAutoCheck=Date.now();
 if(DB.data.settings.autoUpdate)setTimeout(function(){A.checkForUpdate(true);},1200);
+// an automatic check skipped while offline runs as soon as the phone is back online
+window.addEventListener('online',function(){
+  if(!A._updateWhenOnline||!DB.data.settings.autoUpdate)return;
+  A._updateWhenOnline=false;_lastAutoCheck=Date.now();
+  setTimeout(function(){A.checkForUpdate(true);},1500);
+});
 
 // T is a snapshot taken at load time — if the app stays open across a day
 // boundary (very possible on iOS: backgrounding a home-screen app doesn't

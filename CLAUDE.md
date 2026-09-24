@@ -902,6 +902,18 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   activating) — confirmed on a genuinely fresh install that it did NOT
   stop the warning. Reverted. Current read: this is very likely an
   iOS/WebKit-level thing outside app control, not worth chasing further.
+  3.28 — a DIFFERENT, app-caused one: in airplane mode iOS showed its
+  "Airplane Mode is on" alert on every launch. That alert comes up when the
+  app makes any network request in airplane mode, and the automatic update
+  check (`checkForUpdate(true)`, 1.2s after launch and on resume after 5
+  min) fetched sw.js every time. `checkForUpdate` now returns before any
+  request when `navigator.onLine===false` (a manual check says "You're
+  offline"), and a skipped automatic check runs on the `online` event
+  (`A._updateWhenOnline`). The app loads nothing else from the network
+  (no external fonts/scripts; icons/manifest come from the SW cache). If
+  the alert still shows, what's left is the browser's own service-worker
+  update check on launch, which a page can't turn off. Any new network
+  request must also skip itself while offline.
 
 - sw.js's navigate handler (fetch listener, `e.request.mode === 'navigate'`)
   must ALWAYS resolve to `SHELL_URL` (index.html) — never fetch or cache

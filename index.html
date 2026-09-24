@@ -142,7 +142,6 @@ html[data-theme="light"] .dico{background:#f3f4f6;color:#1a1917}
 @media(prefers-color-scheme:dark){.ti{background:#1e1c1a;border-color:#2a2927}}
 html[data-theme="dark"] .ti{background:#1e1c1a;border-color:#2a2927}
 html[data-theme="light"] .ti{background:#fff;border-color:#e8e5e0}
-html .ti[data-pri="bu"]{border:1.5px solid #e24b4a}
 .tt{font-size:14px;flex:1;line-height:1.4}
 .ts{font-size:11px;color:#999;margin-top:3px}
 .bdg{font-size:11px;font-weight:700;padding:5px 10px;border-radius:99px;flex-shrink:0;white-space:nowrap;min-height:30px;display:inline-flex;align-items:center}
@@ -523,7 +522,6 @@ html[data-theme="light"] .type-btn.active{border-color:#1a1917;color:#1a1917;bac
    border rules. The red War Room outline and the hairline dividers inside
    .opt-group are kept. */
 html:not(#x) .acard,html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .calsec,html:not(#x) .archbox,html:not(#x) .el-row,html:not(#x) .opt-row,html:not(#x) .opt-group{border-color:transparent}
-html:not(#x) .ti[data-pri="bu"]{border-color:#e24b4a}
 /* Header of the habit pages (Daily and a single habit): a row of two soft
    buttons, then a large title with a muted line under it — same soft,
    outline-free look as Settings */
@@ -575,11 +573,11 @@ html[data-theme="dark"] .wrd{color:rgba(255,255,255,.7)}
 html[data-theme="dark"] .bu{background:#7a2e2d}
 /* One divider look everywhere (1.5px, --line): a hair darker than the page
    background, so it reads as a soft gap between rows, as in Settings. */
-:root{--line:#d5d7db;--pg:#f3f4f6;--card:#fff;--press:#d5d6db}
+:root{--line:#d5d7db;--pg:#f3f4f6;--card:#fff;--press:#d5d6db;--war:#e24b4a;--war-bg:#fde8e8}
 /* Pressed rows: darker than the white card in light mode, LIGHTER than the dark card in dark mode. */
-@media(prefers-color-scheme:dark){:root{--line:#333e4d;--pg:#1f2937;--card:#1e1c1a;--press:#3a3836}}
-html[data-theme="dark"]{--line:#333e4d;--pg:#1f2937;--card:#1e1c1a;--press:#3a3836}
-html[data-theme="light"]{--line:#d5d7db;--pg:#f3f4f6;--card:#fff;--press:#d5d6db}
+@media(prefers-color-scheme:dark){:root{--line:#333e4d;--pg:#1f2937;--card:#1e1c1a;--press:#3a3836;--war:#ef5350;--war-bg:#4a1f1f}}
+html[data-theme="dark"]{--line:#333e4d;--pg:#1f2937;--card:#1e1c1a;--press:#3a3836;--war:#ef5350;--war-bg:#4a1f1f}
+html[data-theme="light"]{--line:#d5d7db;--pg:#f3f4f6;--card:#fff;--press:#d5d6db;--war:#e24b4a;--war-bg:#fde8e8}
 /* War Room rows: same look as Today's list, split by dividers */
 html:not(#x) .wri{background:transparent;border:none;border-bottom:0.5px solid var(--line);border-radius:0;margin:0;padding:8px 10px}
 html:not(#x) .wri:last-child{border-bottom:none}
@@ -701,7 +699,6 @@ html:not(#x) .card-list .ti:last-child{border-bottom:none}
 html:not(#x) .card-list .sw.t{margin:0;border-radius:0;border-bottom:0.5px solid var(--line)}
 html:not(#x) .card-list .sw.t:last-child{border-bottom:none}
 html:not(#x) .card-list .sw.t .ti{border-bottom:none}
-html:not(#x) .card-list .ti[data-pri="bu"]{box-shadow:inset 3px 0 0 #e24b4a}
 .trk-entry:last-child{border-bottom:none}
 /* priority picker: four equal pills in a row (dimmed until chosen) */
 html:not(#x) .card-list .ti{padding:8px 10px}
@@ -788,6 +785,11 @@ html:not(#x) .el-card .el-row:only-child,html:not(#x) .cat-choice:only-child,
 html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 /* tracker rows and entries */
 .trk-entry{padding:12px 0}
+/* War Room tasks (priority "bu", and every row of Overview's War Room
+   card): a red tick box — red outline, light red fill — instead of a red
+   stripe along the row, which followed each row's rounded corners and
+   couldn't look the same in every list. A ticked box looks like any other. */
+html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) .wri input[type=checkbox]:not(:checked){background-color:var(--war-bg);box-shadow:inset 0 0 0 2px var(--war)}
 </style>
 </head>
 <body>
@@ -1252,7 +1254,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.30';
+var APP_VERSION='Beta 3.31';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2084,6 +2086,9 @@ var CHANGELOG=[
     'Once a habit or task in Today has turned grey from holding it, sliding no longer skips it',
     'Creating a category (and other windows that used to put the cursor in their field by themselves) no longer makes the app bump when the keyboard opens',
     'After closing a dropdown by tapping somewhere else, the next tap on its button opens it right away'
+  ]},
+  {v:'Beta 3.31',notes:[
+    'War Room tasks are marked by a red tick box instead of the red stripe on the side'
   ]}
 ];
 var COLORS={

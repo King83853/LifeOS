@@ -315,6 +315,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   Skip icon: ONE arrow (3.29; it was a double arrow) — in a skipped tick
   box (`.cali.skipped` checkbox background) and the swipe action
   (`SKIP_ICON`).
+  War Room marker (3.31, picked from five mockups): a red TICK BOX (inset
+  2px `--war` outline, `--war-bg` fill; unticked only) on `.ti[data-pri=
+  "bu"]` and every `.wri`. The red stripe it replaced (inset box-shadow on
+  the row) followed each row's radius: one long curved line in Tasks, a
+  separate curved stripe per row in Today (each row is its own `.sw`), so
+  it could never look the same everywhere. Don't mark rows by their edges.
 
 - `.cali`'s press-grey went through two rounds (2.87, then 2.88 — the
   2.87 approach is superseded, don't resurrect it). First round tried to

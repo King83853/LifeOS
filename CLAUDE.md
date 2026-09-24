@@ -105,11 +105,16 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   adds a new one instead. The tracker page's own chart/entries list still
   shows every entry.
   Tracker habit rows (`ciTracker`, Today and Daily) are split rows like
-  habits: the tick zone shows a number box (`.trk-box`, that day's value;
-  `--box` grey until done, `--go` green when done, skip style when
-  skipped — same colors as a tick box, widening to fit the number); a tap
-  on it (a hold, in hold-to-complete mode — the HOLD handler has a
-  `.trk-box` branch) opens `TrackerDaySheet`, which SETS that day's value
+  habits. Since 3.13 the tick zone holds the SAME checkbox as a habit
+  (checked = `habitDayVal` done, row `.skipped` when skipped, label struck
+  through/dimmed like `paintCheck` — rendered inline, the checkbox has no
+  `data-id` so restoreChecks/Today's painter, which read dailyChecks, leave
+  it alone; its click is preventDefault()ed so it never toggles), and the
+  day's value + unit sits in front of the arrow as `.cali-val` (Settings'
+  row-value style, part of the bar). 2.92–3.12 showed the value INSIDE a
+  number box (`.trk-box`) instead — replaced by request. A tap on the box
+  (a hold, in hold-to-complete mode — the HOLD handler's
+  `[data-tracker]` branch) opens `TrackerDaySheet`, which SETS that day's value
   (`DB.setTrackerDayValue`: changes that day's latest entry or adds one
   timestamped on that day) so adjusting through the day doesn't pile up
   entries; future days can't be logged. The bar opens the tracker page.
@@ -899,6 +904,16 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   that stops a scroll apparently never reached touchend-based handling on
   their phone. Not scrolling, the tab bar still acts on touchend (so a
   scroll gesture that starts on the tab bar doesn't switch tabs).
+  3.13: reported that this did NOT help — the first tap on the menu while
+  the page coasts still only stops the scroll. Shipped a TEMPORARY readout
+  (search "TEMPORARY (3.13) readout") listing every touch/pointer/click
+  event the tab bar received within 2s of a scroll, to learn whether the
+  phone delivers that first tap to the page at all. If it doesn't, the
+  only fix is native-app structure: pages scrolling inside their own
+  container (not the document) so the tab bar sits outside the scroller —
+  a big change to slides/_scrollPos/statusbar blur/scroll lock; confirm the
+  blast radius with the user before doing it. Remove the readout (and
+  reword nothing in CHANGELOG — it was never listed there) once read.
 
 - `checkForUpdate` (index.html, `A.checkForUpdate`) went through several
   broken iterations worth knowing about: (1) originally deleted all

@@ -279,10 +279,9 @@ html[lang="de"] .cali.skipped label::after{content:' \00b7 übersprungen'}
    it's part of the bar's tap area. */
 .cali-chev{align-self:stretch;display:flex;align-items:center;flex-shrink:0;padding:0 14px 0 8px;cursor:pointer}
 .cali.split>svg{margin:0 14px 0 8px}
-/* A tracker habit's number box: same size, corners and colors as a tick
-   box (--box empty, --go done), widening to fit its number. */
-.trk-box{min-width:26px;height:26px;padding:0 6px;box-sizing:border-box;border-radius:8px;background:var(--box);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
-.trk-box.done{background:var(--go);color:#fff}
+/* A tracker habit's logged value, in front of the arrow — Settings' row
+   value style (App's version). Part of the bar: tapping it opens the tracker. */
+.cali-val{align-self:stretch;display:flex;align-items:center;flex-shrink:0;padding-left:8px;font-size:15px;font-weight:500;color:#999;white-space:nowrap;font-variant-numeric:tabular-nums;cursor:pointer}
 /* A Daily-linked tracker's entries fold behind one row (see renderTracker). */
 .trk-entries-hdr{display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;cursor:pointer;font-size:15px;font-weight:500}
 .trk-entries-t{flex:1}
@@ -291,13 +290,6 @@ html[lang="de"] .cali.skipped label::after{content:' \00b7 übersprungen'}
 .trk-entries.open .trk-entries-chev{transform:none}
 .trk-entries-list{display:none;padding:0 14px;border-top:0.5px solid var(--line)}
 .trk-entries.open .trk-entries-list{display:block}
-.trk-box.skip{background:var(--go-skip) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 6l6 6-6 6M12.5 6l6 6-6 6' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/17px no-repeat}
-/* Status dot for a tracker linked into Daily (see ciTracker()) — not a
-   checkbox, since a tracker's "done today" isn't a toggle a tap can
-   flip, it's whatever value (if any) was logged today on the tracker's
-   own project page. Same footprint as the real checkbox next to it in
-   other rows, just not interactive itself — the whole row is. */
-
 .el-row{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px}
 @media(prefers-color-scheme:dark){.el-row{background:#1e1c1a;border-color:#2a2927}}
 html[data-theme="dark"] .el-row{background:#1e1c1a;border-color:#2a2927}
@@ -1260,7 +1252,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.12';
+var APP_VERSION='Beta 3.13';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2032,6 +2024,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.12',notes:[
     'Habits have one order everywhere: if Meditation is above Reading, it\'s above Reading on every day and in Today. Moving a habit on one day moves it everywhere, and habits not shown that day keep their place'
+  ]},
+  {v:'Beta 3.13',notes:[
+    'Tracker habits use the same tick box as every other habit: ticked when the goal is reached (or anything is logged, without a goal). The logged number sits on the right, in front of the arrow'
   ]}
 ];
 var COLORS={
@@ -4348,24 +4343,27 @@ var _projFromDaily=null;
 // assume Daily and sent Today's tap back to Habits instead of Today.
 var _trackerOrigin=null;
 // A tracker linked into Daily (dailyItems entry with trackerPid instead of
-// its own text). Same two-button row as a habit (see ci()): the tick zone
-// holds a number box instead of a checkbox — that day's logged value, grey
-// like an empty tick box until it's done, green like a ticked one once it is
-// (see habitDayVal: goal reached, or anything logged when there's no goal).
-// Tapping it (holding, in hold-to-complete mode) opens TrackerDaySheet to
-// enter or adjust that day's value; the bar opens the tracker's own page.
+// its own text). Same two-button row as a habit (see ci()), with the very
+// same tick box: ticked once the day counts as done (see habitDayVal: goal
+// reached, or anything logged when there's no goal), skipped like a habit.
+// The box can't be toggled — tapping it (holding, in hold-to-complete mode)
+// opens TrackerDaySheet to enter or adjust that day's value. The value
+// itself sits in front of the arrow like a Settings row's value; the bar
+// opens the tracker's own page.
 // `locked`: a day before the habit's statistics start (after a reset) —
 // dimmed with a lock like a locked habit row, and nothing to log there.
 function ciTracker(it,dayIdx,editable,locked){
   var p=DB.data.projects[it.trackerPid];
   if(!p)return ''; // its tracker project was deleted — orphaned link, nothing sane to show
   var ds=pDate(dayIdx),val=trackerDayValue(it,ds),hv=habitDayVal(it,ds);
-  return '<div class="cali split trk-row'+(locked?' locked':'')+'" data-id="'+it.id+'" data-tracker="'+it.id+'" data-day="'+dayIdx+'">'
-    +'<span class="cali-tick"'+(locked?'':' onclick="TrackerDaySheet.tap(\''+it.id+'\','+dayIdx+')"')+'><span class="trk-box'+(hv==='skip'?' skip':(hv?' done':''))+'">'+(val!=null&&hv!=='skip'?esc(fmtTrk(val)):'')+'</span></span>'
-    +'<label onclick="_projFromDaily=\''+it.trackerPid+'\';_trackerOrigin=\''+(editable?'habits':'today')+'\';Nav.go(\''+it.trackerPid+'\')">'+esc(p.name)+'</label>'
+  var look=hv==='skip'?'opacity:.6':(hv?'text-decoration:line-through;opacity:.35':''); // as paintCheck
+  return '<div class="cali split trk-row'+(hv==='skip'?' skipped':'')+(locked?' locked':'')+'" data-id="'+it.id+'" data-tracker="'+it.id+'" data-day="'+dayIdx+'">'
+    +'<span class="cali-tick"'+(locked?'':' onclick="TrackerDaySheet.tap(\''+it.id+'\','+dayIdx+')"')+'><input type="checkbox" tabindex="-1"'+(hv?' checked':'')+(locked?' disabled':'')+' onclick="event.preventDefault()"></span>'
+    +'<label style="'+look+'" onclick="_projFromDaily=\''+it.trackerPid+'\';_trackerOrigin=\''+(editable?'habits':'today')+'\';Nav.go(\''+it.trackerPid+'\')">'+esc(p.name)+'</label>'
+    +(val!=null?'<span class="cali-val" onclick="this.parentNode.querySelector(\'label\').click()">'+esc(fmtTrk(val)+(p.unit?' '+p.unit:''))+'</span>':'')
     +(locked?LOCK_SVG:CALI_CHEV)+'</div>';
 }
-// A logged value as short as possible for the number box (no trailing .0).
+// A logged value as short as possible (no trailing .0).
 function fmtTrk(v){return String(Math.round(v*100)/100);}
 // ── HABIT STATS ───────────────────────────────────────────
 // Mo=0..So=6, matching TI/DN's convention throughout this file.
@@ -5157,8 +5155,8 @@ var Skip=(function(){
     var w=e.target.closest&&e.target.closest('.sw');
     cur=null;mode=0;
     if(!w)return;
-    var cb=w.querySelector('input[type=checkbox]'),tb=w.querySelector('.trk-box');
-    if(w.classList.contains('h')&&(tb?(tb.classList.contains('done')||tb.classList.contains('skip')):(!cb||cb.checked)))return;
+    var cb=w.querySelector('input[type=checkbox]');
+    if(w.classList.contains('h')&&(!cb||cb.checked))return;
     // A press that starts on (or left of) the tick-off square never swipes,
     // so ticking something off with a slightly moving finger can't skip it.
     if(e.touches[0].clientX<=tickEdge(w))return;
@@ -5495,9 +5493,9 @@ var holdTimer=null,holdSX=0,holdSY=0;
 document.addEventListener('touchstart',function(e){
   if(!DB.data.settings.holdToComplete)return;
   var item=e.target.closest('.ti,.wri,.cali');if(!item)return;
-  // A tracker habit's number box: holding it opens its value window
+  // A tracker habit's tick box: holding it opens its value window
   // (TrackerDaySheet) instead of ticking anything.
-  var box=item.querySelector('.trk-box');
+  var box=item.hasAttribute('data-tracker')&&item.querySelector('input[type=checkbox]');
   if(box){
     var br=box.getBoundingClientRect(),bt=e.touches[0];
     if(parseInt(item.getAttribute('data-day'),10)>0||item.classList.contains('locked'))return;
@@ -6274,6 +6272,28 @@ if(window.visualViewport){
 // the page is scrolling (both explained below).
 var _lastScrollAt=0;
 window.addEventListener('scroll',function(){_lastScrollAt=Date.now();},{passive:true});
+// TEMPORARY (3.13) readout: which events the phone reports for a tap on the
+// tab bar within 2s of scrolling — to see why a tap there while the page is
+// still moving only stops the scroll (3.10's touchstart switch didn't help
+// on the phone). Shows a card listing them; remove once it's been read.
+(function(){
+  var log=[],timer=null,card=null;
+  function rec(e){
+    if(!e.target.closest||!e.target.closest('.tabbar'))return;
+    var since=Date.now()-_lastScrollAt;
+    log.push({t:Date.now(),type:e.type,since:since,cur:Nav.cur});
+    if(log.length>12)log.shift();
+    if(since<2000||(card&&card.parentNode)){clearTimeout(timer);timer=setTimeout(show,500);}
+  }
+  ['touchstart','touchend','touchcancel','pointerdown','click'].forEach(function(t){window.addEventListener(t,rec,{capture:true,passive:true});});
+  function show(){
+    var t0=log.length?log[0].t:0,os=(navigator.userAgent.match(/OS (\d+_\d+)|Android [\d.]+/)||[''])[0].replace('_','.');
+    var lines=log.map(function(x){return '+'+(x.t-t0)+'ms '+x.type+' · '+(x.since<2000?x.since+'ms after scroll':'no scroll')+' · on '+x.cur;});
+    if(!card){card=document.createElement('div');card.className='data-notice';card.style.cssText='font:500 11px/1.45 ui-monospace,Menlo,monospace;white-space:pre-wrap';card.onclick=function(){card.remove();log=[];};}
+    card.textContent='Menu test · '+APP_VERSION+' · '+os+'\n'+lines.join('\n')+'\n(tap to close)';
+    if(!card.parentNode)document.body.appendChild(card);
+  }
+})();
 (function(){
   var TAPPABLE='.tab-item,.fab,.hdr-add,.menu-btn,.menu-item,.acard,.opt-row,'
     +'.back,.edit-proj-btn,.hh-btn,.hh-title-btn,.trash-act,.trash-x,.addbtn,.el-btn,.type-btn,'

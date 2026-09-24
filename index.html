@@ -1261,7 +1261,7 @@ html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.7';
+var APP_VERSION='Beta 3.8';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2016,6 +2016,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.7',notes:[
     'Back (the button or swiping) now always returns to the page you came from — for example Settings > Overview > Edit layout goes back to Overview, then Settings'
+  ]},
+  {v:'Beta 3.8',notes:[
+    'Pages slide in and out a little more slowly'
   ]}
 ];
 var COLORS={
@@ -3988,6 +3991,8 @@ function _renderPage(id){
 // Settings row that drifts a few px scrolls the page just enough to switch
 // it on right as the slide starts — reported as a stuttery slide after a
 // long hold in Settings, smooth on (unscrollable) Today.
+// Opening and going back to a page: one duration for both (ms).
+var SLIDE_MS=320;
 var _navBusyUntil=0;
 function _slideStart(){
   if(Date.now()<_navBusyUntil)return false;
@@ -4011,7 +4016,7 @@ function navForward(id){
   cur.scrollTop=_scrollPos[cur.id]||0; // prevent top-flash when fixing
   _fixPage(next,100);
   _renderPage(id);
-  _slideUnit(next,cur,100,0,280,function(){
+  _slideUnit(next,cur,100,0,SLIDE_MS,function(){
     document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');_unfix(p);});
     next.classList.add('active');
     window.scrollTo({top:0,behavior:'instant'}); // projects always start at top
@@ -4072,7 +4077,7 @@ function navBack(targetId){
   ov.scrollTop=savedY;
   _fixPage(ov,-100);
   _renderPage(targetId);
-  _slideUnit(cur,ov,0,100,280,function(){
+  _slideUnit(cur,ov,0,100,SLIDE_MS,function(){
     _unfix(cur);cur.classList.remove('active');
     _unfix(ov);
     ov.classList.add('active');

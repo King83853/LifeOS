@@ -551,7 +551,8 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
 
 - Page-open/close slide (`navForward`/`navBack`, via `_slideUnit`) was
   160ms forward / 180ms back — reported as feeling too quick, wanted
-  slower and more graceful. Both bumped to 280ms (same ease-out-cubic
+  slower and more graceful. Both bumped to 280ms, then 320ms in 3.8
+  (`SLIDE_MS`, "a tiny bit slower") (same ease-out-cubic
   curve, untouched). Deliberately left the swipe-back gesture's own
   `_slideUnit` calls (the 120ms ones, for the interactive drag-release
   snap) alone — those are driven by the finger leaving the screen, not a

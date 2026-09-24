@@ -1358,6 +1358,22 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   shrinks, the sheet gets a negative `bottom` so it stays put. Verified with
   an overridden visualViewport.height in the preview; the real keyboard
   height and iOS's pan behavior need the phone.
+  3.16 — reported: "when the keyboard opens the whole app bumps up and
+  down". Read as: iOS slides the view (visual viewport offsetTop) to reveal
+  the natively-focused field — even one already above the keyboard — and
+  sync()'s scrollTo(0,0) snaps it back = up then down. 3.10 had narrowed
+  the iOS tap takeover to fields the keyboard would cover; now EVERY first
+  tap on a text field in a sheet is taken over again (preventDefault on
+  touchend, focus({preventScroll:true}) inside the tap; covered fields are
+  also scrolled up inside the sheet first), and every sheet's auto-focus
+  (`setTimeout(...focus...,300)`) uses preventScroll. Unconfirmed on the
+  phone, so `KbDiag` records the last keyboard opening (max offsetTop =
+  "view slid", innerHeight before/after, keyboard height, 'tap' = takeover
+  or 'native') in 'lifeos-kbdiag' and Settings > App shows it as a small
+  "Keyboard check" line. If the bump persists, read that line off the
+  phone before changing anything: slid>0 with 'tap' = preventScroll isn't
+  enough on iOS; page height changing = the layout viewport resizes (then
+  sync's negative `bottom` is what moves). Remove KbDiag once settled.
 
 - A single wrong CHANGELOG string (2.85) silently broke the ENTIRE app —
   worth internalizing exactly how, since nothing about it looked wrong at

@@ -576,8 +576,9 @@ html[data-theme="dark"] .bu{background:#7a2e2d}
 /* One divider look everywhere (1.5px, --line): a hair darker than the page
    background, so it reads as a soft gap between rows, as in Settings. */
 :root{--line:#d5d7db;--pg:#f3f4f6;--card:#fff;--press:#d5d6db}
-@media(prefers-color-scheme:dark){:root{--line:#333e4d;--pg:#1f2937;--card:#1e1c1a;--press:#0d1219}}
-html[data-theme="dark"]{--line:#333e4d;--pg:#1f2937;--card:#1e1c1a;--press:#0d1219}
+/* Pressed rows: darker than the white card in light mode, LIGHTER than the dark card in dark mode. */
+@media(prefers-color-scheme:dark){:root{--line:#333e4d;--pg:#1f2937;--card:#1e1c1a;--press:#3a3836}}
+html[data-theme="dark"]{--line:#333e4d;--pg:#1f2937;--card:#1e1c1a;--press:#3a3836}
 html[data-theme="light"]{--line:#d5d7db;--pg:#f3f4f6;--card:#fff;--press:#d5d6db}
 /* War Room rows: same look as Today's list, split by dividers */
 html:not(#x) .wri{background:transparent;border:none;border-bottom:0.5px solid var(--line);border-radius:0;margin:0;padding:8px 10px}
@@ -1252,7 +1253,7 @@ html:not(#x) .sl .sl-count{margin:-3px 0 -3px 7px;vertical-align:middle}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.21';
+var APP_VERSION='Beta 3.22';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2052,6 +2053,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.21',notes:[
     'The counts next to Trash and in the War Room are gone; Tasks keeps its counts'
+  ]},
+  {v:'Beta 3.22',notes:[
+    'In dark mode, pressing a row makes it lighter instead of darker'
   ]}
 ];
 var COLORS={

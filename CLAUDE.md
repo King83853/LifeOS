@@ -267,7 +267,10 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   close and a `.sheet` child — no close button, and don't add one.
 
 - Design system (2.55, the "DESIGN SYSTEM" block at the end of the CSS): the
-  Settings look is the look of the whole app. Cards are `var(--card)` on
+  Settings look is the look of the whole app. (`--press`, the pressed-row
+  color, is darker than the card in light mode but LIGHTER in dark mode —
+  #3a3836 on the #1e1c1a card since 3.22; it was a darker #0d1219.)
+  Cards are `var(--card)` on
   `var(--pg)`, radius 14, NO outlines, 1.5px `var(--line)` dividers, rows 46px.
   Text roles (weights lightened in 2.56 — the "lighter weights" rule at the end of the
   block wins): page title 20/700 (26/700 on pushed pages via `.hh`), row text

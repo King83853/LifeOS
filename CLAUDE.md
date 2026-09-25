@@ -342,6 +342,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   #3a3836 on the #1e1c1a card since 3.22; it was a darker #0d1219.)
   Cards are `var(--card)` on
   `var(--pg)`, radius 14, NO outlines, 1.5px `var(--line)` dividers, rows 46px.
+  Ink (3.64, "all the almost black text full black, almost white full
+  white"): `--ink` and every text/icon/ink-border/ink-fill colour is pure
+  #000 in light mode and #fff in dark (was #1a1917 / #e8e6df — replaced
+  everywhere, incl. %23-encoded SVGs). Surfaces, greys and tints (#f3f4f6,
+  dark cards, --pg, the green/red tints) were left alone. New code: use
+  var(--ink) (or #000/#fff), never an off-black/off-white.
   Card spacing on pages (3.49, "the same extra amount with and without a
   title"): 20px between two cards, 22px from a card down to a section title
   (title to its own card stays 8px) — the old 14 / 16 + 6. It's set on the

@@ -339,6 +339,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   (Skip arrow 2.1). Chart strokes (1, 3, 10) and the tick/skip glyphs inside
   tick boxes (data-URI SVGs) are separate and unchanged. New icons should
   use 1.8 (1.7 at 24px in the tab bar).
+  The tick/skip glyph inside a 26px tick box is drawn at 18px (3.46; was
+  17px): (26-17)/2 = 4.5px put it on a half pixel, which the phone smooths
+  (soft edges); an even difference keeps it on whole pixels. For
+  consistency with the refined icons (3.46) the tick is stroke 2.6 (was
+  3.2), the skip arrow 2.5 (was 3) and the War Room box outline 1.5px (was
+  2px).
   Count badges: none left. The Trash count in Settings (`.ab`/`#ab2`), the
   War Room count on Overview (`.wrb`) and Tasks' per-priority counts
   (`.sl-count`) were unified in 3.17/3.18, then all removed (3.21, 3.29) as

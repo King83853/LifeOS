@@ -718,14 +718,14 @@ html:not(#x) .dsel-opt.sel{font-weight:600}
 html:not(#x) .sl,html:not(#x) .shdr,html:not(#x) .caltitle,html:not(#x) .el-grp,html:not(#x) .sheet-label{font-weight:700}
 /* Tick boxes: soft grey tile that fills with colour (tasks: ink, habits: green,
    skipped: light green with a double arrow); locked rows are dimmed by .cali.locked */
-:root{--box:#eceef1;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");--go:#30d158;--go-skip:#a7f3c0}
-@media(prefers-color-scheme:dark){:root{--box:#34322f;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%231a1917' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}}
-html[data-theme="dark"]{--box:#34322f;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%231a1917' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
-html[data-theme="light"]{--box:#eceef1;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
-html:not(#x) .ti input[type=checkbox],html:not(#x) .wri input[type=checkbox],html:not(#x) .cali input[type=checkbox]{-webkit-appearance:none;appearance:none;width:26px;height:26px;margin:0;border:none;border-radius:8px;background-color:var(--box);background-repeat:no-repeat;background-position:center;background-size:17px;flex-shrink:0;cursor:pointer;transition:background-color .18s ease}
+:root{--box:#eceef1;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");--go:#30d158;--go-skip:#a7f3c0}
+@media(prefers-color-scheme:dark){:root{--box:#34322f;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%231a1917' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}}
+html[data-theme="dark"]{--box:#34322f;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%231a1917' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html[data-theme="light"]{--box:#eceef1;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html:not(#x) .ti input[type=checkbox],html:not(#x) .wri input[type=checkbox],html:not(#x) .cali input[type=checkbox]{-webkit-appearance:none;appearance:none;width:26px;height:26px;margin:0;border:none;border-radius:8px;background-color:var(--box);background-repeat:no-repeat;background-position:center;background-size:18px;flex-shrink:0;cursor:pointer;transition:background-color .18s ease}
 html:not(#x) .ti input[type=checkbox]:checked,html:not(#x) .wri input[type=checkbox]:checked{background-color:var(--ink);background-image:var(--tick-ink)}
-html:not(#x) .cali input[type=checkbox]:checked{background-color:var(--go);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
-html:not(#x) .cali.skipped input[type=checkbox]:checked{background-color:var(--go-skip);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l6 6-6 6' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html:not(#x) .cali input[type=checkbox]:checked{background-color:var(--go);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html:not(#x) .cali.skipped input[type=checkbox]:checked{background-color:var(--go-skip);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l6 6-6 6' fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 /* Every task/habit row is one line of the same height; long titles get an ellipsis */
 .tt,.cali label,.wit,.el-name,.trk-entry-val{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .ti>div,.wri>div,.cali>label{min-width:0}
@@ -803,7 +803,7 @@ html:not(#x) .sl,html:not(#x) .shdr,html:not(#x) .caltitle,html:not(#x) .el-grp,
    card): a red tick box — red outline, light red fill — instead of a red
    stripe along the row, which followed each row's rounded corners and
    couldn't look the same in every list. A ticked box looks like any other. */
-html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) .wri input[type=checkbox]:not(:checked){background-color:var(--war-bg);box-shadow:inset 0 0 0 2px var(--war)}
+html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) .wri input[type=checkbox]:not(:checked){background-color:var(--war-bg);box-shadow:inset 0 0 0 1.5px var(--war)}
 </style>
 </head>
 <body>
@@ -1284,7 +1284,7 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.45';
+var APP_VERSION='Beta 3.46';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2166,6 +2166,9 @@ var CHANGELOG=[
   {v:'Beta 3.45',notes:[
     'Icons are drawn with thinner, crisper lines throughout the app',
     'Fixed: after dragging your finger off a dropdown, opening it again right away made it close by itself'
+  ]},
+  {v:'Beta 3.46',notes:[
+    'The tick, the skip arrow and the War Room box outline are drawn thinner and sharper, matching the other icons'
   ]}
 ];
 var COLORS={

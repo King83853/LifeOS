@@ -277,6 +277,13 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   pages. New user-facing text must say Menu. "Reset settings" keeps its
   name (it resets settings). Overlap to know about: General has its own
   "Menu" section (which tabs show in the tab bar) — so Menu > General > Menu.
+- Menu's second card (3.61, `#settings-extra`, between the General… card
+  and the Today… card): Notifications (red bell, "Coming soon", opens
+  nothing — class `.inert`, excluded from PRESS_ROWS so it never greys) and
+  Sound (pink speaker, a switch = `settings.sound`, default on; off makes
+  `playClick()` — the click when a hold completes something, the app's only
+  sound — return early). Notifications would need a push server (web apps
+  can't schedule local notifications on iOS); not built.
 - Settings is a LIST of widgets that each open their own full page (no
   sheets): App (version, "Update automatically" switch = `settings.autoUpdate`,
   manual "Check for updates", version history), Appearance (theme), General

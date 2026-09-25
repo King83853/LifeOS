@@ -1254,7 +1254,7 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.31';
+var APP_VERSION='Beta 3.32';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2089,6 +2089,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.31',notes:[
     'War Room tasks are marked by a red tick box instead of the red stripe on the side'
+  ]},
+  {v:'Beta 3.32',notes:[
+    'Tapping a skipped tracker\'s tick box un-skips it, like a habit, instead of opening the window to enter a value'
   ]}
 ];
 var COLORS={
@@ -5606,7 +5609,7 @@ document.addEventListener('touchstart',function(e){
       item.classList.add('snap');item.classList.remove('holding');
       setTimeout(function(){item.classList.remove('snap');},50);
       playClick();
-      TrackerDaySheet.open(item.getAttribute('data-tracker'),parseInt(item.getAttribute('data-day'),10));
+      TrackerDaySheet.press(item.getAttribute('data-tracker'),parseInt(item.getAttribute('data-day'),10));
     },700);
     return;
   }
@@ -6084,6 +6087,20 @@ var TrackerDaySheet={
   itemId:null,dayIdx:0,
   tap:function(itemId,dayIdx){
     if(DB.data.settings.holdToComplete)return;
+    this.press(itemId,dayIdx);
+  },
+  // A tap (a hold, in hold-to-complete mode) on a tracker's tick box: a
+  // skipped day is just un-skipped, like a habit's box; otherwise the value
+  // window opens.
+  press:function(itemId,dayIdx){
+    var ds=pDate(dayIdx);
+    if(dcv(ds,itemId)==='skip'){
+      DB.toggleDailyCheck(itemId,ds,false);
+      renderToday();buildPanels();restoreChecks(Nav.sd);renderGrids();
+      var it=DB.data.dailyItems.find(function(x){return x.id===itemId;});
+      if(it&&it.trackerPid&&DB.data.projects[it.trackerPid])renderTracker(it.trackerPid);
+      return;
+    }
     this.open(itemId,dayIdx);
   },
   open:function(itemId,dayIdx){

@@ -118,6 +118,9 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   (`DB.setTrackerDayValue`: changes that day's latest entry or adds one
   timestamped on that day) so adjusting through the day doesn't pile up
   entries; future days can't be logged. The bar opens the tracker page.
+  A tap/hold on a SKIPPED tracker's box un-skips it (3.32,
+  `TrackerDaySheet.press`) like a habit's box does, instead of opening the
+  value window (which forced entering a number just to un-skip).
   The old inline trash icon on Daily's tracker rows is gone — delete is in
   the habit sheet now (openEdit shows Delete for trackers too), reached
   from the tracker page's "Daily habit" Days/Goal rows.

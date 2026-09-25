@@ -50,6 +50,26 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   were actively changing at the time — this one shipped for a whole
   session before a bug report caught it.
 
+- SEVERAL Habits projects (3.77, "create 2 different habit projects without
+  them interfering"): every habit (dailyItems entry) has `pid` = the Habits
+  project it belongs to; `DB._migrate` gives old habits `habitsProjectId`.
+  Read it through `habitPid(it)` (a missing project falls back to the first
+  one, `mainHabitsPid()`), test projects with `isHabitsProject(pid)` (type
+  'daily' or the old habitsProjectId), list them with `habitsProjects()`
+  (Overview order). There is still ONE Daily page (#p-habits): Nav.go on any
+  Habits project sets `Habits.pid` and opens it; `curHabitsPid()` is what it
+  shows (title, title-button editor, buildPanels' filter, where new habits
+  and tracker links go). Calendar tasks (dailyOnce) belong to no project
+  and show on every Habits page and count on every Habits card. Today has
+  one card per Habits project, titled with its name. `habitsProjectId`
+  stays as the FIRST/main one: creating another Habits project no longer
+  takes it over (it did — every habit was global, so a second one showed
+  the same habits), and its editor still hides Delete. Other Habits projects
+  can be deleted: their habits go to the Trash one by one (DB.deleteProject);
+  "Reset a project" on one trashes only its habits (categories stay). A
+  restored habit whose project is gone shows under the first one, and moves
+  back if that project is restored. Anything new that lists or counts habits
+  must filter by habitPid — don't treat dailyItems as one global list.
 - The Daily project is a real entry in `DB.data.projects` (with its own
   name/icon/color/desc, editable through the normal SheetEditor sheet)
   but it never lives at its own page id — `Nav.go` redirects
@@ -304,7 +324,7 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   "Menu" section (which tabs show in the tab bar) — so Menu > General > Menu.
 - Habit categories are hidden "for now" (3.76): Daily's day panels and
   Today show all habits in ONE card titled with the Habits project's name
-  (`habitsTitle()`), in the universal dailyItems order; the + menu has no
+  (`habitsTitle(pid)`), in the universal dailyItems order; the + menu has no
   "Manage categories" (DailyCatSheet and its markup were deleted — see git
   history before 3.76 to bring it back), adding a habit / tracking a project
   has no category step, the habit page subtitle is just the days. The data

@@ -1152,7 +1152,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
       <button class="hh-btn" onclick="TabPlus.tap()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
     </div>
     <div class="hh-titlerow">
-      <button class="hh-title-btn" onclick="if(DB.data.habitsProjectId)SheetEditor.open(DB.data.habitsProjectId)"><span class="hh-title" id="habits-dtitle">Daily</span></button>
+      <button class="hh-title-btn" onclick="if(curHabitsPid())SheetEditor.open(curHabitsPid())"><span class="hh-title" id="habits-dtitle">Daily</span></button>
       <span class="tlbl" id="wlbl"></span>
     </div>
   </div>
@@ -1368,7 +1368,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.76';
+var APP_VERSION='Beta 3.77';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2345,6 +2345,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.76',notes:[
     'Habit categories are gone for now: Daily and Today show all habits in one card, titled with the project\'s name'
+  ]},
+  {v:'Beta 3.77',notes:[
+    'You can have several Habits projects: each has its own habits, Today shows one card per project with its name, and Calendar tasks show on all of them'
   ]}
 ];
 var COLORS={
@@ -2466,6 +2469,8 @@ var DB={
     // migrate to adaptable daily-tasks model — resets old fixed daily/habit data
     if(!d.dailyCats){d.dailyCats=[];d.dailyItems=[];d.dailyOnce=[];d.dailyChecks={};}
     if(!d.dailyItems)d.dailyItems=[];
+    // habits from before several Habits projects existed belong to the one there was
+    if(d.habitsProjectId)d.dailyItems.forEach(function(it){if(!it.pid)it.pid=d.habitsProjectId;});
     if(!d.dailyOnce)d.dailyOnce=[];
     if(!d.trash)d.trash=[];
     // Categories are no longer trash entries of their own — split any old
@@ -2544,7 +2549,9 @@ var DB={
     this.save();
   },
   deleteProject:function(catId,projId){
-    var d=this.data,p=d.projects[projId];
+    var d=this.data,p=d.projects[projId],self=this;
+    // a Habits project's habits go to the Trash one by one, like any deleted habit
+    if(isHabitsProject(projId))d.dailyItems.filter(function(it){return habitPid(it)===projId;}).map(function(it){return it.id;}).forEach(function(id){self.deleteDailyItem(id);});
     var index=(d.projectOrder[catId]||[]).indexOf(projId);
     var cat=d.categories[catId];
     var snap=this._takeProject(projId);
@@ -2702,8 +2709,8 @@ var DB={
   resetProject:function(pid){
     var d=this.data,p=d.projects[pid],self=this,n=0;
     if(!p)return 0;
-    if(pid===d.habitsProjectId){
-      d.dailyCats.slice().forEach(function(c){n+=d.dailyItems.filter(function(i){return i.catId===c.id;}).length;self.deleteDailyCat(c.id);});
+    if(isHabitsProject(pid)){
+      d.dailyItems.filter(function(it){return habitPid(it)===pid;}).map(function(it){return it.id;}).forEach(function(id){self.deleteDailyItem(id);n++;});
     } else if(p.type==='tracker'){
       ((d.trackerEntries&&d.trackerEntries[pid])||[]).forEach(function(e){
         self._trash('entry',e.val+' '+(p.unit||''),(p.icon||'')+' '+p.name,{pid:pid,entry:e});n++;
@@ -2734,7 +2741,7 @@ var DB={
   // to one (a Trash restore brings its category back with it): new habits go
   // into the first, which is created — named after the project — if needed.
   habitCatId:function(){
-    return this.data.dailyCats.length?this.data.dailyCats[0].id:this.addDailyCat(habitsTitle(),'📌');
+    return this.data.dailyCats.length?this.data.dailyCats[0].id:this.addDailyCat(habitsTitle(curHabitsPid()),'📌');
   },
   addDailyCat:function(name,icon){
     var id='dc'+Date.now();
@@ -2757,9 +2764,9 @@ var DB={
     this.data.dailyItems=this.data.dailyItems.filter(function(x){return x.catId!==id;});
     this.save();
   },
-  addDailyItem:function(catId,text,days){
+  addDailyItem:function(catId,text,days,pid){
     var id='di'+Date.now()+Math.random().toString(36).slice(2);
-    this.data.dailyItems.push({id:id,catId:catId,text:text,days:days,created:dStr(new Date())});
+    this.data.dailyItems.push({id:id,pid:pid,catId:catId,text:text,days:days,created:dStr(new Date())});
     this.save();return id;
   },
   // A tracker "habit" is a dailyItems entry with no text of its own —
@@ -2767,9 +2774,9 @@ var DB={
   // (trackerPid), rendered via ciTracker() instead of ci()/ciEdit(), and
   // its name/icon are always read live from that project so a rename
   // there doesn't leave a stale copy sitting in the daily item.
-  addTrackerDailyItem:function(catId,trackerPid,days,goal){
+  addTrackerDailyItem:function(catId,trackerPid,days,goal,pid){
     var id='di'+Date.now()+Math.random().toString(36).slice(2);
-    var it={id:id,catId:catId,trackerPid:trackerPid,days:days,created:dStr(new Date())};
+    var it={id:id,pid:pid,catId:catId,trackerPid:trackerPid,days:days,created:dStr(new Date())};
     if(typeof goal==='number'&&!isNaN(goal))it.goal=goal;
     this.data.dailyItems.push(it);
     this.save();return id;
@@ -2932,7 +2939,7 @@ var I18N=(function(){
     [/^scheduled days completed \((\d+) skipped\)$/,'geplante Tage erledigt ($1 übersprungen)'],
     [/ \((\d+) skipped\)/g,' ($1 übersprungen)'],
     [/^Tracking: (.*)$/,'Verfolge: $1'],
-    [/^Move all (habits and categories|entries|tasks) of "(.*)" to the Trash\?$/,function(m,w,n){return 'Alle '+({'habits and categories':'Gewohnheiten und Kategorien','entries':'Einträge','tasks':'Aufgaben'})[w]+' von „'+n+'“ in den Papierkorb legen?';}],
+    [/^Move all (habits and categories|habits|entries|tasks) of "(.*)" to the Trash\?$/,function(m,w,n){return 'Alle '+({'habits and categories':'Gewohnheiten und Kategorien','habits':'Gewohnheiten','entries':'Einträge','tasks':'Aufgaben'})[w]+' von „'+n+'“ in den Papierkorb legen?';}],
     [/^Current streak: (\d+)$/,'Aktuelle Serie: $1'],
     [/^Goal: (.*)$/,'Ziel: $1'],
     [/^What's new in (.*)$/,'Neuigkeiten in $1'],
@@ -3072,7 +3079,7 @@ function renderGrids(){
       // end up wired as the Daily project without type ever being set to
       // 'daily', e.g. data created before that field existed), so match
       // on either.
-      if(p.type==='daily'||pid===d.habitsProjectId){
+      if(isHabitsProject(pid)){
         // "X categories" told you nothing useful at a glance — show what's
         // actually left to do today instead, same scope as the Today tab's
         // Habits section (scheduled-today items not yet checked, plus any
@@ -3080,7 +3087,7 @@ function renderGrids(){
         var dsToday=pDate(0);
         var remaining=0;
         d.dailyItems.forEach(function(it){
-          if(it.days.indexOf(TI)===-1)return;
+          if(habitPid(it)!==pid||it.days.indexOf(TI)===-1)return;
           var done=!!habitDayVal(it,dsToday);
           if(!done)remaining++;
         });
@@ -3828,8 +3835,7 @@ function renderSettings(){
 }
 
 function renderHabits(){
-  var hp=DB.data.projects[DB.data.habitsProjectId];
-  var t=document.getElementById('habits-dtitle');if(t)t.textContent=hp?hp.name:'Daily';
+  var t=document.getElementById('habits-dtitle');if(t)t.textContent=habitsTitle(curHabitsPid());
   buildPills();buildPanels();var p=document.getElementById('dp-'+Nav.sd);if(p)p.classList.add('on');restoreChecks(Nav.sd);updWL();
 }
 
@@ -4181,7 +4187,7 @@ var A={
   // Settings > Overview > Reset a project: everything in it goes to the Trash
   resetProject:function(pid){
     var d=DB.data,p=d.projects[pid];if(!p)return;
-    var what=pid===d.habitsProjectId?'habits and categories':(p.type==='tracker'?'entries':'tasks');
+    var what=isHabitsProject(pid)?'habits':(p.type==='tracker'?'entries':'tasks');
     Alert.confirm('Move all '+what+' of "'+p.name+'" to the Trash?',function(){
       DB.resetProject(pid);
       A._refreshAll();renderSettings();
@@ -4534,7 +4540,10 @@ function navBack(targetId){
 // starts a new history (TabBar.go).
 var Nav={cur:'today',sd:0,stack:[],
   go:function(id){
-    if(id===DB.data.habitsProjectId)id='habits';
+    if(isHabitsProject(id)){
+      var same=this.cur==='habits';Habits.pid=id;id='habits';
+      if(same){renderHabits();return;}
+    }
     var prev=this.cur;
     if(navForward(id)===false)return; // a slide is already running
     if(prev&&prev!==id){this.stack.push(prev);if(this.stack.length>40)this.stack.shift();}
@@ -5218,9 +5227,27 @@ var HabitDetail={
   }
 };
 
-// Habit categories aren't shown (3.76): all of a day's habits sit in ONE
-// card titled with the Habits project's name, on Daily and on Today.
-function habitsTitle(){var p=DB.data.projects[DB.data.habitsProjectId];return p&&p.name?p.name:'Habits';}
+// Several Habits projects (3.77): every habit belongs to one (`it.pid`; old
+// habits were given the first one, habitsProjectId, in DB._migrate). The
+// Daily page (#p-habits) shows one of them at a time — Habits.pid, set by
+// Nav.go when a Habits project is opened. Calendar tasks belong to none and
+// show on every one. Habit categories aren't shown (3.76): a day's habits
+// sit in ONE card titled with their project's name, on Daily and on Today
+// (one card per Habits project there).
+var Habits={pid:null};
+function isHabitsProject(pid){var p=DB.data.projects[pid];return !!p&&(p.type==='daily'||pid===DB.data.habitsProjectId);}
+function habitsProjects(){ // in Overview order
+  var d=DB.data,out=[];
+  d.categoryOrder.forEach(function(c){(d.projectOrder[c]||[]).forEach(function(pid){if(isHabitsProject(pid)&&out.indexOf(pid)===-1)out.push(pid);});});
+  Object.keys(d.projects).forEach(function(pid){if(isHabitsProject(pid)&&out.indexOf(pid)===-1)out.push(pid);});
+  return out;
+}
+function mainHabitsPid(){var h=DB.data.habitsProjectId;return isHabitsProject(h)?h:(habitsProjects()[0]||null);}
+// the project a habit is shown under (a missing one — deleted project,
+// restored habit — falls back to the first Habits project)
+function habitPid(it){return isHabitsProject(it.pid)?it.pid:mainHabitsPid();}
+function curHabitsPid(){if(!isHabitsProject(Habits.pid))Habits.pid=mainHabitsPid();return Habits.pid;}
+function habitsTitle(pid){var p=DB.data.projects[pid];return p&&p.name?p.name:'Habits';}
 function onceRow(o){
   return '<div class="cali" data-once="'+o.id+'">'
     +'<input type="checkbox" onchange="A.toggleOnceInline(this,\''+o.id+'\')">'
@@ -5228,7 +5255,7 @@ function onceRow(o){
 }
 function buildPanels(){
   var c=document.getElementById('dpanels');c.innerHTML='';
-  var todayStr=pDate(0);
+  var todayStr=pDate(0),hpid=curHabitsPid();
   for(var pi=-DAILY_RANGE_BACK;pi<=DAILY_RANGE_FWD;pi++){
     var p=document.createElement('div');p.className='dpanel';p.id='dp-'+pi;
     var ds=pDate(pi);
@@ -5251,8 +5278,8 @@ function buildPanels(){
     }
     // A habit shows from the day it started counting: the day it was added,
     // or the day its statistics were reset — not before.
-    var items=DB.data.dailyItems.filter(function(it){return it.days.indexOf(wi)!==-1&&ds>=habitCreatedDs(it);});
-    h+='<div class="caltitle">'+esc(habitsTitle())+'</div><div class="calsec" data-habits="1">';
+    var items=DB.data.dailyItems.filter(function(it){return habitPid(it)===hpid&&it.days.indexOf(wi)!==-1&&ds>=habitCreatedDs(it);});
+    h+='<div class="caltitle">'+esc(habitsTitle(hpid))+'</div><div class="calsec" data-habits="1">';
     if(!items.length)h+='<div class="cal-none">No habits</div>';
     items.forEach(function(it){
       h+=it.trackerPid?ciTracker(it,pi,true):ciEdit(it.id,it.text,pi);
@@ -5429,16 +5456,22 @@ function renderToday(){
     h+='</div>';
   }
   var vanish=DB.data.settings.todayHabitsDisappear;
-  var items=DB.data.dailyItems.filter(function(it){
+  var all=DB.data.dailyItems.filter(function(it){
     if(it.days.indexOf(TI)===-1)return false;
     if(!vanish)return true;
     return !habitDayVal(it,ds);
   });
-  if(items.length){
-    h+='<div class="caltitle">'+esc(habitsTitle())+'</div><div class="calsec">';
+  // one card per Habits project (Overview order), titled with its name;
+  // habits with no Habits project at all (none exists) under "Habits"
+  var groups=habitsProjects();
+  if(all.some(function(it){return !habitPid(it);}))groups.push(null);
+  groups.forEach(function(pid){
+    var items=all.filter(function(it){return habitPid(it)===pid;});
+    if(!items.length)return;
+    h+='<div class="caltitle">'+esc(habitsTitle(pid))+'</div><div class="calsec">';
     items.forEach(function(it){h+=swipeWrap('h',it.trackerPid?ciTracker(it,0,false):ci(it.id,it.text,0));});
     h+='</div>';
-  }
+  });
   document.getElementById('today-daily').innerHTML=h;
   syncTodaySections();
   // Same edge-row marking Daily's panels use (see markEdgeRows) — needed
@@ -5791,14 +5824,14 @@ var DailyItemSheet={
       return;
     }
     if(this.trackerPid){
-      DB.addTrackerDailyItem(this.catId,this.trackerPid,this.selectedDays.slice(),this.readGoal());
+      DB.addTrackerDailyItem(this.catId,this.trackerPid,this.selectedDays.slice(),this.readGoal(),curHabitsPid());
     } else {
       var text=document.getElementById('daily-item-inp').value.trim();
       if(!text)return;
-      DB.addDailyItem(this.catId,text,this.selectedDays.slice());
+      DB.addDailyItem(this.catId,text,this.selectedDays.slice(),curHabitsPid());
     }
     _overlayClose('daily-item-sheet-overlay');
-    buildPanels();restoreChecks(Nav.sd);
+    buildPanels();restoreChecks(Nav.sd);renderToday();renderGrids();
   },
   close:function(){_overlayClose('daily-item-sheet-overlay');}
 };
@@ -7188,7 +7221,7 @@ var SheetEditor={
       var unit=document.getElementById('sheet-unit').value.trim();
       var pid=DB.addProject(this.newCatId,name,icon,this.selectedColor,desc,this.projectType||'todo',unit);
       if(this.photo){DB.data.projects[pid].photo=this.photo;DB.save();}
-      if(this.projectType==='daily'){DB.data.habitsProjectId=pid;DB.save();}
+      if(this.projectType==='daily'&&!isHabitsProject(DB.data.habitsProjectId)){DB.data.habitsProjectId=pid;DB.save();} // the first one only
       if(this.projectType==='tracker'){
         DB.data.projects[pid].maEnabled=document.getElementById('sheet-ma-enabled').checked;
         DB.data.projects[pid].maWindow=Math.max(2,parseInt(document.getElementById('sheet-ma-window').value)||7);
@@ -7219,8 +7252,8 @@ var SheetEditor={
       // The Daily project's live page is #p-habits, not #p-<pid> (Nav.go
       // redirects habitsProjectId to the 'habits' page id), so the
       // selectors above never touch its header — update it directly.
-      if(this.pid===DB.data.habitsProjectId){
-        var ht=document.getElementById('habits-dtitle');if(ht)ht.textContent=name;
+      if(isHabitsProject(this.pid)){
+        if(this.pid===curHabitsPid()){var ht=document.getElementById('habits-dtitle');if(ht)ht.textContent=name;}
         buildPanels();restoreChecks(Nav.sd);renderToday(); // the habit cards carry its name
       }
       if(p.type==='tracker')renderTracker(this.pid);

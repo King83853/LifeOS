@@ -706,9 +706,11 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   dims the icon instead of greying a card; a dragged project gets its
   shadow on the icon (`.acard.dragging` box-shadow is turned off). The War
   Room card and category titles are unchanged.
-  3.70: each tile has a hairline outline, `border:0.34px solid var(--ink)`
-  (black; white in dark mode, where black was invisible) — below one device
-  pixel, so browsers draw exactly 1 device px (0.33px on a 3x iPhone).
+  3.70: each tile has a thin outline in var(--ink) (black; white in dark
+  mode, where black was invisible). 0.34px = 1 device px was reported "I
+  can't see it"; 3.71 uses 0.67px = exactly 2 device px on a 3x iPhone
+  (borders floor to whole device px; 0.67 not 0.6667 so x3 can't fall
+  under 2), 1 device px on 2x screens.
   `fitMinimalGrid()` (after renderGrids, and on resize) sets the four
   columns to a whole, even number of px plus a whole-px left margin, so
   tiles start on whole pixels (1fr columns were 78.25px → outline between

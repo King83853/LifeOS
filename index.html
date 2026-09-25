@@ -855,14 +855,15 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
    phone's home screen — just the icon and the name under it, no card and no
    count, four per row. A press dims the icon (not a grey card); a dragged
    project lifts its icon with a shadow instead of the card's. Each tile has
-   a hairline outline in the ink colour: 0.34px = one device pixel (a border
-   below that is drawn as exactly one device pixel on 2x and 3x screens);
-   fitMinimalGrid() keeps every tile on whole pixels so it stays crisp. */
+   a thin outline in the ink colour: 0.67px = two device pixels on a 3x
+   iPhone (borders are rounded down to whole device pixels; one pixel, 0.34px,
+   was too thin to see); fitMinimalGrid() keeps every tile on whole pixels
+   so it stays crisp. */
 #p-overview.ov-min .agrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 10px}
 html:not(#x) #p-overview.ov-min .acard{background:transparent;padding:0;gap:6px;border-radius:0;border:0}
 html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 #p-overview.ov-min .acnt{display:none}
-#p-overview.ov-min .aico{width:60px;height:60px;border-radius:15px;font-size:28px;transition:filter .4s ease .15s;border:0.34px solid var(--ink)}
+#p-overview.ov-min .aico{width:60px;height:60px;border-radius:15px;font-size:28px;transition:filter .4s ease .15s;border:0.67px solid var(--ink)}
 #p-overview.ov-min .acard:active .aico{filter:brightness(.82);transition:filter .2s ease}
 #p-overview.ov-min .albl{font-size:12px;line-height:15px;font-weight:500}
 #p-overview.ov-min .acard.dragging{box-shadow:none!important}
@@ -1384,7 +1385,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.70';
+var APP_VERSION='Beta 3.71';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2342,6 +2343,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.70',notes:[
     'Minimal layout: a hairline outline around each project icon'
+  ]},
+  {v:'Beta 3.71',notes:[
+    'Minimal layout: the outline around project icons is a little thicker, so it can be seen'
   ]}
 ];
 var COLORS={

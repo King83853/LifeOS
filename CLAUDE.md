@@ -321,6 +321,10 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   War Room count on Overview (`.wrb`) and Tasks' per-priority counts
   (`.sl-count`) were unified in 3.17/3.18, then all removed (3.21, 3.29) as
   unnecessary — don't bring them back unasked.
+  Skip swipe area (`.sw-act`, 3.42): square on the LEFT (flush with the
+  row; the card's own clip rounds it on first/last rows), rounded 12px only
+  on the right, toward the sliding row — it was rounded all round, leaving
+  white corners on the left.
   Skip icon: ONE arrow (3.29; it was a double arrow) — in a skipped tick
   box (`.cali.skipped` checkbox background) and the swipe action
   (`SKIP_ICON`).

@@ -257,7 +257,7 @@ html[data-theme="dark"] .sw.h{border-color:#252320}
 html[data-theme="light"] .sw.h{border-color:#f5f3ef}
 .sw.h:last-child{border-bottom:none}
 .sw.h .cali{border-bottom:none}
-.sw-act{position:absolute;top:0;bottom:0;left:0;width:calc(max(var(--x,0) - 8, 0) * 1px);overflow:hidden;white-space:nowrap;background:#a7f3c0;color:#000;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:400;visibility:hidden}
+.sw-act{position:absolute;top:0;bottom:0;left:0;width:calc(max(var(--x,0) - 8, 0) * 1px);overflow:hidden;white-space:nowrap;background:#a7f3c0;color:#000;border-radius:0 12px 12px 0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:400;visibility:hidden}
 .sw.anim .sw-act{transition:width .2s ease-out}
 .sw.on .sw-act{visibility:visible}
 .sw-act span{display:flex;align-items:center;justify-content:center;gap:6px;opacity:var(--p,0)}
@@ -1262,7 +1262,7 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.41';
+var APP_VERSION='Beta 3.42';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2130,6 +2130,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.41',notes:[
     'The menu bar is 10px taller'
+  ]},
+  {v:'Beta 3.42',notes:[
+    'The green Skip area fills the left side of the row like the row itself — no more white corners'
   ]}
 ];
 var COLORS={

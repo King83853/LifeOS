@@ -166,7 +166,11 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   difference matters (amber bars in `renderBarChart`, `paintCheck`, the
   "· N skipped" captions). A skipped habit ROW shows it only through its tick box
   (skip style) and a dimmed name — the " · skipped" text after the name
-  (`.cali.skipped label::after`) was removed in 3.26 as redundant. Any new code that reads dailyChecks should use
+  (`.cali.skipped label::after`) was removed in 3.26 as redundant. Since 3.35 a
+  skipped row looks EXACTLY like a done one (same `--go` green box, name
+  struck through at .35 opacity — `paintCheck` and `ciTracker`); only the
+  box's icon differs (one arrow instead of a tick). Charts/ring still use
+  the light skip green to tell them apart. Any new code that reads dailyChecks should use
   `dcv`/`paintCheck` rather than assuming a boolean, and any wrapper
   around Today rows means `.remove()` calls must remove the `.sw`, not
   just the inner row (see `A.doneLockedIn`).

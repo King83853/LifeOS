@@ -1125,7 +1125,7 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
     <div class="sheet-label">Description</div>
     <input class="sheet-inp" id="sheet-desc" placeholder="Short description (optional)">
     <div class="sheet-label">Emoji icon</div>
-    <input class="sheet-inp" id="sheet-icon" placeholder="📋" style="font-size:24px;text-align:center;max-width:80px;caret-color:transparent" oninput="A.iconInput(this)">
+    <input class="sheet-inp" id="sheet-icon" placeholder="📁" style="font-size:24px;text-align:center;max-width:80px;caret-color:transparent" oninput="A.iconInput(this)">
     <input type="file" id="sheet-photo-input" accept="image/*" style="display:none" onchange="SheetEditor.onPhotoPicked(this)">
     <div class="opt-group" style="margin-top:10px">
       <div class="opt-row btn-row" onclick="document.getElementById('sheet-photo-input').click()"><div class="opt-text"><div class="opt-title" id="sheet-photo-btn-label">Choose photo</div></div><div id="sheet-photo-preview" style="width:30px;height:30px;border-radius:8px;overflow:hidden;display:none;margin-left:auto;flex-shrink:0"></div></div>
@@ -1196,7 +1196,7 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
 
 <div class="sheet-overlay" id="once-add-sheet-overlay" onclick="if(event.target===this)OnceAddSheet.close()">
   <div class="sheet">
-    <div class="sheet-title">One-time task</div>
+    <div class="sheet-title">Calendar task</div>
     <div class="sheet-label">Task</div>
     <input class="sheet-inp" id="once-add-text" placeholder="Task">
     <div class="sheet-label">Date</div>
@@ -1256,7 +1256,7 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.33';
+var APP_VERSION='Beta 3.34';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2098,6 +2098,11 @@ var CHANGELOG=[
   {v:'Beta 3.33',notes:[
     'The Type dropdown for a new project shows an icon for each type: a tick box for To-do, a list for List, a chart for Tracker and a loop for Daily',
     'The window for a new project is titled "New project" again (it said "Edit project")'
+  ]},
+  {v:'Beta 3.34',notes:[
+    'The standard project emoji is a folder now (projects that still had the clipboard switch too)',
+    'A project picture with a see-through background now shows the project\'s color behind it, and changing the color later updates it. Pictures saved before this keep their old color — pick the picture again once to fix it',
+    'One-time tasks are called Calendar tasks now (just "Calendar" in Today)'
   ]}
 ];
 var COLORS={
@@ -2211,6 +2216,8 @@ var DB={
     // existed — leave it unset (falsy) so the "what's new" sheet
     // correctly treats it as needing to catch up, once.
     if(d.settings.lastSeenVersion===undefined)d.settings.lastSeenVersion='';
+    // The default project emoji is a folder (3.34); projects still on the old default clipboard get it too.
+    Object.keys(d.projects).forEach(function(pid){var p=d.projects[pid];if(p&&p.icon==='📋')p.icon='📁';});
     // Projects from before project types existed have none; they are to-do lists.
     Object.keys(d.projects).forEach(function(pid){var p=d.projects[pid];if(p&&!p.type&&pid!==d.habitsProjectId)p.type='todo';});
     // migrate to adaptable daily-tasks model — resets old fixed daily/habit data
@@ -2630,7 +2637,7 @@ var I18N=(function(){
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
     'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Blocker':'Blocker','Coming soon':'Demnächst verfügbar','App and website blocker: limits, warnings, screen time and app usage.':'App- und Website-Blocker: Limits, Warnungen, Bildschirmzeit und App-Nutzung.','Show War Room':'War Room anzeigen','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
-    '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
+    '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Calendar task':'Kalenderaufgabe','Calendar tasks':'Kalenderaufgaben','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
     'Name':'Name','Type':'Typ','Category':'Kategorie','Color':'Farbe','Description':'Beschreibung','Date':'Datum','Day':'Tag','Days':'Tage','Week':'Woche','Month':'Monat',
@@ -2644,7 +2651,7 @@ var I18N=(function(){
     'High':'Hoch','Medium':'Mittel','Low':'Niedrig','Overdue':'Überfällig',
     // states
     'All done':'Alles erledigt','No entries yet':'Noch keine Einträge','No tasks yet.':'Noch keine Aufgaben.','No list tasks yet.':'Noch keine Listenaufgaben.',
-    'No one-time tasks yet.':'Noch keine einmaligen Aufgaben.','No categories yet.':'Noch keine Kategorien.','Tap the ⋯ button above to add one.':'Tippe oben auf ⋯, um eine hinzuzufügen.',
+    'No one-time tasks yet.':'Noch keine einmaligen Aufgaben.','No calendar tasks yet.':'Noch keine Kalenderaufgaben.','No categories yet.':'Noch keine Kategorien.','Tap the ⋯ button above to add one.':'Tippe oben auf ⋯, um eine hinzuzufügen.',
     'No tasks':'Keine Aufgaben','No habits':'Keine Gewohnheiten','No data yet':'Noch keine Daten','No schedule set for this habit.':'Für diese Gewohnheit ist kein Zeitplan festgelegt.',
     'No scheduled habits yet.':'Noch keine geplanten Gewohnheiten.','No completed one-time tasks yet.':'Noch keine erledigten einmaligen Aufgaben.',
     'Skipped':'Übersprungen','Done':'Erledigt','Not done':'Nicht erledigt','Longest streak':'Längste Serie','scheduled days in a row':'geplante Tage in Folge',
@@ -3109,7 +3116,7 @@ function renderArchive(){
     DB.data.archived.slice().reverse().forEach(function(item,ri){
       if(!!Trash.isList(item)!==wantList)return;
       var idx=DB.data.archived.length-1-ri;
-      h+=row(esc(item.text),esc(item.section)+' · '+item.date,'A.restore('+idx+')','A.trashDeleteCompleted('+idx+')');
+      h+=row(esc(item.text),esc(item.once?'Calendar':item.section)+' · '+item.date,'A.restore('+idx+')','A.trashDeleteCompleted('+idx+')');
     });
   } else {
     items.slice().reverse().forEach(function(t){
@@ -3191,7 +3198,7 @@ function renderLockedInList(){
 function renderLockedInCalendar(){
   var c=document.getElementById('lockedin-list');
   var items=DB.data.dailyOnce.slice().sort(function(a,b){return a.date<b.date?-1:(a.date>b.date?1:0);});
-  if(!items.length){c.innerHTML='<div class="empty">No one-time tasks yet.</div>';return;}
+  if(!items.length){c.innerHTML='<div class="empty">No calendar tasks yet.</div>';return;}
   var todayStr=dStr(new Date());
   c.innerHTML='<div class="card-list">'+items.map(function(o){
     var overdue=o.date<todayStr;
@@ -4937,7 +4944,7 @@ function buildPanels(){
     else if(ds>todayStr)onceToday=DB.data.dailyOnce.filter(function(o){return o.date===ds;});
     else onceToday=[];
     if(onceToday.length){
-      h+='<div class="caltitle">One-time</div><div class="calsec">';
+      h+='<div class="caltitle">Calendar tasks</div><div class="calsec">';
       onceToday.forEach(function(o){h+=onceRow(o);});
       h+='</div>';
     }
@@ -5095,7 +5102,7 @@ function renderToday(){
   // Overdue one-time tasks consolidate under today, same as the Daily page.
   var onceToday=DB.data.dailyOnce.filter(function(o){return o.date<=ds;});
   if(onceToday.length){
-    h+='<div class="caltitle">One-time</div><div class="calsec">';
+    h+='<div class="caltitle">Calendar</div><div class="calsec">';
     onceToday.forEach(function(o){h+=onceRow(o);});
     h+='</div>';
   }
@@ -6201,7 +6208,7 @@ var TabPlus={
     var cur=Nav.cur;
     if(cur==='habits'){
       AddChoice.show('Add task',[
-        {icon:'',label:'One-time task',fn:function(){OnceAddSheet.open();}},
+        {icon:'',label:'Calendar task',fn:function(){OnceAddSheet.open();}},
         {icon:'',label:'Repeating task',fn:function(){A.startRepeatingTask();}},
         {icon:'',label:'Track a project',fn:function(){A.startTrackerHabit();}},
         {icon:'',label:'Manage categories',fn:function(){DailyCatSheet.open();}}
@@ -6723,7 +6730,7 @@ var DragReorder={
 // system's own image drag and only the picture moves.
 function iconOrPhoto(p){
   if(p&&p.photo)return '<img class="proj-photo" draggable="false" src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';
-  return (p&&p.icon)||'📋';
+  return (p&&p.icon)||'📁';
 }
 var SheetEditor={
   pid:null,
@@ -6741,8 +6748,8 @@ var SheetEditor={
     var sur=document.getElementById('sheet-unit-row');if(sur)sur.style.display='none';
     document.getElementById('sheet-name').value=name||'';
     document.getElementById('sheet-desc').value='';
-    document.getElementById('sheet-icon').value='📋';document.getElementById('sheet-icon').dataset.lastGood='📋';
-    this.photo=null;this.photoRaw=null;this.renderPhotoUI();
+    document.getElementById('sheet-icon').value='📁';document.getElementById('sheet-icon').dataset.lastGood='📁';
+    this.photo=null;this.renderPhotoUI();
     document.querySelector('#proj-sheet .sheet-title').textContent='New project';
     this.selectedColor='c-grey';
     this.renderColors();
@@ -6761,8 +6768,8 @@ var SheetEditor={
     var p=DB.data.projects[pid];
     document.getElementById('sheet-name').value=p.name||'';
     document.getElementById('sheet-desc').value=p.sub||p.desc||'';
-    document.getElementById('sheet-icon').value=p.icon||'📋';document.getElementById('sheet-icon').dataset.lastGood=p.icon||'📋';
-    this.photo=p.photo||null;this.photoRaw=null;this.renderPhotoUI();
+    document.getElementById('sheet-icon').value=p.icon||'📁';document.getElementById('sheet-icon').dataset.lastGood=p.icon||'📁';
+    this.photo=p.photo||null;this.renderPhotoUI();
     this.selectedColor=p.color||'c-grey';
     this.renderColors();
     var mar=document.getElementById('ma-edit-row');
@@ -6811,10 +6818,14 @@ var SheetEditor={
     this.newCatId=null;
   },
   // Picking a new photo always REPLACES whatever was there — cropped to a
-  // centered square and compressed (160px, JPEG ~0.82) before it ever
-  // touches localStorage, since a full-resolution photo per project would
-  // add up fast. Emoji (`icon`) is kept untouched alongside it, so removing
-  // the photo later falls straight back to it with nothing to re-enter.
+  // centered square and shrunk (160px) before it ever touches localStorage,
+  // since a full-resolution photo per project would add up fast. A photo
+  // with see-through parts is kept as a transparent PNG and drawn over the
+  // project's color tile (`.aico`), so changing the color later shows
+  // through it; it used to be flattened onto the color picked at the time,
+  // which then never changed. An opaque photo is saved as a small JPEG.
+  // Emoji (`icon`) is kept untouched alongside it, so removing the photo
+  // later falls straight back to it with nothing to re-enter.
   onPhotoPicked:function(input){
     var file=input.files&&input.files[0];if(!file)return;
     var self=this;
@@ -6823,52 +6834,30 @@ var SheetEditor={
       var img=new Image();
       img.onload=function(){
         var size=160;
-        // Kept as a transparent PNG (not yet flattened) so a later color
-        // change (still in this same sheet) can re-tint it — see
-        // reapplyPhotoColor(). Only the flattened JPEG (photo) is ever
-        // saved to the project.
         var c=document.createElement('canvas');c.width=size;c.height=size;
         var ctx=c.getContext('2d');
         var s=Math.min(img.width,img.height);
         var sx=(img.width-s)/2,sy=(img.height-s)/2;
         ctx.drawImage(img,sx,sy,s,s,0,0,size,size);
-        self.photoRaw=c.toDataURL('image/png');
-        self.reapplyPhotoColor();
+        var px=ctx.getImageData(0,0,size,size).data,seeThrough=false;
+        for(var i=3;i<px.length;i+=4){if(px[i]<250){seeThrough=true;break;}}
+        self.photo=seeThrough?c.toDataURL('image/png'):c.toDataURL('image/jpeg',0.82);
+        self.renderPhotoUI();
       };
       img.src=e.target.result;
     };
     reader.readAsDataURL(file);
     input.value='';
   },
-  // A transparent photo (no background of its own) should show the
-  // project's own chosen color behind it, not black — canvas fills
-  // whatever's still transparent with black the moment it's flattened to
-  // JPEG (no alpha channel), which is exactly what silently happened
-  // before this: the color picked in this very sheet was sitting right
-  // there and just never got used. Fills the tile with that color FIRST,
-  // then draws the (possibly transparent) photo on top.
-  reapplyPhotoColor:function(){
-    if(!this.photoRaw)return;
-    var self=this;
-    var img=new Image();
-    img.onload=function(){
-      var size=160;
-      var c=document.createElement('canvas');c.width=size;c.height=size;
-      var ctx=c.getContext('2d');
-      ctx.fillStyle=paleFillColor(COLORS[self.selectedColor]||'#6b7280');
-      ctx.fillRect(0,0,size,size);
-      ctx.drawImage(img,0,0,size,size);
-      self.photo=c.toDataURL('image/jpeg',0.82);
-      self.renderPhotoUI();
-    };
-    img.src=this.photoRaw;
-  },
-  removePhoto:function(){this.photo=null;this.photoRaw=null;this.renderPhotoUI();},
+  removePhoto:function(){this.photo=null;this.renderPhotoUI();},
   renderPhotoUI:function(){
     var prev=document.getElementById('sheet-photo-preview');
     var lbl=document.getElementById('sheet-photo-btn-label');
     var rmRow=document.getElementById('sheet-photo-remove-row');
     if(this.photo){
+      // the chosen color behind it, like on the project's card
+      var col=COLORS[this.selectedColor]||'#6b7280';
+      prev.style.background=col+(isDarkNow()?'2e':'20');
       prev.style.display='block';prev.innerHTML='<img src="'+this.photo+'" style="width:100%;height:100%;object-fit:cover">';
       lbl.textContent='Change photo';
       rmRow.style.display='';
@@ -6894,7 +6883,7 @@ var SheetEditor={
         c.querySelectorAll('.sheet-color').forEach(function(x){x.classList.remove('sel');});
         sw.classList.add('sel');
         self.updateColorField();
-        self.reapplyPhotoColor();
+        self.renderPhotoUI(); // a see-through photo's preview shows the new color
         ColorPicker.close();
       };
       c.appendChild(sw);
@@ -6913,7 +6902,7 @@ var SheetEditor={
   save:function(){
     var name=document.getElementById('sheet-name').value.trim();
     var desc=document.getElementById('sheet-desc').value.trim();
-    var icon=document.getElementById('sheet-icon').value.trim()||'📋';
+    var icon=document.getElementById('sheet-icon').value.trim()||'📁';
     if(!name)return;
     if(!this.pid&&this.newCatId){
       // New project

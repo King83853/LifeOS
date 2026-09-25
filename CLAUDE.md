@@ -1341,6 +1341,22 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   (a scale and repeat arrows were the alternatives). Shown only in the Type
   dropdown's open list: a DSel option can carry `ico` (SVG markup), drawn
   before its name (`.dsel-ico` + `.dsel-lbl`).
+  Default project emoji is 📁 (3.34, was 📋) — new projects, the icon
+  field's placeholder/fallbacks and `iconOrPhoto`; `DB._migrate` turns any
+  existing '📋' into '📁' (it was the default, so almost never chosen).
+  Project photos (3.34): a photo with see-through pixels is SAVED as a
+  transparent PNG and shown over the project's color tile (`.aico`'s
+  tintStyle), so a later color change shows through. Before, it was
+  flattened to JPEG onto the color picked at save time (a transparent
+  `photoRaw` existed only while the sheet was open), so reopening the
+  sheet and picking another color changed nothing. Opaque photos are still
+  small JPEGs. Photos saved before 3.34 keep their baked-in color until
+  re-picked.
+  Naming (3.34): "one-time tasks" (`dailyOnce`, `onceRow`, OnceAddSheet)
+  are called CALENDAR TASKS on screen — "Calendar task" window/menu entry,
+  "Calendar tasks" section in Daily, just "Calendar" in Today. The stored
+  archive tag stays `section:'One-time'` (Trash shows "Calendar" for
+  `once` entries); code names are unchanged.
   3.30: after a dropdown was closed by tapping elsewhere, the next tap on
   its button did nothing — DSel swallowed EVERY click for 450ms after an
   outside press. Now it swallows only the closing tap's own click (a click

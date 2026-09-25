@@ -277,16 +277,14 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   pages. New user-facing text must say Menu. "Reset settings" keeps its
   name (it resets settings). Overlap to know about: General has its own
   "Menu" section (which tabs show in the tab bar) — so Menu > General > Menu.
-- Menu's second card (3.61, `#settings-extra`, between the General… card
-  and the Today… card): Notifications (red bell, value "Coming soon") and
-  Sound (pink speaker). Since 3.62 each opens its own page (asked for as
-  "own sites"): `#p-notifications` (a Guide-style card: "Coming soon" +
-  one line) and `#p-sound` ("Tick-off sound" switch = `settings.sound`,
-  default on, rendered into `#sound-list` by renderSettings; off makes
-  `playClick()` — the click when a hold completes something, the app's only
-  sound — return early). Both are in SETTINGS_SUBPAGES. Notifications would
-  need a push server (web apps can't schedule local notifications on iOS);
-  not built.
+- Sound and Notifications live in Menu > General (3.63; a separate Menu
+  card in 3.61 and their own pages in 3.62 were both dropped by request):
+  "Tick-off sound" is a switch in the Hold-to-complete card
+  (`settings.sound`, default on; off makes `playClick()` — the click when a
+  hold completes something, the app's only sound — return early), and a
+  "Notifications" section at the bottom is a card saying "Coming soon"
+  (`.cal-none`, static, not tappable). Notifications would need a push
+  server (web apps can't schedule local notifications on iOS); not built.
 - Settings is a LIST of widgets that each open their own full page (no
   sheets): App (version, "Update automatically" switch = `settings.autoUpdate`,
   manual "Check for updates", version history), Appearance (theme), General

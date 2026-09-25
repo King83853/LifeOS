@@ -199,7 +199,13 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   screenshot from the user's phone and their plain-words description to
   see that, after I'd chased a persistence bug that didn't exist). Refill
   ON clears the set and always shows the top N. The set resets on a new
-  day or when the Tasks-shown count changes. When a "reappears" report
+  day or when the Tasks-shown count changes. With Refill ON (3.44), a done or
+  skipped task is swapped IN PLACE (`todayRefillSwap`): its row shrinks
+  while the next task's row (always at the bottom — priority order) grows,
+  same duration, so the card keeps its height and nothing below it moves;
+  then `renderToday` normalizes. It used to collapse first and then push
+  back down ("everything below moves up and then down again"). Task picking
+  and row markup live in `todayTopTasks()` / `todayTaskRow()`. When a "reappears" report
   can't be reproduced, first ask what the reappearing thing actually IS
   (same item vs a different one) before instrumenting anything.
 

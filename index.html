@@ -1284,7 +1284,7 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.43';
+var APP_VERSION='Beta 3.44';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2159,6 +2159,9 @@ var CHANGELOG=[
   {v:'Beta 3.43',notes:[
     'New: Settings starts with a Guide — tips on how to use the app, beginning with skipping by swiping right',
     'Settings → Today: new switch "Reset skipped tasks every new day". Turned off, a skipped task stays out of Today until you tap Reset skipped tasks'
+  ]},
+  {v:'Beta 3.44',notes:[
+    'With Refill automatically on, a task you finish or skip in Today is replaced in place: the next task slides in while the old one slides out, so nothing below jumps'
   ]}
 ];
 var COLORS={
@@ -3658,9 +3661,13 @@ var A={
     DB.completeTask(key,text,sec);
     item.style.opacity='0';
     setTimeout(function(){
-      (item.closest('.sw')||item).remove();renderWar();renderGrids();
+      var row=item.closest('.sw')||item;
+      renderWar();renderGrids();
       // Only Today's top-N list refills — Locked In always shows everything
-      // remaining anyway, so this would be a no-op there regardless.
+      // remaining anyway. On Today with Refill on, the next task takes its
+      // place without the list jumping (todayRefillSwap).
+      if(Nav.cur==='today'&&DB.data.settings.todayRefill&&row.closest('#today-priorities')){todayRefillSwap(row);return;}
+      row.remove();
       if(Nav.cur==='today'){if(DB.data.settings.todayRefill)renderToday();else syncTodaySections();}
     },300);
   },
@@ -5120,7 +5127,9 @@ function syncTodaySections(){
   document.getElementById('today-priorities').style.display=hasT?'':'none';
   document.getElementById('today-none').style.display=(hasT||hasH)?'none':'';
 }
-function renderToday(){
+// Which tasks Today shows: priority order, the top N (Settings > Today >
+// Tasks shown). With Refill off the day's N slots are fixed (todaySet).
+function todayTopTasks(){
   var all=[];
   for(var pid in DB.data.extraTasks){
     var pr=DB.data.projects[pid];
@@ -5153,18 +5162,45 @@ function renderToday(){
     if(st.keys.length!==before||before===0)DB.save();
     top3=all.filter(function(x){return st.keys.indexOf(x.key)!==-1;});
   }
+  return top3;
+}
+// One task row on Today. Every task shows its project as a project-colored
+// badge, like the War Room widget (the priority already decides the order).
+function todayTaskRow(t){
+  var col=COLORS[t.color||'c-grey']||'#6b7280';
+  var badge='<span class="bdg" style="'+tintStyle(col)+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span>';
+  return swipeWrap('t','<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
+    +'<input type="checkbox" onchange="A.doneLockedIn(this)">'
+    +'<div style="flex:1" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div></div>'
+    +badge+'</div>');
+}
+// With Refill on, a task that was just done or skipped is swapped for the
+// next one in place: its row shrinks away WHILE the new row (which always
+// joins at the bottom — the list is in priority order) grows in, at the
+// same speed, so the card keeps its height and nothing below it moves (it
+// used to collapse first, then the new row pushed everything back down).
+// Rows in between glide up. With nothing left to refill, the row just
+// collapses. `el` is the row being removed (its .sw wrapper if it has one).
+function todayRefillSwap(el){
+  var c1=document.getElementById('today-priorities'),DUR=220;
+  var shown=[].map.call(c1.querySelectorAll('.ti[data-key]'),function(r){return r.getAttribute('data-key');});
+  var incoming=todayTopTasks().filter(function(t){return shown.indexOf(t.key)===-1;});
+  var h=el.offsetHeight;
+  el.style.overflow='hidden';el.style.maxHeight=h+'px';el.style.pointerEvents='none';
+  var added=incoming.map(function(t){
+    var tmp=document.createElement('div');tmp.innerHTML=todayTaskRow(t);
+    var n=tmp.firstElementChild;n.style.overflow='hidden';n.style.maxHeight='0px';
+    c1.appendChild(n);return n;
+  });
+  void c1.offsetHeight; // start both from their current height
+  el.style.transition='max-height '+DUR+'ms ease-in-out';el.style.maxHeight='0px';
+  added.forEach(function(n){n.style.transition='max-height '+DUR+'ms ease-in-out';n.style.maxHeight=h+'px';});
+  setTimeout(renderToday,DUR+30);
+}
+function renderToday(){
+  var top3=todayTopTasks();
   var c1=document.getElementById('today-priorities');
-  c1.innerHTML=top3.length?top3.map(function(t){
-    // Every task shows its project as a project-colored badge, like the
-    // War Room widget (the priority already decides the order).
-    var col=COLORS[t.color||'c-grey']||'#6b7280';
-    var badge='<span class="bdg" style="'+tintStyle(col)+'" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')">'+esc(t.section)+'</span>';
-    var sub='';
-    return swipeWrap('t','<div class="ti" data-key="'+t.key+'" data-sec="'+esc(t.section)+'" data-text="'+esc(t.text)+'" data-pri="'+t.pri+'" data-li="1">'
-      +'<input type="checkbox" onchange="A.doneLockedIn(this)">'
-      +'<div style="flex:1" onclick="TaskSheet.open(\''+t.pid+'\',\''+t.key+'\')"><div class="tt">'+esc(t.text)+'</div>'+sub+'</div>'
-      +badge+'</div>');
-  }).join(''):'';
+  c1.innerHTML=top3.length?top3.map(todayTaskRow).join(''):'';
 
   var ds=pDate(0);
   var h='';
@@ -5379,15 +5415,13 @@ var Skip=(function(){
       var key=w.querySelector('.ti').getAttribute('data-key');
       DB.skipTask(key,ds); // saved now, not after the animation, so leaving Today mid-slide can't lose it
       setX(w,w.offsetWidth+20,true);
+      if(DB.data.settings.todayRefill){setTimeout(function(){todayRefillSwap(w);},200);return;}
       setTimeout(function(){
         w.style.maxHeight=w.offsetHeight+'px';void w.offsetHeight;
         w.style.transition='max-height .18s ease-out,margin-bottom .18s ease-out';
         w.style.maxHeight='0';w.style.marginBottom='0';
       },200);
-      setTimeout(function(){
-        if(DB.data.settings.todayRefill)renderToday();
-        else{w.remove();syncTodaySections();}
-      },400);
+      setTimeout(function(){w.remove();syncTodaySections();},400);
     } else {
       var id=w.querySelector('.cali[data-id]').getAttribute('data-id');
       DB.skipDaily(id,ds);

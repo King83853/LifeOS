@@ -1517,7 +1517,8 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   "Keyboard check" line. If the bump persists, read that line off the
   phone before changing anything: slid>0 with 'tap' = preventScroll isn't
   enough on iOS; page height changing = the layout viewport resizes (then
-  sync's negative `bottom` is what moves). Remove KbDiag once settled.
+  sync's negative `bottom` is what moves). Removed in 3.47 after the phone
+  showed "view slid 0px · page 852→852 · switch · iOS 18.1" — settled.
   3.19 — confirmed on the phone: the first tap no longer bumps, but tapping
   from one field to ANOTHER still did (it was left native). The takeover now
   covers any tap on a text field that isn't the one already focused ('switch'

@@ -1284,7 +1284,7 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.46';
+var APP_VERSION='Beta 3.47';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2169,6 +2169,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.46',notes:[
     'The tick, the skip arrow and the War Room box outline are drawn thinner and sharper, matching the other icons'
+  ]},
+  {v:'Beta 3.47',notes:[
+    'The keyboard check line under Check for updates is gone — it confirmed the keyboard no longer moves the screen'
   ]}
 ];
 var COLORS={
@@ -3486,7 +3489,7 @@ function renderAppPage(){
     +'</div>'
     +'</div>'
     +'<div class="opt-group"><div class="opt-row btn-row" id="update-btn" onclick="A.checkForUpdate()"><div class="opt-text"><div class="opt-title">Check for updates</div></div></div></div>'
-    +(KbDiag&&KbDiag.text()?'<div class="stat-note" style="text-align:left;margin:-4px 4px 14px;font-size:11px">'+esc(KbDiag.text())+'</div>':'');
+;
   document.getElementById('app-history').innerHTML='<div class="calsec" style="padding:14px 15.5px 2px">'+CHANGELOG.slice().reverse().map(function(entry){
     return '<div style="margin-bottom:18px"><div style="font-weight:700;font-size:15px;margin-bottom:6px">'+esc(entry.v)+'</div>'
       +entry.notes.map(function(n){return '<div class="wn-item">• '+esc(n)+'</div>';}).join('')
@@ -6451,28 +6454,8 @@ function _noSuggest(el){
 document.querySelectorAll('input,textarea').forEach(_noSuggest);
 document.addEventListener('touchstart',function(e){_noSuggest(e.target);},{passive:true,capture:true});
 document.addEventListener('focusin',function(e){_noSuggest(e.target);},true);
-// Keyboard check (3.16): what the phone reported the last time the keyboard
-// opened for a window — how far the view slid (visual viewport offsetTop),
-// whether the page height changed, the keyboard height. Shown at the bottom
-// of Settings > App so a leftover bump can be read off the phone.
-var KbDiag={
-  d:null,
-  start:function(how){
-    if(this.d&&Date.now()-this.d.at<800)return; // same keyboard opening (tap takeover, then focusin)
-    this.d={at:Date.now(),how:how,slid:0,innerMin:window.innerHeight,base:KbFit.baseH||window.innerHeight,kb:0,iosVer:(navigator.userAgent.match(/OS (\d+_\d+)/)||['',''])[1].replace('_','.')};
-  },
-  note:function(base,kb){
-    var d=this.d;if(!d)return;
-    d.slid=Math.max(d.slid,Math.round(window.visualViewport.offsetTop));
-    d.innerMin=Math.min(d.innerMin,window.innerHeight);d.kb=Math.max(d.kb,kb);
-    try{localStorage.setItem('lifeos-kbdiag',JSON.stringify(d));}catch(e){}
-  },
-  text:function(){
-    var d=null;try{d=JSON.parse(localStorage.getItem('lifeos-kbdiag')||'null');}catch(e){}
-    if(!d)return '';
-    return 'Keyboard check: view slid '+d.slid+'px · page '+d.base+'→'+d.innerMin+'px · keyboard '+d.kb+'px · '+d.how+(d.iosVer?' · iOS '+d.iosVer:'');
-  }
-};
+// (The 3.16 "Keyboard check" readout is gone; drop what it stored.)
+try{localStorage.removeItem('lifeos-kbdiag');}catch(e){}
 // While a field in a window is being typed in:
 //  - nothing moves. An Android that shrinks the page for the keyboard
 //    (instead of laying the keyboard over it) would carry the window up
@@ -6508,7 +6491,6 @@ if(window.visualViewport){
       sheet.style.bottom=shrink?(-shrink)+'px':'';
       var kb=Math.round(base-vv.height);
       if(kb>120&&kb>KbFit.keyboard(base)){try{localStorage.setItem('lifeos-kb',String(kb));}catch(e){}}
-      KbDiag.note(base,kb);
       if(vv.offsetTop>0&&_overlayCount>0)window.scrollTo(0,0); // the document never scrolls: any pan is the keyboard's
       var line=vv.offsetTop+vv.height;
       room(sheet,Math.max(0,sheet.getBoundingClientRect().bottom-line));
@@ -6517,7 +6499,7 @@ if(window.visualViewport){
     KbFit.sync=sync;
     vv.addEventListener('resize',sync);
     vv.addEventListener('scroll',sync);
-    document.addEventListener('focusin',function(e){if(typingInSheet(e.target)){KbDiag.start('native');setTimeout(sync,0);}});
+    document.addEventListener('focusin',function(e){if(typingInSheet(e.target))setTimeout(sync,0);});
     // iOS slides the whole view up when a tapped field gets focus and the
     // keyboard opens — even for a field that's already above the keyboard —
     // and undoing that slide made the app bump up and down; it does the same
@@ -6552,7 +6534,6 @@ if(window.visualViewport){
         room(sheet,Math.max(0,sheet.getBoundingClientRect().bottom-line));
         reveal(sheet,t.el,line);
       }
-      KbDiag.start(open?'switch':'tap');
       t.el.focus({preventScroll:true});
       try{var n=t.el.value.length;t.el.setSelectionRange(n,n);}catch(err){} // not every input type allows it
       setTimeout(function(){if(!typingInSheet(document.activeElement))reset();},600);

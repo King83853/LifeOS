@@ -854,12 +854,15 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
 /* Overview, minimal layout (Menu > Overview > Minimal layout): like a
    phone's home screen — just the icon and the name under it, no card and no
    count, four per row. A press dims the icon (not a grey card); a dragged
-   project lifts its icon with a shadow instead of the card's. */
+   project lifts its icon with a shadow instead of the card's. Each tile has
+   a hairline outline in the ink colour: 0.34px = one device pixel (a border
+   below that is drawn as exactly one device pixel on 2x and 3x screens);
+   fitMinimalGrid() keeps every tile on whole pixels so it stays crisp. */
 #p-overview.ov-min .agrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 10px}
-html:not(#x) #p-overview.ov-min .acard{background:transparent;padding:0;gap:6px;border-radius:0}
+html:not(#x) #p-overview.ov-min .acard{background:transparent;padding:0;gap:6px;border-radius:0;border:0}
 html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 #p-overview.ov-min .acnt{display:none}
-#p-overview.ov-min .aico{width:60px;height:60px;border-radius:15px;font-size:28px;transition:filter .4s ease .15s}
+#p-overview.ov-min .aico{width:60px;height:60px;border-radius:15px;font-size:28px;transition:filter .4s ease .15s;border:0.34px solid var(--ink)}
 #p-overview.ov-min .acard:active .aico{filter:brightness(.82);transition:filter .2s ease}
 #p-overview.ov-min .albl{font-size:12px;line-height:15px;font-weight:500}
 #p-overview.ov-min .acard.dragging{box-shadow:none!important}
@@ -1381,7 +1384,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.69';
+var APP_VERSION='Beta 3.70';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2336,6 +2339,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.69',notes:[
     'Menu → Overview → Minimal layout: projects show as just their icon and name, four per row, like a phone home screen'
+  ]},
+  {v:'Beta 3.70',notes:[
+    'Minimal layout: a hairline outline around each project icon'
   ]}
 ];
 var COLORS={
@@ -3100,8 +3106,23 @@ function renderGrids(){
   });
   document.getElementById('overview-grid').innerHTML=h;
   document.getElementById('p-overview').classList.toggle('ov-min',!!d.settings.overviewMinimal);
+  fitMinimalGrid();
   wireOverviewDrag();
 }
+// Minimal Overview: four columns of a whole, even number of pixels (and a
+// whole-pixel left margin), so each 60px tile — and its hairline outline —
+// starts on a whole pixel. Four 1fr columns were e.g. 78.25px wide, which put
+// the outline between pixels, drawn soft and uneven.
+function fitMinimalGrid(){
+  if(!DB.data.settings.overviewMinimal)return;
+  var pg=document.getElementById('p-overview');
+  var W=(pg.clientWidth||window.innerWidth)-32; // the page's 16px padding each side
+  var C=Math.floor(W/8)*2,L=Math.floor((W-4*C)/2);
+  pg.querySelectorAll('.agrid').forEach(function(g){
+    g.style.gridTemplateColumns='repeat(4,'+C+'px)';g.style.columnGap='0';g.style.marginLeft=L+'px';
+  });
+}
+window.addEventListener('resize',fitMinimalGrid);
 // Long-press a category title to drag the whole block (reorders
 // categoryOrder); long-press anywhere on a project card to drag just
 // that card within its own category's grid (reorders projectOrder for

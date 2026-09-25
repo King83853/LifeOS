@@ -706,6 +706,14 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   dims the icon instead of greying a card; a dragged project gets its
   shadow on the icon (`.acard.dragging` box-shadow is turned off). The War
   Room card and category titles are unchanged.
+  3.70: each tile has a hairline outline, `border:0.34px solid var(--ink)`
+  (black; white in dark mode, where black was invisible) — below one device
+  pixel, so browsers draw exactly 1 device px (0.33px on a 3x iPhone).
+  `fitMinimalGrid()` (after renderGrids, and on resize) sets the four
+  columns to a whole, even number of px plus a whole-px left margin, so
+  tiles start on whole pixels (1fr columns were 78.25px → outline between
+  pixels, soft/uneven); the minimal `.acard` has no border (the normal
+  card's invisible 1.5px border offset the tile by half a pixel).
 - Project cards on Overview (`.acard`) don't scale down on press (removed
   `.acard:active{transform:scale(.95)}`, 2.91) — only the grey press
   color remains. Dragging still scales up via `.dragging`.

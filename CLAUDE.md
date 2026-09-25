@@ -157,9 +157,29 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   starts at `habitCreatedDs` (so after a statistics reset, at the reset).
   Dropdown setters must call `renderSettings()` — customSelect is static
   markup, and without a redraw the row kept showing the old value.
-  Bar charts (`renderBarChart`, shared by Statistics, habit and tracker
-  pages) have a slim left axis with ONE number — the tallest bar's value,
-  at its height (by request: "don't put all the numbers").
+  Bar charts (`ZChart`, shared by Statistics, habit and tracker pages) have
+  a slim left axis with ONE number — the tallest bar's value, at its
+  height (by request: "don't put all the numbers").
+  3.72 — the charts zoom and scroll ("like TradingView"), replacing the
+  Day/Week/Month buttons (and renderBarChart/habitPeriods/aggHabitPeriods):
+  pinch = zoom over a span of time `D` (calendar days); columns are days up
+  to ZC_DAY_MAX (45) on screen, then weeks up to ZC_WEEK_MAX (26), then
+  months (≤60); min 7 columns, default 14 days; zoom-out capped a little past
+  the data (always ≥ 12 weeks). Sideways drag = scroll back in time, with a
+  fling, settling on whole columns; clamped at today and the oldest data.
+  The right edge stays put in time while zooming. A small grey label (Days/
+  Weeks/Months) sits where the buttons were; a tap still shows the readout
+  (`barReadout` uses the period's `title`). `chartSource(item|null)` gives
+  one cached period at a time (`period(gran,idx)`, idx back from now);
+  one habit's day columns are its scheduled days only (`dayLen` = 7/k
+  calendar days each), Statistics' are calendar days. `.zchart` has
+  touch-action:pan-y (vertical drags scroll the page; horizontal and pinch
+  are the chart's), iOS `gesturestart` is prevented (no page zoom), and the
+  swipe-back ignores touches that start on a chart. `zChart(hostId,...)`
+  keeps one ZChart per host element (`host._zc`), so Statistics' persistent
+  host isn't wired again on every visit (the Overview duplicate-listener
+  lesson); every visit resets the view to the last 14 days. Hidden features
+  has a tip for it.
 
 - Swipe-right-to-skip on Today (`Skip`, `swipeWrap`; rows are wrapped in
   `.sw` with the amber action behind `.sw-row`). Two different data
@@ -175,7 +195,7 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   `true` — deliberately truthy, so every existing "is it done" check
   (score, streak, remaining count, disappear-when-checked) counts it as
   done with zero changes; read it with `dcv(ds,id)==='skip'` where the
-  difference matters (amber bars in `renderBarChart`, `paintCheck`, the
+  difference matters (light-green bars in the charts (`ZChart`), `paintCheck`, the
   "· N skipped" captions). A skipped habit ROW shows it only through its tick box
   (skip style) and a dimmed name — the " · skipped" text after the name
   (`.cali.skipped label::after`) was removed in 3.26 as redundant. Since 3.35 a

@@ -539,6 +539,8 @@ html[data-theme="dark"] .seg-btn.active{background:#3a3836;color:#fff;box-shadow
 html[data-theme="light"] .seg-btn.active{background:#fff;color:#000;box-shadow:0 1px 2px rgba(0,0,0,.14)}
 .seg-btn:active{opacity:.7}
 .chart-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;min-height:24px}
+.zchart{touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.chart-scale{flex:none;font-size:12px;font-weight:600;color:#999}
 .chart-hdr .chart-readout{font-size:12px;font-weight:700;color:#999;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(prefers-color-scheme:dark){.type-btn.active{border-color:#fff;color:#fff;background:#252320}}
 html[data-theme="dark"] .type-btn.active{border-color:#fff;color:#fff;background:#252320}
@@ -996,6 +998,10 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
       <div class="guide-t">Move habits by holding</div>
       <div class="guide-p">In Daily, hold a habit's bar — not its tick box — until it lifts, then drag it up or down within its category. The order is the same on every day and in Today.</div>
     </div>
+    <div class="guide-item">
+      <div class="guide-t">Zoom and scroll charts</div>
+      <div class="guide-p">Pinch a chart with two fingers to zoom. Zoomed out, the columns turn from days into weeks and then months. Drag a chart sideways to look back at older history.</div>
+    </div>
   </div>
 </div>
 
@@ -1109,13 +1115,9 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
   <div class="calsec" style="padding:12px 14px 10px">
     <div class="chart-hdr">
       <div id="stats-chart-readout" class="chart-readout">&nbsp;</div>
-      <div class="seg-row" id="stats-seg">
-        <button class="seg-btn active" data-view="day" onclick="Stats.setView('day')">Day</button>
-        <button class="seg-btn" data-view="week" onclick="Stats.setView('week')">Week</button>
-        <button class="seg-btn" data-view="month" onclick="Stats.setView('month')">Month</button>
-      </div>
+      <div class="chart-scale" id="stats-scale"></div>
     </div>
-    <div id="stats-chart"></div>
+    <div id="stats-chart" class="zchart"></div>
   </div>
 
   <div class="sl">Best score</div>
@@ -1175,13 +1177,9 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
   <div class="calsec" style="padding:12px 14px 10px">
     <div class="chart-hdr">
       <div id="hd-chart-readout" class="chart-readout">&nbsp;</div>
-      <div class="seg-row" id="hd-seg">
-        <button class="seg-btn active" data-view="day" onclick="HabitDetail.setView('day')">Day</button>
-        <button class="seg-btn" data-view="week" onclick="HabitDetail.setView('week')">Week</button>
-        <button class="seg-btn" data-view="month" onclick="HabitDetail.setView('month')">Month</button>
-      </div>
+      <div class="chart-scale" id="hd-scale"></div>
     </div>
-    <div id="hd-chart"></div>
+    <div id="hd-chart" class="zchart"></div>
   </div>
   <div class="shdr">Consistency</div>
   <div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:22px 14px;gap:10px">
@@ -1385,7 +1383,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.71';
+var APP_VERSION='Beta 3.72';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2346,6 +2344,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.71',notes:[
     'Minimal layout: the outline around project icons is a little thicker, so it can be seen'
+  ]},
+  {v:'Beta 3.72',notes:[
+    'Charts on Statistics, habit and tracker pages: pinch to zoom (days, weeks, months) and drag sideways to see older history — instead of the Day / Week / Month buttons'
   ]}
 ];
 var COLORS={
@@ -2896,7 +2897,8 @@ var I18N=(function(){
     'High':'Hoch','Medium':'Mittel','Low':'Niedrig','Overdue':'Überfällig',
     // states
     'All done':'Alles erledigt','No entries yet':'Noch keine Einträge','No tasks yet.':'Noch keine Aufgaben.','No list tasks yet.':'Noch keine Listenaufgaben.',
-    'No one-time tasks yet.':'Noch keine einmaligen Aufgaben.','Guide':'Anleitung','Hidden features':'Versteckte Funktionen','Move projects by holding':'Projekte durch Halten verschieben','Move habits by holding':'Gewohnheiten durch Halten verschieben',
+    'No one-time tasks yet.':'Noch keine einmaligen Aufgaben.','Guide':'Anleitung','Hidden features':'Versteckte Funktionen','Move projects by holding':'Projekte durch Halten verschieben','Move habits by holding':'Gewohnheiten durch Halten verschieben','Zoom and scroll charts':'Diagramme zoomen und verschieben','Days':'Tage','Weeks':'Wochen','Months':'Monate',
+    'Pinch a chart with two fingers to zoom. Zoomed out, the columns turn from days into weeks and then months. Drag a chart sideways to look back at older history.':'Zieh ein Diagramm mit zwei Fingern auf oder zu, um zu zoomen. Weiter herausgezoomt werden aus den Tagen Wochen und dann Monate. Wisch ein Diagramm seitwärts, um ältere Verläufe anzusehen.',
     "In Overview, hold a project for a second until it lifts, then drag it to a new place in its category. Hold a category's title to move the whole category.":'Halte in der Übersicht ein Projekt eine Sekunde lang, bis es sich anhebt, und ziehe es an eine neue Stelle in seiner Kategorie. Halte den Titel einer Kategorie, um die ganze Kategorie zu verschieben.',
     "In Daily, hold a habit's bar — not its tick box — until it lifts, then drag it up or down within its category. The order is the same on every day and in Today.":'Halte in Täglich den Balken einer Gewohnheit – nicht ihr Kästchen –, bis er sich anhebt, und ziehe ihn innerhalb seiner Kategorie nach oben oder unten. Die Reihenfolge gilt an jedem Tag und auch in Heute.',
     'Reset skipped tasks every new day':'Übersprungene Aufgaben jeden Tag zurücksetzen',
@@ -3276,13 +3278,13 @@ function renderTracker(pid){
 // (tap to edit, same sheet as any habit), then the same bar chart,
 // consistency ring and streak as a habit's own page.
 var TrackerPage={
-  open:{},view:{},
+  open:{},
   toggle:function(hdr,pid){
     this.open[pid]=!this.open[pid];
     hdr.parentNode.classList.toggle('open',this.open[pid]);
   },
   habitHTML:function(pid,it){
-    var p=DB.data.projects[pid],v=this.view[pid]||'day';
+    var p=DB.data.projects[pid];
     var s=habitConsistency(it),st=habitStreaks(it);
     var chev='<span style="display:inline-flex;transform:rotate(-90deg);margin-left:8px">'+ICON_CHEVRON+'</span>';
     function row(title,val){
@@ -3293,11 +3295,8 @@ var TrackerPage={
       +'<div class="opt-group">'+row('Days',esc(daysLabel(it.days)))
       +row('Goal',hasGoal(it)?esc(fmtTrk(it.goal)+(p.unit?' '+p.unit:'')):'None')+'</div>'
       +'<div class="calsec" style="padding:12px 14px 10px"><div class="chart-hdr">'
-      +'<div id="trk-readout-'+pid+'" class="chart-readout">&nbsp;</div><div class="seg-row">'
-      +[['day','Day'],['week','Week'],['month','Month']].map(function(x){
-        return '<button class="seg-btn'+(x[0]===v?' active':'')+'" data-view="'+x[0]+'" onclick="TrackerPage.setView(\''+pid+'\',\''+x[0]+'\')">'+x[1]+'</button>';
-      }).join('')
-      +'</div></div><div id="trk-chart-'+pid+'"></div></div>'
+      +'<div id="trk-readout-'+pid+'" class="chart-readout">&nbsp;</div><div class="chart-scale" id="trk-scale-'+pid+'"></div>'
+      +'</div><div id="trk-chart-'+pid+'" class="zchart"></div></div>'
       +'<div class="shdr">Consistency</div>'
       +'<div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:22px 14px;gap:10px">'
       +renderPieChart(s.pct,s.skipped,s.target)
@@ -3308,23 +3307,10 @@ var TrackerPage={
       +'<div class="stat-note">scheduled days in a row</div>'
       +'<div class="stat-note">Current streak: '+st.current+'</div></div>';
   },
-  setView:function(pid,v){
-    this.view[pid]=v;
-    document.querySelectorAll('#sc-'+pid+' .seg-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')===v);});
-    this.renderChart(pid);
-  },
   renderChart:function(pid){
     var it=DB.data.dailyItems.find(function(x){return x.trackerPid===pid;});
-    var host=document.getElementById('trk-chart-'+pid);
-    if(!it||!host)return;
-    var v=this.view[pid]||'day',periods=habitPeriods(it,v,{day:14,week:8,month:6}[v]);
-    host.innerHTML=renderBarChart(periods,'trk-svg-'+pid);
-    var ro=document.getElementById('trk-readout-'+pid);ro.innerHTML='&nbsp;';
-    var svg=document.getElementById('trk-svg-'+pid);
-    if(svg)svg.addEventListener('click',function(e){
-      var r=e.target.closest('rect');if(!r)return;
-      var pr=periods[+r.getAttribute('data-i')];if(pr)ro.textContent=barReadout(pr);
-    });
+    if(!it)return;
+    zChart('trk-chart-'+pid,'trk-readout-'+pid,'trk-scale-'+pid,chartSource(it));
   }
 };
 
@@ -4515,6 +4501,7 @@ function navBack(targetId){
     sx=e.touches[0].clientX;sy=e.touches[0].clientY;
     if(sx>35)return;
     if(Alert._open)return; // not behind an open pop-up
+    if(e.target.closest&&e.target.closest('.zchart'))return; // a chart scrolls sideways itself
     var c=document.querySelector('.page.active');
     if(!c||c.id==='p-overview'||c.id==='p-today'||c.id==='p-lockedin'||c.id==='p-stats'||c.id==='p-settings')return;
     tracking=true;ready=false;cur=c;curDx=0;W=window.innerWidth;
@@ -4826,116 +4813,246 @@ function habitConsistency(item,withToday,span){
   }
   return{completed:completed,target:target,skipped:skipped,pct:target?Math.min(100,Math.round(completed/target*100)):0};
 }
-function habitPeriods(item,granularity,count){
-  var days=item.days||[];
-  var out=[];
-  if(!days.length)return out;
-  var created=habitCreatedDs(item);
-  if(granularity==='day'){
-    var cursor=new Date(T),guard=0;
-    while(out.length<count&&guard<450){
-      guard++;
-      if(days.indexOf(wIdx(cursor))!==-1){
-        var ds=dStr(cursor);
-        var lbl=cursor.getDate()+'.'+(cursor.getMonth()+1)+'.';
-        // before the habit existed: an empty slot (no bar, no grey stripe)
-        if(ds<created)out.unshift({label:lbl,blank:true,completed:0,skipped:0,scheduled:0});
-        else{var v=habitDayVal(item,ds);out.unshift({label:lbl,completed:v?1:0,skipped:v==='skip'?1:0,scheduled:1});}
+// ── ZOOMABLE CHART ────────────────────────────────────────
+// The bar chart on Statistics, a habit's page and a tracker's habit (like a
+// trading chart): pinch with two fingers to zoom — the view is a span of
+// time, and zoomed out far enough the columns turn from days into weeks,
+// then months (ZC_* limits below); drag sideways to scroll back through
+// history, with a little momentum, settling on whole columns. It stops at
+// today on the right and at the first day with data on the left. Vertical
+// drags still scroll the page (touch-action:pan-y). A tap on a bar shows its
+// numbers above the chart.
+// A source (chartSource) gives one period at a time, cached: the period idx
+// steps before the current one (0 = today / this week / this month). For one
+// habit the day columns are its scheduled days only; for Statistics every
+// calendar day.
+// columns on screen: at least ZC_MIN; days up to ZC_DAY_MAX, then weeks up to
+// ZC_WEEK_MAX (half a year), then months up to ZC_MONTH_MAX (five years)
+var ZC_MIN=7,ZC_DAY_MAX=45,ZC_WEEK_MAX=26,ZC_MONTH_MAX=60,ZC_DEFAULT=14;
+function _sumDays(items,start,end){ // completed/scheduled/skipped over start..end (never past today)
+  var c=0,s=0,k=0,cur=new Date(start.getFullYear(),start.getMonth(),start.getDate()),todayS=dStr(T);
+  while(cur<=end){
+    var ds=dStr(cur);if(ds>todayS)break;
+    var wi=wIdx(cur);
+    items.forEach(function(it){
+      if(it.days.indexOf(wi)!==-1&&ds>=habitCreatedDs(it)){
+        s++;var v=habitDayVal(it,ds);if(v){c++;if(v==='skip')k++;}
       }
-      cursor.setDate(cursor.getDate()-1);
-    }
-  } else if(granularity==='week'){
-    var wkStart=new Date(T);wkStart.setDate(wkStart.getDate()-wIdx(T));
-    for(var w=count-1;w>=0;w--){
-      var start=new Date(wkStart);start.setDate(start.getDate()-7*w);
-      var completed=0,scheduled=0,skipped=0;
-      for(var d=0;d<7;d++){
-        var day=new Date(start);day.setDate(day.getDate()+d);
-        if(day>T)continue;
-        var ds2=dStr(day);
-        if(days.indexOf(d)!==-1&&ds2>=created){
-          scheduled++;
-          {var v2=habitDayVal(item,ds2);if(v2){completed++;if(v2==='skip')skipped++;}}
-        }
-      }
-      var wend=dStr(new Date(start.getFullYear(),start.getMonth(),start.getDate()+6));
-      out.push({label:start.getDate()+'.'+(start.getMonth()+1)+'.',completed:completed,skipped:skipped,scheduled:scheduled,blank:wend<created});
-    }
-  } else {
-    var base=new Date(T.getFullYear(),T.getMonth(),1);
-    for(var m=count-1;m>=0;m--){
-      var mstart=new Date(base.getFullYear(),base.getMonth()-m,1);
-      var mend=new Date(base.getFullYear(),base.getMonth()-m+1,0);
-      var completed2=0,scheduled2=0,skipped2=0,cur=new Date(mstart);
-      while(cur<=mend){
-        var ds3=dStr(cur);
-        if(cur<=T&&days.indexOf(wIdx(cur))!==-1&&ds3>=created){
-          scheduled2++;
-          {var v3=habitDayVal(item,ds3);if(v3){completed2++;if(v3==='skip')skipped2++;}}
-        }
-        cur.setDate(cur.getDate()+1);
-      }
-      out.push({label:mstart.toLocaleDateString('de-CH',{month:'short'}),completed:completed2,skipped:skipped2,scheduled:scheduled2,blank:dStr(mend)<created});
-    }
+    });
+    cur.setDate(cur.getDate()+1);
   }
-  return out;
+  return{completed:c,scheduled:s,skipped:k};
 }
-
-function renderBarChart(periods,svgId){
-  if(!periods.length)return '<div class="empty" style="padding:20px 0">No schedule set for this habit.</div>';
-  svgId=svgId||'hd-svg';
-  var w=300,h=110,padBottom=18,padTop=6;
-  // the scale's top is the most that could have been done (all scheduled)
-  var maxVal=Math.max(1,Math.max.apply(null,periods.map(function(p){return Math.max(p.completed,p.scheduled||0);})));
-  // Left axis with ONE number: how many the tallest bar is, at its height.
-  var tallest=Math.max.apply(null,periods.map(function(p){return p.completed;}));
-  var padLeft=String(Math.max(1,tallest)).length*4.5+9;
-  var n=periods.length,gap=n>20?2:6;
-  var barW=Math.max(2,(w-padLeft-gap*(n-1))/n);
-  var innerH=h-padTop-padBottom;
-  var bars='',labels='',everyN=Math.max(1,Math.ceil(n/10)),goalPath='',goalOpen=false;
-  periods.forEach(function(p,i){
-    var barH=p.completed>0?Math.max(6,Math.round((p.completed/maxVal)*innerH)):3;
-    var x=padLeft+i*(barW+gap),y=h-padBottom-barH,rx=Math.min(4,barW/2);
-    var empty=p.blank||(!p.completed&&!p.scheduled); // not added yet: nothing drawn
-    var sk=Math.min(p.skipped||0,p.completed);
-    var shape='x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+barH+'"';
+function _dm(d){return d.getDate()+'.'+(d.getMonth()+1)+'.';}
+// item: one habit, or null for every habit with a schedule (Statistics)
+function chartSource(item){
+  var items=item?[item]:DB.data.dailyItems.filter(function(it){return it.days&&it.days.length;});
+  var todayS=dStr(T),today0=new Date(T.getFullYear(),T.getMonth(),T.getDate());
+  var floor=new Date(today0);floor.setFullYear(floor.getFullYear()-5);
+  var earliest=items.reduce(function(m,it){var c=habitCreatedDs(it);return c<m?c:m;},todayS);
+  if(earliest<dStr(floor))earliest=dStr(floor); // undated old habits: at most five years back
+  var e0=new Date(earliest+'T00:00:00');
+  var cache={},maxCache={},sched=[],schedCur=new Date(today0);
+  function schedDay(idx){ // one habit: its idx-th scheduled day back from today
+    while(sched.length<=idx){
+      if(dStr(schedCur)<earliest)return null;
+      if(item.days.indexOf(wIdx(schedCur))!==-1)sched.push(new Date(schedCur));
+      schedCur.setDate(schedCur.getDate()-1);
+    }
+    return sched[idx];
+  }
+  function period(gran,idx){
+    var key=gran+idx;if(cache[key])return cache[key];
+    var p;
+    if(gran==='day'){
+      var d;
+      if(item){d=schedDay(idx);if(!d)return cache[key]={label:'',title:'',completed:0,scheduled:0,skipped:0};}
+      else{d=new Date(today0);d.setDate(d.getDate()-idx);}
+      p=_sumDays(items,d,d);p.label=_dm(d);
+      p.title=d.toLocaleDateString('de-CH',{weekday:'short',day:'numeric',month:'short'});
+    } else if(gran==='week'){
+      var s=new Date(today0);s.setDate(s.getDate()-wIdx(today0)-7*idx);
+      var e=new Date(s);e.setDate(e.getDate()+6);
+      p=_sumDays(items,s,e);p.label=_dm(s);p.title=_dm(s)+' – '+_dm(e);
+    } else {
+      var ms=new Date(today0.getFullYear(),today0.getMonth()-idx,1),me=new Date(today0.getFullYear(),today0.getMonth()-idx+1,0);
+      p=_sumDays(items,ms,me);
+      p.label=ms.getMonth()===0?String(ms.getFullYear()):ms.toLocaleDateString('de-CH',{month:'short'});
+      p.title=ms.toLocaleDateString('de-CH',{month:'long',year:'numeric'});
+    }
+    return cache[key]=p;
+  }
+  function maxIdx(gran){ // the oldest period with data
+    if(maxCache[gran]!==undefined)return maxCache[gran];
+    var n;
+    if(gran==='day'){
+      if(item){n=0;while(schedDay(n+1))n++;}
+      else n=Math.max(0,Math.round((today0-e0)/864e5));
+    } else if(gran==='week'){
+      var ws=new Date(today0);ws.setDate(ws.getDate()-wIdx(today0));
+      var es=new Date(e0);es.setDate(es.getDate()-wIdx(e0));
+      n=Math.max(0,Math.round((ws-es)/(7*864e5)));
+    } else n=Math.max(0,(today0.getFullYear()-e0.getFullYear())*12+today0.getMonth()-e0.getMonth());
+    return maxCache[gran]=n;
+  }
+  return{period:period,maxIdx:maxIdx,empty:!items.length,single:!!item,
+    dayLen:item?7/item.days.length:1, // calendar days per day column
+    spanDays:Math.round((today0-e0)/864e5)+1};
+}
+function ZChart(host){this.host=host;}
+ZChart.prototype.reset=function(src,readout,scale){
+  this.src=src;this.readout=readout;this.scale=scale;
+  this.len={day:src.dayLen,week:7,month:30.44};
+  this.Dmin=ZC_MIN*src.dayLen;
+  // zoom out as far as the data goes (a little past it), but always to 12 weeks
+  this.Dmax=Math.min(ZC_MONTH_MAX*30.44,Math.max(84,28*src.dayLen,src.spanDays*1.15+7));
+  this.D=ZC_DEFAULT*src.dayLen; // calendar days in view
+  this.offset=0; // columns back from now (0 = today at the right edge)
+  this._stopAnim();this._apply();
+  if(readout)readout.innerHTML='&nbsp;';
+};
+ZChart.prototype._apply=function(){ // D -> column size and count
+  var D=this.D,l=this.len;
+  this.gran=D/l.day<=ZC_DAY_MAX?'day':(D/7<=ZC_WEEK_MAX?'week':'month');
+  this.count=D/l[this.gran];
+};
+ZChart.prototype._maxOff=function(){return Math.max(0,this.src.maxIdx(this.gran)+1-this.count);};
+ZChart.prototype.setOffset=function(o){
+  var m=this._maxOff(),c=Math.max(0,Math.min(m,o));this.offset=c;return c===o;
+};
+ZChart.prototype.zoomTo=function(D){ // keeps the right edge where it is in time
+  var days=this.offset*this.len[this.gran];
+  this.D=Math.max(this.Dmin,Math.min(this.Dmax,D));this._apply();
+  this.setOffset(days/this.len[this.gran]);
+};
+ZChart.prototype.render=function(){
+  var host=this.host,src=this.src,id=host.id;
+  if(src.single&&src.empty){host.innerHTML='<div class="empty" style="padding:20px 0">No schedule set for this habit.</div>';return;}
+  var g=this.gran,n=this.count,o=this.offset,w=300,h=110,pb=18,pt=6,innerH=h-pt-pb;
+  var mi=src.maxIdx(g),i0=Math.max(0,Math.floor(o)),i1=Math.min(mi,Math.ceil(o+n));
+  var ps=[],maxVal=1,tallest=0;
+  for(var i=i0;i<=i1;i++){var p=src.period(g,i);ps.push(p);maxVal=Math.max(maxVal,p.completed,p.scheduled);tallest=Math.max(tallest,p.completed);}
+  var padL=String(Math.max(1,tallest)).length*4.5+9;this._padL=padL;
+  var step=(w-padL)/n,gap=Math.min(6,step*0.3),bw=Math.max(1,step-gap);
+  var bars='',labels='',goal='',open=false,every=Math.max(1,Math.ceil(24/step));
+  for(var j=i1;j>=i0;j--){ // oldest first, so the goal line runs left to right
+    var q=ps[j-i0],x=w-(j+1-o)*step+gap/2;
+    var barH=q.completed>0?Math.max(6,Math.round(q.completed/maxVal*innerH)):3,y=h-pb-barH,rx=Math.min(4,bw/2);
+    var empty=!q.completed&&!q.scheduled; // before the habit existed: nothing drawn
+    var sk=Math.min(q.skipped||0,q.completed);
+    var shape='x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+barH+'"';
     if(empty){
       // nothing to draw
-    } else if(p.completed>0&&sk>0&&sk<p.completed){
-      // Skipped days sit on top of the bar in light green. Both colors are square
-      // blocks clipped to ONE rounded bar shape, so the outer corners are
-      // round and the seam between the two greens is flat.
-      var skH=Math.max(3,Math.round(barH*sk/p.completed)),cid=svgId+'-c'+i;
+    } else if(q.completed>0&&sk>0&&sk<q.completed){
+      // Skipped days sit on top of the bar in light green: both colors are
+      // square blocks clipped to ONE rounded bar, so the seam is flat.
+      var skH=Math.max(3,Math.round(barH*sk/q.completed)),cid=id+'-c'+j;
       bars+='<clipPath id="'+cid+'"><rect '+shape+' rx="'+rx.toFixed(1)+'"></rect></clipPath>'
         +'<g clip-path="url(#'+cid+')">'
-        +'<rect '+shape+' fill="#30d158" data-i="'+i+'"></rect>'
-        +'<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+skH+'" fill="'+SKIP_COLOR+'" data-i="'+i+'"></rect></g>';
+        +'<rect '+shape+' fill="#30d158" data-i="'+j+'"></rect>'
+        +'<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+skH+'" fill="'+SKIP_COLOR+'" data-i="'+j+'"></rect></g>';
     } else {
-      // all skipped = all light green
       bars+='<rect '+shape+' rx="'+rx.toFixed(1)+'"'
-        +(p.completed>0?' fill="'+(sk===p.completed?SKIP_COLOR:'#30d158')+'"':' class="hd-bar-empty"')+' data-i="'+i+'"></rect>';
+        +(q.completed>0?' fill="'+(sk===q.completed?SKIP_COLOR:'#30d158')+'"':' class="hd-bar-empty"')+' data-i="'+j+'"></rect>';
     }
-    // 100% line: follows what could have been done in THIS period (it moves
-    // as habits are added or removed); a gap where nothing was scheduled yet
-    if(!empty&&p.scheduled>0){
-      var gy=(h-padBottom-(p.scheduled/maxVal)*innerH).toFixed(1),gx0=Math.max(padLeft,x-gap/2).toFixed(1),gx1=Math.min(w,x+barW+gap/2).toFixed(1);
-      goalPath+=(goalOpen?'L'+gx0+' '+gy:'M'+gx0+' '+gy)+'L'+gx1+' '+gy;
-      goalOpen=true;
-    } else goalOpen=false;
-    if(i%everyN===0){
-      labels+='<text class="hd-bar-label" x="'+(x+barW/2).toFixed(1)+'" y="'+(h-4)+'" font-size="7.5" text-anchor="middle">'+esc(p.label)+'</text>';
-    }
-  });
-  // dashed line = 100% (everything scheduled done), stepping with the schedule
-  var goal=goalPath?'<path class="hd-goal-line" fill="none" d="'+goalPath+'"/>':'';
-  var ax=(padLeft-4).toFixed(1),axis='<line class="hd-axis" x1="'+ax+'" y1="'+padTop+'" x2="'+ax+'" y2="'+(h-padBottom)+'"/>';
-  if(tallest>0){
-    var ty=h-padBottom-Math.max(6,Math.round((tallest/maxVal)*innerH));
-    axis+='<line class="hd-axis" x1="'+(padLeft-6.5).toFixed(1)+'" y1="'+ty+'" x2="'+ax+'" y2="'+ty+'"/>'
-      +'<text class="hd-bar-label" x="'+(padLeft-8).toFixed(1)+'" y="'+(ty+2.7)+'" font-size="7.5" text-anchor="end">'+tallest+'</text>';
+    // dashed 100% line: what could have been done in this column
+    if(!empty&&q.scheduled>0){
+      var gy=(h-pb-(q.scheduled/maxVal)*innerH).toFixed(1),gx0=(x-gap/2).toFixed(1),gx1=(x+bw+gap/2).toFixed(1);
+      goal+=(open?'L'+gx0+' '+gy:'M'+gx0+' '+gy)+'L'+gx1+' '+gy;open=true;
+    } else open=false;
+    if(j%every===0&&q.label)labels+='<text class="hd-bar-label" x="'+(x+bw/2).toFixed(1)+'" y="'+(h-4)+'" font-size="7.5" text-anchor="middle">'+esc(q.label)+'</text>';
   }
-  return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:120px;display:block" id="'+svgId+'">'+axis+goal+bars+labels+'</svg>';
+  var ax=(padL-4).toFixed(1),axis='<line class="hd-axis" x1="'+ax+'" y1="'+pt+'" x2="'+ax+'" y2="'+(h-pb)+'"/>';
+  if(tallest>0){ // ONE number on the axis: the tallest bar's, at its height
+    var ty=h-pb-Math.max(6,Math.round(tallest/maxVal*innerH));
+    axis+='<line class="hd-axis" x1="'+(padL-6.5).toFixed(1)+'" y1="'+ty+'" x2="'+ax+'" y2="'+ty+'"/>'
+      +'<text class="hd-bar-label" x="'+(padL-8).toFixed(1)+'" y="'+(ty+2.7)+'" font-size="7.5" text-anchor="end">'+tallest+'</text>';
+  }
+  host.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:120px;display:block">'
+    +'<defs><clipPath id="'+id+'-plot"><rect x="'+(padL-2).toFixed(1)+'" y="0" width="'+(w-padL+2).toFixed(1)+'" height="'+h+'"></rect></clipPath></defs>'
+    +axis+'<g clip-path="url(#'+id+'-plot)">'+(goal?'<path class="hd-goal-line" fill="none" d="'+goal+'"/>':'')+bars+labels+'</g></svg>';
+  if(this.scale)this.scale.textContent=t({day:'Days',week:'Weeks',month:'Months'}[g]);
+};
+ZChart.prototype._stopAnim=function(){if(this._anim){cancelAnimationFrame(this._anim);this._anim=0;}};
+// glide with the finger's speed, slow down, then settle on a whole column
+ZChart.prototype._fling=function(v){ // v: columns per ms
+  var self=this,last=performance.now();
+  this._stopAnim();
+  function frame(now){
+    var dt=Math.min(40,now-last);last=now;
+    var inside=self.setOffset(self.offset+v*dt);
+    v*=Math.pow(0.94,dt/16);
+    self.render();
+    if(inside&&Math.abs(v)>0.0008){self._anim=requestAnimationFrame(frame);}
+    else{self._anim=0;self._settle();}
+  }
+  this._anim=requestAnimationFrame(frame);
+};
+ZChart.prototype._settle=function(){
+  var self=this,from=this.offset,to=Math.round(from),t0=performance.now(),dur=160;
+  if(to>this._maxOff())to=Math.floor(this._maxOff());
+  if(Math.abs(to-from)<0.001){this.offset=to;this.render();return;}
+  this._stopAnim();
+  function frame(now){
+    var k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);
+    self.offset=from+(to-from)*e;self.render();
+    self._anim=k<1?requestAnimationFrame(frame):0;
+  }
+  this._anim=requestAnimationFrame(frame);
+};
+ZChart.prototype._wire=function(){
+  var self=this,h=this.host,mode=0,sx=0,sy=0,o0=0,d0=1,D0=0,moves=[],raf=0;
+  function dist(ts){var dx=ts[0].clientX-ts[1].clientX,dy=ts[0].clientY-ts[1].clientY;return Math.sqrt(dx*dx+dy*dy)||1;}
+  function colPx(){return h.getBoundingClientRect().width/300*((300-(self._padL||20))/self.count);}
+  function draw(){if(!raf)raf=requestAnimationFrame(function(){raf=0;self.render();});}
+  function clear(){if(self.readout)self.readout.innerHTML='&nbsp;';}
+  // modes: 1 = touched, direction not decided; 2 = sideways drag; 3 = pinch; 4 = pinch over, wait for all fingers up
+  h.addEventListener('touchstart',function(e){
+    self._stopAnim();
+    if(e.touches.length>=2){mode=3;d0=dist(e.touches);D0=self.D;clear();}
+    else if(mode!==3&&mode!==4){mode=1;sx=e.touches[0].clientX;sy=e.touches[0].clientY;o0=self.offset;moves=[];}
+  },{passive:true});
+  h.addEventListener('touchmove',function(e){
+    if(mode===3){if(e.touches.length<2)return;e.preventDefault();self.zoomTo(D0*d0/dist(e.touches));draw();return;}
+    if(mode===4){e.preventDefault();return;}
+    if(mode===1){
+      var dx=e.touches[0].clientX-sx,dy=e.touches[0].clientY-sy;
+      if(Math.abs(dy)>8&&Math.abs(dy)>Math.abs(dx)){mode=0;return;} // the page scrolls
+      if(Math.abs(dx)<=8)return;
+      mode=2;clear();sx=e.touches[0].clientX;o0=self.offset;
+    }
+    if(mode===2){
+      e.preventDefault();
+      var x=e.touches[0].clientX;
+      self.setOffset(o0+(x-sx)/colPx()); // finger right = back in time
+      moves.push({x:x,t:performance.now()});if(moves.length>5)moves.shift();
+      draw();
+    }
+  },{passive:false});
+  function end(e){
+    if(e.touches.length){if(mode===3)mode=4;return;}
+    if(mode===2&&moves.length>1){
+      var a=moves[0],b=moves[moves.length-1],dt=b.t-a.t;
+      var v=(dt>0&&performance.now()-b.t<80)?(b.x-a.x)/dt/colPx():0;
+      if(Math.abs(v)>0.002)self._fling(v);else self._settle();
+    } else if(mode===3||mode===4)self._settle();
+    mode=0;
+  }
+  h.addEventListener('touchend',end,{passive:true});
+  h.addEventListener('touchcancel',end,{passive:true});
+  h.addEventListener('gesturestart',function(e){e.preventDefault();}); // iOS: no page zoom
+  h.addEventListener('click',function(e){
+    var r=e.target.closest&&e.target.closest('rect[data-i]');if(!r||!self.readout)return;
+    self.readout.textContent=barReadout(self.src.period(self.gran,+r.getAttribute('data-i')));
+  });
+};
+// Draws (or re-draws) the chart in hostId. The host keeps its ZChart, so
+// its touch listeners are added once even though the page re-renders it.
+function zChart(hostId,readoutId,scaleId,src){
+  var h=document.getElementById(hostId);if(!h)return;
+  if(!h._zc){h._zc=new ZChart(h);h._zc._wire();}
+  h._zc.reset(src,document.getElementById(readoutId),document.getElementById(scaleId));
+  h._zc.render();
 }
 
 // One segment of the progress ring (ring 37..47 around 50,50), from
@@ -5051,68 +5168,6 @@ function worstHabitConsistency(){
   return worst;
 }
 
-// Same shape as habitPeriods(), but a raw calendar walk (no skipping
-// unscheduled days) since with multiple habits combined almost every
-// day has *something* scheduled — completed/scheduled summed across
-// every habit with a schedule.
-function aggHabitPeriods(granularity,count){
-  var items=DB.data.dailyItems.filter(function(it){return it.days&&it.days.length;});
-  var out=[];
-  if(granularity==='day'){
-    var cursor=new Date(T);
-    for(var i=0;i<count;i++){
-      var ds=dStr(cursor),wi=wIdx(cursor),completed=0,scheduled=0,skipped=0;
-      items.forEach(function(it){
-        if(it.days.indexOf(wi)!==-1&&ds>=habitCreatedDs(it)){
-          scheduled++;
-          {var av=habitDayVal(it,ds);if(av){completed++;if(av==='skip')skipped++;}}
-        }
-      });
-      out.unshift({label:cursor.getDate()+'.'+(cursor.getMonth()+1)+'.',completed:completed,skipped:skipped,scheduled:scheduled});
-      cursor.setDate(cursor.getDate()-1);
-    }
-  } else if(granularity==='week'){
-    var wkStart=new Date(T);wkStart.setDate(wkStart.getDate()-wIdx(T));
-    for(var w=count-1;w>=0;w--){
-      var start=new Date(wkStart);start.setDate(start.getDate()-7*w);
-      var completed2=0,scheduled2=0,skipped2=0;
-      for(var d=0;d<7;d++){
-        var day=new Date(start);day.setDate(day.getDate()+d);
-        if(day>T)continue;
-        var ds2=dStr(day);
-        items.forEach(function(it){
-          if(it.days.indexOf(d)!==-1&&ds2>=habitCreatedDs(it)){
-            scheduled2++;
-            {var aw=habitDayVal(it,ds2);if(aw){completed2++;if(aw==='skip')skipped2++;}}
-          }
-        });
-      }
-      out.push({label:start.getDate()+'.'+(start.getMonth()+1)+'.',completed:completed2,skipped:skipped2,scheduled:scheduled2});
-    }
-  } else {
-    var base=new Date(T.getFullYear(),T.getMonth(),1);
-    for(var m=count-1;m>=0;m--){
-      var mstart=new Date(base.getFullYear(),base.getMonth()-m,1);
-      var mend=new Date(base.getFullYear(),base.getMonth()-m+1,0);
-      var completed3=0,scheduled3=0,skipped3=0,cur=new Date(mstart);
-      while(cur<=mend){
-        if(cur<=T){
-          var wi3=wIdx(cur),ds3=dStr(cur);
-          items.forEach(function(it){
-            if(it.days.indexOf(wi3)!==-1&&ds3>=habitCreatedDs(it)){
-              scheduled3++;
-              {var am=habitDayVal(it,ds3);if(am){completed3++;if(am==='skip')skipped3++;}}
-            }
-          });
-        }
-        cur.setDate(cur.getDate()+1);
-      }
-      out.push({label:mstart.toLocaleDateString('de-CH',{month:'short'}),completed:completed3,skipped:skipped3,scheduled:scheduled3});
-    }
-  }
-  return out;
-}
-
 // Best/worst score icons: a plain triangle up / down (corners softened by
 // the round-joined stroke, like the app's other icons).
 var STAT_ICON_UP='<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><polygon points="12 6.5 19.5 17.5 4.5 17.5"/></svg>';
@@ -5131,10 +5186,6 @@ var Stats={
     document.getElementById('stats-pie-text').innerHTML=agg.target
       ?'<b>'+agg.completed+'</b> / <b>'+agg.target+'</b> habits'+(agg.skipped?' \u00b7 '+agg.skipped+' skipped':'')
       :this.emptyText();
-    document.querySelectorAll('#stats-seg .seg-btn').forEach(function(b){
-      b.classList.toggle('active',b.getAttribute('data-view')==='day');
-    });
-    this.view='day';
     this.renderChart();
     document.getElementById('stats-best').innerHTML=this.habitRow(bestHabitConsistency(),STAT_ICON_UP,'#22c55e');
     document.getElementById('stats-worst').innerHTML=this.habitRow(worstHabitConsistency(),STAT_ICON_DOWN,'#ef4444');
@@ -5153,47 +5204,23 @@ var Stats={
       +'<span style="margin-left:auto;font-size:15px;font-weight:500;color:#999">'+r.pct+'%</span>'
       +'<span style="display:inline-flex;transform:rotate(-90deg);margin-left:-2px">'+ICON_CHEVRON+'</span></div></div>';
   },
-  setView:function(v){
-    this.view=v;
-    document.querySelectorAll('#stats-seg .seg-btn').forEach(function(b){
-      b.classList.toggle('active',b.getAttribute('data-view')===v);
-    });
-    this.renderChart();
-  },
   renderChart:function(){
-    var counts={day:14,week:8,month:6};
-    var periods=aggHabitPeriods(this.view,counts[this.view]);
-    document.getElementById('stats-chart').innerHTML=renderBarChart(periods,'stats-svg');
-    document.getElementById('stats-chart-readout').innerHTML='&nbsp;';
-    var svg=document.getElementById('stats-svg');
-    if(svg){
-      svg.addEventListener('click',function(e){
-        var r=e.target.closest('rect');if(!r)return;
-        var p=periods[+r.getAttribute('data-i')];if(!p)return;
-        document.getElementById('stats-chart-readout').textContent=p.completed+' / '+p.scheduled+(p.skipped?' ('+p.skipped+' skipped)':'')+' — '+p.label;
-      });
-    }
+    zChart('stats-chart','stats-chart-readout','stats-scale',chartSource(null));
   }
 };
 
 // What a tapped bar in a habit's bar chart says above the chart.
 function barReadout(p){
-  return p.scheduled>1?(p.completed+' / '+p.scheduled+(p.skipped?' ('+p.skipped+' skipped)':'')+' — '+p.label)
-    :(p.skipped?'Skipped — '+p.label:(p.completed?'Done — '+p.label:'Not done — '+p.label));
+  var l=p.title||p.label;
+  return p.scheduled>1?(p.completed+' / '+p.scheduled+(p.skipped?' ('+p.skipped+' skipped)':'')+' — '+l)
+    :(p.skipped?'Skipped — '+l:(p.completed?'Done — '+l:'Not done — '+l));
 }
 var HabitDetail={
-  itemId:null,view:'day',origin:'today',
+  itemId:null,origin:'today',
   open:function(itemId){
-    this.itemId=itemId;this.view='day';
+    this.itemId=itemId;
     this.origin=Nav.cur; // remember where we came from (Today or Daily) so back returns there, not Overview
     Nav.go('habit-detail');
-  },
-  setView:function(v){
-    this.view=v;
-    document.querySelectorAll('#hd-seg .seg-btn').forEach(function(b){
-      b.classList.toggle('active',b.getAttribute('data-view')===v);
-    });
-    this.renderChart();
   },
   edit:function(){DailyItemSheet.openEdit(HabitDetail.itemId);},
   rename:function(){
@@ -5213,28 +5240,13 @@ var HabitDetail={
     document.getElementById('hd-sub').textContent=(cat?cat.name+' · ':'')+daysLabel(item.days);
     var hdDesc=document.getElementById('hd-desc');
     hdDesc.textContent=item.desc||'';hdDesc.style.display=item.desc?'':'none';
-    document.querySelectorAll('#hd-seg .seg-btn').forEach(function(b){
-      b.classList.toggle('active',b.getAttribute('data-view')==='day');
-    });
-    this.view='day';
     this.renderChart();
     this.renderPie();
   },
   renderChart:function(){
     var item=DB.data.dailyItems.find(function(x){return x.id===HabitDetail.itemId;});
     if(!item)return;
-    var counts={day:14,week:8,month:6};
-    var periods=habitPeriods(item,this.view,counts[this.view]);
-    document.getElementById('hd-chart').innerHTML=renderBarChart(periods);
-    document.getElementById('hd-chart-readout').innerHTML='&nbsp;';
-    var svg=document.getElementById('hd-svg');
-    if(svg){
-      svg.addEventListener('click',function(e){
-        var r=e.target.closest('rect');if(!r)return;
-        var p=periods[+r.getAttribute('data-i')];if(!p)return;
-        document.getElementById('hd-chart-readout').textContent=barReadout(p);
-      });
-    }
+    zChart('hd-chart','hd-chart-readout','hd-scale',chartSource(item));
   },
   renderPie:function(){
     var item=DB.data.dailyItems.find(function(x){return x.id===HabitDetail.itemId;});

@@ -909,6 +909,27 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
   <div id="arch-list"></div>
 </div>
 
+<div class="page sp" id="p-notifications">
+  <div class="hh">
+    <div class="hh-bar"><button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button></div>
+    <div class="hh-title">Notifications</div>
+  </div>
+  <div class="opt-group" style="margin-top:8px">
+    <div class="guide-item">
+      <div class="guide-t">Coming soon</div>
+      <div class="guide-p">Reminders for your habits and tasks will be set up here.</div>
+    </div>
+  </div>
+</div>
+
+<div class="page sp" id="p-sound">
+  <div class="hh">
+    <div class="hh-bar"><button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button></div>
+    <div class="hh-title">Sound</div>
+  </div>
+  <div id="sound-list" style="margin-top:8px"></div>
+</div>
+
 <div class="page sp" id="p-general">
   <div class="hh">
     <div class="hh-bar"><button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button></div>
@@ -1349,7 +1370,7 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.61';
+var APP_VERSION='Beta 3.62';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2280,6 +2301,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.61',notes:[
     'Menu has a new card: Notifications (coming soon) and Sound, where you can turn off the tick-off click'
+  ]},
+  {v:'Beta 3.62',notes:[
+    'Notifications and Sound in the Menu each open their own page'
   ]}
 ];
 var COLORS={
@@ -2815,7 +2839,7 @@ var I18N=(function(){
     'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Add habit':'Gewohnheit hinzufügen','Habit name':'Name der Gewohnheit','Edit habit':'Gewohnheit bearbeiten','Delete habit':'Gewohnheit löschen','Description (optional)':'Beschreibung (optional)','Show on chart':'Im Diagramm anzeigen','Add category':'Kategorie hinzufügen','Add project':'Projekt hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
-    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Blocker':'Blocker','Coming soon':'Demnächst verfügbar','Notifications':'Mitteilungen','Sound':'Ton','App and website blocker: limits, warnings, screen time and app usage.':'App- und Website-Blocker: Limits, Warnungen, Bildschirmzeit und App-Nutzung.','Show War Room':'War Room anzeigen','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Blocker':'Blocker','Coming soon':'Demnächst verfügbar','Notifications':'Mitteilungen','Sound':'Ton','Tick-off sound':'Abhak-Ton','Reminders for your habits and tasks will be set up here.':'Hier stellst du bald Erinnerungen für deine Gewohnheiten und Aufgaben ein.','App and website blocker: limits, warnings, screen time and app usage.':'App- und Website-Blocker: Limits, Warnungen, Bildschirmzeit und App-Nutzung.','Show War Room':'War Room anzeigen','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
     '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
@@ -3688,20 +3712,25 @@ function renderSettings(){
     +chev.replace('margin-left:-2px','margin-left:auto')
     +'</div>'
     +'</div>');
-  // Second white window: Notifications (not built yet — the row opens
-  // nothing, so it's .inert: no press grey) and Sound (the tick-off click).
+  // Second white window: Notifications (not built yet) and Sound, each
+  // opening its own page.
   setHTML('settings-extra','<div class="opt-group">'
-    +'<div class="opt-row inert" style="cursor:default">'
+    +'<div class="opt-row" onclick="Nav.go(\'notifications\')">'
     +'<div class="opt-ico" style="background:#ef4444"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8.5a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 14.5 6 8.5z"/><path d="M10 19.5a2 2 0 0 0 4 0"/></svg></div>'
     +'<div class="opt-text"><div class="opt-title">Notifications</div></div>'
-    +'<span style="'+rowVal+'">Coming soon</span>'
+    +'<span style="'+rowVal+'">Coming soon</span>'+chev
     +'</div>'
-    +'<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-row" onclick="Nav.go(\'sound\')">'
     +'<div class="opt-ico" style="background:#ec4899"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.85 5 5.85 9h-3v6h3l5 4z"/><path d="M15.35 8.5a5 5 0 0 1 0 7"/><path d="M18.35 5.5a9 9 0 0 1 0 13"/></svg></div>'
     +'<div class="opt-text"><div class="opt-title">Sound</div></div>'
-    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(DB.data.settings.sound!==false?'checked':'')+' onchange="A.setSound(this.checked)"><span class="switch-slider"></span></label>'
+    +chev.replace('margin-left:-2px','margin-left:auto')
     +'</div>'
     +'</div>');
+  // Sound page: the click when a hold completes something
+  setHTML('sound-list','<div class="opt-group"><div class="opt-row" style="cursor:default">'
+    +'<div class="opt-text"><div class="opt-title">Tick-off sound</div></div>'
+    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(DB.data.settings.sound!==false?'checked':'')+' onchange="A.setSound(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div></div>');
 
   // Overview section: Edit layout + reset one project into the Trash
   var projOpts=[{value:'',label:'Choose…'}];
@@ -4311,7 +4340,7 @@ function _renderPage(id){
   if(id==='editlayout')renderEditLayout();
   if(id==='appearance')renderAppearance();
   if(id==='app')renderAppPage();
-  if(['settoday','setoverview','setstats'].indexOf(id)!==-1)renderSettings();
+  if(['settoday','setoverview','setstats','sound'].indexOf(id)!==-1)renderSettings();
   if(id==='general')renderGeneral();
   if(id==='settings')renderSettings();
   if(id==='habits')renderHabits();
@@ -4377,7 +4406,7 @@ function navSwitch(id){
 // back button (navBack with no arg) and the swipe-back gesture get the
 // right target without each call site needing to know about it.
 // Pages opened from the Settings list (back returns there; the Settings tab stays lit)
-var SETTINGS_SUBPAGES=['guide','guide-hidden','editlayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats','setblocker'];
+var SETTINGS_SUBPAGES=['guide','guide-hidden','notifications','sound','editlayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats','setblocker'];
 // Where back goes: the page this one was opened from (Nav.stack), skipping
 // any that no longer exist (e.g. a deleted project). The fixed rules below
 // only apply when there's no history (e.g. right after the app reopened).
@@ -5449,7 +5478,7 @@ var PRESS_DELAY=110,PRESS_TAP_MS=200;
 // if none) — a row held that long can't be swiped to skip any more (see
 // Skip) — and a way for a starting skip swipe to stop a pending grey.
 var _pressHeld=null,_pressCancel=function(){};
-var PRESS_ROWS='.cali:not([data-once]):not(.locked),.ti:not([data-once]),.wri,.opt-row:not(:has(.switch)):not(:has(.dsel-wrap)):not(.inert)';
+var PRESS_ROWS='.cali:not([data-once]):not(.locked),.ti:not([data-once]),.wri,.opt-row:not(:has(.switch)):not(:has(.dsel-wrap))';
 (function(){
   var row=null,timer=null,sx=0,sy=0;
   function off(r){r.classList.remove('pressed-row');}

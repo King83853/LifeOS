@@ -1458,6 +1458,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   customSelect rows still go through `toggle`). They used to open AddChoice
   bottom sheets; asked for as "a normal drop down". Daily's "+" and project
   pages' "+" were not part of the request and still use their windows.
+  Tab bar icons (3.60, asked for by description): Today = the tick box
+  (Tasks' old icon), Overview = one rounded square split by one horizontal
+  and one vertical line (was four small squares), Tasks = a list (three dots
+  + lines). Stroke 1.7, outer 3.5..20.5 like the others; the Menu rows reuse
+  them via `tabIco()`. The list's getBBox centre reads 11.57 because round
+  line caps aren't in the bbox — with them it spans 3.5..20.5, centred.
   Project type icons (3.33, `TYPE_ICONS`): To-do = tick box, List =
   bulleted list, Tracker = rising chart, Daily = loop — picked from mockups
   (a scale and repeat arrows were the alternatives). Shown only in the Type

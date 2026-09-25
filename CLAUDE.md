@@ -1548,6 +1548,8 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   + lines). Stroke 1.7, outer 3.5..20.5 like the others; the Menu rows reuse
   them via `tabIco()`. The list's getBBox centre reads 11.57 because round
   line caps aren't in the bbox — with them it spans 3.5..20.5, centred.
+  Project type names (TYPE_OPTS): To-do, List, Tracker, Habits (3.75, was
+  "Daily" — only the name; the stored type value stays 'daily').
   Project type icons (3.33, `TYPE_ICONS`): To-do = tick box, List =
   bulleted list, Tracker = rising chart, Daily = loop — picked from mockups
   (a scale and repeat arrows were the alternatives). Shown only in the Type

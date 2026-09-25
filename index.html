@@ -1379,7 +1379,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.74';
+var APP_VERSION='Beta 3.75';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2350,6 +2350,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.74',notes:[
     'After a statistics reset, habits no longer show locked on earlier days in Daily — they start on the day of the reset, like a new habit'
+  ]},
+  {v:'Beta 3.75',notes:[
+    'The project type Daily is now called Habits'
   ]}
 ];
 var COLORS={
@@ -6883,14 +6886,14 @@ var CatPicker={
 
 // ── SHEET EDITOR ──────────────────────────────────────────
 // Project type icons (shown in the Type dropdown): To-do = a tick box,
-// List = a bulleted list, Tracker = a rising chart, Daily = a loop.
+// List = a bulleted list, Tracker = a rising chart, Habits (type 'daily') = a loop.
 var TYPE_ICONS={
   todo:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><polyline points="8 12.2 10.8 15 16 9.2"/></svg>',
   list:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.1" fill="currentColor" stroke="none"/></svg>',
   tracker:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 16.5 9 11 13 14.5 20.5 7"/><polyline points="15.5 7 20.5 7 20.5 12"/></svg>',
   daily:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.35-5.65"/><polyline points="20 4.5 20 8.5 16 8.5"/></svg>'
 };
-var TYPE_OPTS=[{value:'todo',label:'To-do',ico:TYPE_ICONS.todo},{value:'list',label:'List',ico:TYPE_ICONS.list},{value:'tracker',label:'Tracker',ico:TYPE_ICONS.tracker},{value:'daily',label:'Daily',ico:TYPE_ICONS.daily}];
+var TYPE_OPTS=[{value:'todo',label:'To-do',ico:TYPE_ICONS.todo},{value:'list',label:'List',ico:TYPE_ICONS.list},{value:'tracker',label:'Tracker',ico:TYPE_ICONS.tracker},{value:'daily',label:'Habits',ico:TYPE_ICONS.daily}];
 // A project's icon tile: a chosen photo (cropped to a square, compressed —
 // see SheetEditor.onPhotoPicked) always wins over the emoji if one is set.
 // Only the two tile-shaped spots that actually show a project's icon as a

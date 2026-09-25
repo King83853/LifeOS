@@ -279,7 +279,7 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   "Menu" section (which tabs show in the tab bar) — so Menu > General > Menu.
 - Sound and Notifications live in Menu > General (3.63; a separate Menu
   card in 3.61 and their own pages in 3.62 were both dropped by request):
-  "Tick-off sound" is a switch in the Hold-to-complete card
+  "Sounds" (3.65; was "Tick-off sound") is a switch in the Hold-to-complete card
   (`settings.sound`, default on; off makes `playClick()` — the click when a
   hold completes something, the app's only sound — return early), and a
   "Notifications" section at the bottom is a card saying "Coming soon"

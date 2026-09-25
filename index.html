@@ -896,12 +896,30 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
     <div class="hh-bar"><button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button></div>
     <div class="hh-title">Guide</div>
   </div>
-  <div class="opt-group">
+  <div class="opt-group" style="margin-top:8px">
+    <div class="opt-row" onclick="Nav.go('guide-hidden')"><div class="opt-text"><div class="opt-title">Hidden features</div></div><span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+  </div>
+</div>
+
+<div class="page sp" id="p-guide-hidden">
+  <div class="hh">
+    <div class="hh-bar"><button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button></div>
+    <div class="hh-title">Hidden features</div>
+  </div>
+  <div class="opt-group" style="margin-top:8px">
     <div class="guide-item">
       <div class="guide-t">Skip by swiping right</div>
       <div class="guide-p">In Today, swipe a task or habit to the right to skip it for the day. This works when Skip tasks or Skip habits is turned on in Settings → Today.</div>
       <div class="guide-p">A skipped habit shows in light green in Statistics and doesn't count against your score — for days when you're sick or away.</div>
       <div class="guide-p">A skipped task comes back the next day. To keep it away until you bring it back yourself, turn off Reset skipped tasks every new day in Settings → Today.</div>
+    </div>
+    <div class="guide-item">
+      <div class="guide-t">Move projects by holding</div>
+      <div class="guide-p">In Overview, hold a project for a second until it lifts, then drag it to a new place in its category. Hold a category's title to move the whole category.</div>
+    </div>
+    <div class="guide-item">
+      <div class="guide-t">Move habits by holding</div>
+      <div class="guide-p">In Daily, hold a habit's bar — not its tick box — until it lifts, then drag it up or down within its category. The order is the same on every day and in Today.</div>
     </div>
   </div>
 </div>
@@ -1294,7 +1312,7 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.49';
+var APP_VERSION='Beta 3.50';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2188,6 +2206,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.49',notes:[
     'A little more space between the white cards on every page — the same extra amount with or without a title between them'
+  ]},
+  {v:'Beta 3.50',notes:[
+    'The Guide is now a list like Settings. Its first page, Hidden features, explains skipping by swiping right and moving projects and habits by holding them'
   ]}
 ];
 var COLORS={
@@ -2737,7 +2758,10 @@ var I18N=(function(){
     'High':'Hoch','Medium':'Mittel','Low':'Niedrig','Overdue':'Überfällig',
     // states
     'All done':'Alles erledigt','No entries yet':'Noch keine Einträge','No tasks yet.':'Noch keine Aufgaben.','No list tasks yet.':'Noch keine Listenaufgaben.',
-    'No one-time tasks yet.':'Noch keine einmaligen Aufgaben.','Guide':'Anleitung','Reset skipped tasks every new day':'Übersprungene Aufgaben jeden Tag zurücksetzen',
+    'No one-time tasks yet.':'Noch keine einmaligen Aufgaben.','Guide':'Anleitung','Hidden features':'Versteckte Funktionen','Move projects by holding':'Projekte durch Halten verschieben','Move habits by holding':'Gewohnheiten durch Halten verschieben',
+    "In Overview, hold a project for a second until it lifts, then drag it to a new place in its category. Hold a category's title to move the whole category.":'Halte in der Übersicht ein Projekt eine Sekunde lang, bis es sich anhebt, und ziehe es an eine neue Stelle in seiner Kategorie. Halte den Titel einer Kategorie, um die ganze Kategorie zu verschieben.',
+    "In Daily, hold a habit's bar — not its tick box — until it lifts, then drag it up or down within its category. The order is the same on every day and in Today.":'Halte in Täglich den Balken einer Gewohnheit – nicht ihr Kästchen –, bis er sich anhebt, und ziehe ihn innerhalb seiner Kategorie nach oben oder unten. Die Reihenfolge gilt an jedem Tag und auch in Heute.',
+    'Reset skipped tasks every new day':'Übersprungene Aufgaben jeden Tag zurücksetzen',
     "A skipped habit shows in light green in Statistics and doesn't count against your score — for days when you're sick or away.":'Eine übersprungene Gewohnheit erscheint in der Statistik hellgrün und zählt nicht gegen deinen Wert — für Tage, an denen du krank oder unterwegs bist.',
     'A skipped task comes back the next day. To keep it away until you bring it back yourself, turn off Reset skipped tasks every new day in Settings → Today.':'Eine übersprungene Aufgabe kommt am nächsten Tag zurück. Soll sie wegbleiben, bis du sie selbst zurückholst, schalte „Übersprungene Aufgaben jeden Tag zurücksetzen“ in Einstellungen → Heute aus.','Skip by swiping right':'Überspringen durch Wischen nach rechts',
     'In Today, swipe a task or habit to the right to skip it for the day. This works when Skip tasks or Skip habits is turned on in Settings → Today.':'Wische in Heute eine Aufgabe oder Gewohnheit nach rechts, um sie für den Tag zu überspringen. Das funktioniert, wenn „Aufgaben überspringen“ oder „Gewohnheiten überspringen“ in Einstellungen → Heute eingeschaltet ist.','No calendar tasks yet.':'Noch keine Kalenderaufgaben.','No categories yet.':'Noch keine Kategorien.','Tap the ⋯ button above to add one.':'Tippe oben auf ⋯, um eine hinzuzufügen.',
@@ -4259,7 +4283,7 @@ function navSwitch(id){
 // back button (navBack with no arg) and the swipe-back gesture get the
 // right target without each call site needing to know about it.
 // Pages opened from the Settings list (back returns there; the Settings tab stays lit)
-var SETTINGS_SUBPAGES=['guide','editlayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats','setblocker'];
+var SETTINGS_SUBPAGES=['guide','guide-hidden','editlayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats','setblocker'];
 // Where back goes: the page this one was opened from (Nav.stack), skipping
 // any that no longer exist (e.g. a deleted project). The fixed rules below
 // only apply when there's no history (e.g. right after the app reopened).
@@ -4270,6 +4294,7 @@ function _backTarget(){
   // Edit layout and Completed Tasks are only ever opened from Settings
   // (their opt-rows there), never from Overview — back should return
   // where they were actually opened from.
+  if(cur&&cur.id==='p-guide-hidden')return 'guide'; // a Guide page, opened from the Guide list
   if(cur&&SETTINGS_SUBPAGES.indexOf(cur.id.slice(2))!==-1)return 'settings';
   // A tracker project opened by tapping its row in Daily (see ciTracker())
   // should return to Habits, not the usual Overview default — _projFromDaily

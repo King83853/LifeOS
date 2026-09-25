@@ -273,10 +273,15 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   history / Menu bottom sheets were removed.
   Guide (3.43): the very top of Settings is its own one-row card, "Guide"
   (`#settings-guide`, orange book icon — asked for with "a fitting emoji",
-  done as an icon like the other rows), opening `#p-guide`: tips, each a
-  `.guide-item` (`.guide-t` title + `.guide-p` paragraph) in one white card.
-  New tips go there as another `.guide-item` (+ a DE entry). First tip:
-  skipping by swiping right (needs Skip tasks/habits in Settings > Today). Auto update = a silent
+  done as an icon like the other rows), opening `#p-guide`. Since 3.50
+  `#p-guide` is a list of rows like Settings (no icons — a sub-page), each
+  opening its own page of tips; first row "Hidden features"
+  (`#p-guide-hidden`: skip by swiping right, move projects by holding, move
+  habits by holding). A tip is a `.guide-item` (`.guide-t` title +
+  `.guide-p` paragraph) in the page's one white card; new tips go into the
+  fitting page (+ a DE entry). A new Guide page: add it to
+  SETTINGS_SUBPAGES (tab lighting) and to `_backTarget`'s no-history
+  fallback (-> 'guide'), like `guide-hidden`. Auto update = a silent
   `A.checkForUpdate(true)` at launch and on resume after 30 min; it only
   speaks up (progress overlay, then reload) when an update exists.
 

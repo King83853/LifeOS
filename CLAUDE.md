@@ -302,6 +302,16 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   pages. New user-facing text must say Menu. "Reset settings" keeps its
   name (it resets settings). Overlap to know about: General has its own
   "Menu" section (which tabs show in the tab bar) — so Menu > General > Menu.
+- Habit categories are hidden "for now" (3.76): Daily's day panels and
+  Today show all habits in ONE card titled with the Habits project's name
+  (`habitsTitle()`), in the universal dailyItems order; the + menu has no
+  "Manage categories" (DailyCatSheet and its markup were deleted — see git
+  history before 3.76 to bring it back), adding a habit / tracking a project
+  has no category step, the habit page subtitle is just the days. The data
+  stays: dailyCats and each habit's catId are kept, and new habits go into
+  the first category (`DB.habitCatId()`, which creates one named after the
+  project if there's none) because Trash restores rely on a habit's
+  category. Renaming the Habits project redraws the cards (SheetEditor.save).
 - Sound and Notifications live in Menu > General (3.63; a separate Menu
   card in 3.61 and their own pages in 3.62 were both dropped by request):
   "Sounds" (3.65; was "Tick-off sound") is a switch in the Hold-to-complete card

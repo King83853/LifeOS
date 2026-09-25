@@ -992,7 +992,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
     </div>
     <div class="guide-item">
       <div class="guide-t">Move habits by holding</div>
-      <div class="guide-p">In Daily, hold a habit's bar — not its tick box — until it lifts, then drag it up or down within its category. The order is the same on every day and in Today.</div>
+      <div class="guide-p">In Daily, hold a habit's bar — not its tick box — until it lifts, then drag it up or down. The order is the same on every day and in Today.</div>
     </div>
     <div class="guide-item">
       <div class="guide-t">Zoom and scroll charts</div>
@@ -1275,17 +1275,6 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
     </div>
   </div>
 </div>
-<div class="sheet-overlay" id="daily-cat-sheet-overlay" onclick="if(event.target===this)DailyCatSheet.close()">
-  <div class="sheet">
-    <div class="sheet-title">Daily categories</div>
-    <div id="daily-cat-list"></div>
-    <div class="addrow">
-      <input class="addinp" id="daily-cat-inp" placeholder="New category name…">
-      <button class="addbtn" onclick="DailyCatSheet.add()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-    </div>
-  </div>
-</div>
-
 <div class="sheet-overlay" id="daily-item-sheet-overlay" onclick="if(event.target===this)DailyItemSheet.close()">
   <div class="sheet">
     <div class="sheet-title" id="daily-item-sheet-title">Add habit</div>
@@ -1379,7 +1368,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.75';
+var APP_VERSION='Beta 3.76';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2353,6 +2342,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.75',notes:[
     'The project type Daily is now called Habits'
+  ]},
+  {v:'Beta 3.76',notes:[
+    'Habit categories are gone for now: Daily and Today show all habits in one card, titled with the project\'s name'
   ]}
 ];
 var COLORS={
@@ -2738,6 +2730,12 @@ var DB={
     });
   },
 
+  // Categories aren't shown any more (3.76), but every habit still belongs
+  // to one (a Trash restore brings its category back with it): new habits go
+  // into the first, which is created — named after the project — if needed.
+  habitCatId:function(){
+    return this.data.dailyCats.length?this.data.dailyCats[0].id:this.addDailyCat(habitsTitle(),'📌');
+  },
   addDailyCat:function(name,icon){
     var id='dc'+Date.now();
     this.data.dailyCats.push({id:id,name:name,icon:icon||'📌'});
@@ -2891,7 +2889,7 @@ var I18N=(function(){
     'No one-time tasks yet.':'Noch keine einmaligen Aufgaben.','Guide':'Anleitung','Hidden features':'Versteckte Funktionen','Move projects by holding':'Projekte durch Halten verschieben','Move habits by holding':'Gewohnheiten durch Halten verschieben','Zoom and scroll charts':'Diagramme zoomen und verschieben','Days':'Tage','Weeks':'Wochen','Months':'Monate',
     'Pinch a chart with two fingers to zoom. Zoomed out, the columns turn from days into weeks and then months. Drag a chart sideways to look back at older history.':'Zieh ein Diagramm mit zwei Fingern auf oder zu, um zu zoomen. Weiter herausgezoomt werden aus den Tagen Wochen und dann Monate. Wisch ein Diagramm seitwärts, um ältere Verläufe anzusehen.',
     "In Overview, hold a project for a second until it lifts, then drag it to a new place in its category. Hold a category's title to move the whole category.":'Halte in der Übersicht ein Projekt eine Sekunde lang, bis es sich anhebt, und ziehe es an eine neue Stelle in seiner Kategorie. Halte den Titel einer Kategorie, um die ganze Kategorie zu verschieben.',
-    "In Daily, hold a habit's bar — not its tick box — until it lifts, then drag it up or down within its category. The order is the same on every day and in Today.":'Halte in Täglich den Balken einer Gewohnheit – nicht ihr Kästchen –, bis er sich anhebt, und ziehe ihn innerhalb seiner Kategorie nach oben oder unten. Die Reihenfolge gilt an jedem Tag und auch in Heute.',
+    "In Daily, hold a habit's bar — not its tick box — until it lifts, then drag it up or down. The order is the same on every day and in Today.":'Halte in Täglich den Balken einer Gewohnheit – nicht ihr Kästchen –, bis er sich anhebt, und ziehe ihn nach oben oder unten. Die Reihenfolge gilt an jedem Tag und auch in Heute.',
     'Reset skipped tasks every new day':'Übersprungene Aufgaben jeden Tag zurücksetzen',
     "A skipped habit shows in light green in Statistics and doesn't count against your score — for days when you're sick or away.":'Eine übersprungene Gewohnheit erscheint in der Statistik hellgrün und zählt nicht gegen deinen Wert — für Tage, an denen du krank oder unterwegs bist.',
     'A skipped task comes back the next day. To keep it away until you bring it back yourself, turn off Reset skipped tasks every new day in Menu → Today.':'Eine übersprungene Aufgabe kommt am nächsten Tag zurück. Soll sie wegbleiben, bis du sie selbst zurückholst, schalte „Übersprungene Aufgaben jeden Tag zurücksetzen“ in Menü → Heute aus.','Skip by swiping right':'Überspringen durch Wischen nach rechts',
@@ -4282,21 +4280,7 @@ var A={
     item.style.opacity='0';
     setTimeout(function(){item.remove();buildPanels();restoreChecks(Nav.sd);},300);
   },
-  startRepeatingTask:function(){
-    var cats=DB.data.dailyCats;
-    if(!cats.length){
-      InputSheet.show('New category name','e.g. Chores',function(name){
-        var catId=DB.addDailyCat(name,'📌');
-        DailyCatSheet.render();
-        DailyItemSheet.open(catId,null);
-      });
-      return;
-    }
-    if(cats.length===1){DailyItemSheet.open(cats[0].id,null);return;}
-    AddChoice.show('Pick category',cats.map(function(c){
-      return{icon:'',label:c.name,fn:function(){DailyItemSheet.open(c.id,null);}};
-    }));
-  },
+  startRepeatingTask:function(){DailyItemSheet.open(DB.habitCatId(),null);},
   // Links an EXISTING Tracker project into Daily as a scheduled reminder
   // — this never creates a new tracker inline, only picks one that's
   // already been made from Overview (New Project > Tracker), since the
@@ -4308,25 +4292,11 @@ var A={
       Alert.info('No tracker projects yet — create one first from Overview (+ > Project > Tracker), then come back here to add it to Daily.');
       return;
     }
-    function pickCategory(pid){
-      var cats=DB.data.dailyCats;
-      if(!cats.length){
-        InputSheet.show('New category name','e.g. Health',function(name){
-          var catId=DB.addDailyCat(name,'📌');
-          DailyCatSheet.render();
-          DailyItemSheet.open(catId,null,pid);
-        });
-        return;
-      }
-      if(cats.length===1){DailyItemSheet.open(cats[0].id,null,pid);return;}
-      AddChoice.show('Pick category',cats.map(function(c){
-        return{icon:'',label:c.name,fn:function(){DailyItemSheet.open(c.id,null,pid);}};
-      }));
-    }
-    if(trackers.length===1){pickCategory(trackers[0]);return;}
+    function add(pid){DailyItemSheet.open(DB.habitCatId(),null,pid);}
+    if(trackers.length===1){add(trackers[0]);return;}
     AddChoice.show('Pick tracker',trackers.map(function(pid){
       var p=DB.data.projects[pid];
-      return{icon:p.icon||'📈',label:p.name,fn:function(){pickCategory(pid);}};
+      return{icon:p.icon||'📈',label:p.name,fn:function(){add(pid);}};
     }));
   }
 };
@@ -5223,9 +5193,8 @@ var HabitDetail={
   render:function(){
     var item=DB.data.dailyItems.find(function(x){return x.id===HabitDetail.itemId;});
     if(!item){navBack();return;}
-    var cat=DB.data.dailyCats.find(function(c){return c.id===item.catId;});
     document.getElementById('hd-title').textContent=item.text;
-    document.getElementById('hd-sub').textContent=(cat?cat.name+' · ':'')+daysLabel(item.days);
+    document.getElementById('hd-sub').textContent=daysLabel(item.days);
     var hdDesc=document.getElementById('hd-desc');
     hdDesc.textContent=item.desc||'';hdDesc.style.display=item.desc?'':'none';
     this.renderChart();
@@ -5249,6 +5218,9 @@ var HabitDetail={
   }
 };
 
+// Habit categories aren't shown (3.76): all of a day's habits sit in ONE
+// card titled with the Habits project's name, on Daily and on Today.
+function habitsTitle(){var p=DB.data.projects[DB.data.habitsProjectId];return p&&p.name?p.name:'Habits';}
 function onceRow(o){
   return '<div class="cali" data-once="'+o.id+'">'
     +'<input type="checkbox" onchange="A.toggleOnceInline(this,\''+o.id+'\')">'
@@ -5277,38 +5249,32 @@ function buildPanels(){
       onceToday.forEach(function(o){h+=onceRow(o);});
       h+='</div>';
     }
-    if(!DB.data.dailyCats.length){
-      h+='<div class="empty">No categories yet.<br>Tap the ⋯ button above to add one.</div>';
-    } else {
-      DB.data.dailyCats.forEach(function(cat){
-        // A habit shows from the day it started counting: the day it was
-        // added, or the day its statistics were reset — not before.
-        var items=DB.data.dailyItems.filter(function(it){return it.catId===cat.id&&it.days.indexOf(wi)!==-1&&ds>=habitCreatedDs(it);});
-        h+='<div class="caltitle">'+esc(cat.name)+'</div><div class="calsec" data-cat="'+cat.id+'">';
-        if(!items.length)h+='<div class="cal-none">No habits</div>';
-        items.forEach(function(it){
-          h+=it.trackerPid?ciTracker(it,pi,true):ciEdit(it.id,it.text,pi);
-        });
-        h+='</div>';
-      });
-    }
+    // A habit shows from the day it started counting: the day it was added,
+    // or the day its statistics were reset — not before.
+    var items=DB.data.dailyItems.filter(function(it){return it.days.indexOf(wi)!==-1&&ds>=habitCreatedDs(it);});
+    h+='<div class="caltitle">'+esc(habitsTitle())+'</div><div class="calsec" data-habits="1">';
+    if(!items.length)h+='<div class="cal-none">No habits</div>';
+    items.forEach(function(it){
+      h+=it.trackerPid?ciTracker(it,pi,true):ciEdit(it.id,it.text,pi);
+    });
+    h+='</div>';
     p.innerHTML=h;c.appendChild(p);
   }
   var cur=document.getElementById('dp-'+Nav.sd);if(cur)cur.classList.add('on');
-  // Every calsec, including the plain (non-draggable) One-time one, which
-  // `wireDailyDrag` below skips on purpose (`[data-cat]`-only, since a
-  // one-time task isn't reorderable) — this only sets a CSS class though,
+  // Every calsec, including the plain (non-draggable) Calendar one, which
+  // `wireDailyDrag` below skips on purpose (`[data-habits]` only, since a
+  // calendar task isn't reorderable) — this only sets a CSS class though,
   // it doesn't need to line up with what's draggable.
   document.querySelectorAll('#dpanels .calsec').forEach(function(calsec){markEdgeRows(calsec,'.cali');});
   wireDailyDrag();
 }
-// Long-press any habit row to drag it up/down within its own category —
+// Long-press any habit row to drag it up/down in the habits card —
 // every day's panel gets its own listeners (only the visible one can
 // actually receive touches), all reordering the same underlying
 // dailyItems array, so whichever day you happened to be on when you
 // dragged doesn't matter.
 function wireDailyDrag(){
-  document.querySelectorAll('#dpanels .calsec[data-cat]').forEach(function(calsec){
+  document.querySelectorAll('#dpanels .calsec[data-habits]').forEach(function(calsec){
     markEdgeRows(calsec,'.cali');
     DragReorder.init(calsec,'.cali','.cali','list',function(container,el){
       var ids=[].slice.call(container.querySelectorAll('.cali[data-id]')).map(function(r){return r.getAttribute('data-id');});
@@ -5463,18 +5429,16 @@ function renderToday(){
     h+='</div>';
   }
   var vanish=DB.data.settings.todayHabitsDisappear;
-  DB.data.dailyCats.forEach(function(cat){
-    var items=DB.data.dailyItems.filter(function(it){
-      if(it.catId!==cat.id||it.days.indexOf(TI)===-1)return false;
-      if(!vanish)return true;
-      var done=!!habitDayVal(it,ds);
-      return !done;
-    });
-    if(!items.length)return;
-    h+='<div class="caltitle">'+esc(cat.name)+'</div><div class="calsec">';
+  var items=DB.data.dailyItems.filter(function(it){
+    if(it.days.indexOf(TI)===-1)return false;
+    if(!vanish)return true;
+    return !habitDayVal(it,ds);
+  });
+  if(items.length){
+    h+='<div class="caltitle">'+esc(habitsTitle())+'</div><div class="calsec">';
     items.forEach(function(it){h+=swipeWrap('h',it.trackerPid?ciTracker(it,0,false):ci(it.id,it.text,0));});
     h+='</div>';
-  });
+  }
   document.getElementById('today-daily').innerHTML=h;
   syncTodaySections();
   // Same edge-row marking Daily's panels use (see markEdgeRows) — needed
@@ -5702,47 +5666,6 @@ var MenuPage={
     TabBar.applyTabs();
     renderGeneralTop(); // the "Open app on" list only offers tabs that are shown (the switches here stay put)
   }
-};
-
-var DailyCatSheet={
-  open:function(){
-    this.render();
-    _overlayOpen('daily-cat-sheet-overlay');
-  },
-  render:function(){
-    var c=document.getElementById('daily-cat-list');
-    var d=DB.data;
-    if(!d.dailyCats.length){c.innerHTML='<div class="empty">No categories yet.</div>';return;}
-    c.innerHTML=d.dailyCats.map(function(cat){
-      return '<div class="el-row"><div class="el-name">'+esc(cat.name)+'</div>'
-        +'<div class="el-btns">'
-        +'<button class="el-btn" onclick="DailyCatSheet.rename(\''+cat.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
-        +'<button class="el-btn danger" onclick="DailyCatSheet.remove(\''+cat.id+'\')">'+trashSvg(18,'#fff')+'</button>'
-        +'</div></div>';
-    }).join('');
-  },
-  add:function(){
-    var inp=document.getElementById('daily-cat-inp');
-    var name=inp.value.trim();if(!name)return;
-    DB.addDailyCat(name,'📌');
-    inp.value='';
-    this.render();buildPanels();restoreChecks(Nav.sd);renderGrids();
-  },
-  rename:function(id){
-    var cat=DB.data.dailyCats.find(function(x){return x.id===id;});if(!cat)return;
-    InputSheet.show('Rename category','',function(name){
-      DB.renameDailyCat(id,name);
-      DailyCatSheet.render();buildPanels();restoreChecks(Nav.sd);
-    });
-    document.getElementById('input-sheet-field').value=cat.name;
-  },
-  remove:function(id){
-    Alert.confirm('Delete this category? Its habits move to the Trash.',function(){
-      DB.deleteDailyCat(id);
-      DailyCatSheet.render();buildPanels();restoreChecks(Nav.sd);renderGrids();
-    },'Delete');
-  },
-  close:function(){_overlayClose('daily-cat-sheet-overlay');}
 };
 
 var DailyItemSheet={
@@ -6588,8 +6511,7 @@ var TabPlus={
       AddChoice.show('Add task',[
         {icon:'',label:'Calendar',fn:function(){OnceAddSheet.open();}},
         {icon:'',label:'Repeating task',fn:function(){A.startRepeatingTask();}},
-        {icon:'',label:'Track a project',fn:function(){A.startTrackerHabit();}},
-        {icon:'',label:'Manage categories',fn:function(){DailyCatSheet.open();}}
+        {icon:'',label:'Track a project',fn:function(){A.startTrackerHabit();}}
       ]);
       return;
     }
@@ -7299,6 +7221,7 @@ var SheetEditor={
       // selectors above never touch its header — update it directly.
       if(this.pid===DB.data.habitsProjectId){
         var ht=document.getElementById('habits-dtitle');if(ht)ht.textContent=name;
+        buildPanels();restoreChecks(Nav.sd);renderToday(); // the habit cards carry its name
       }
       if(p.type==='tracker')renderTracker(this.pid);
       renderGrids();

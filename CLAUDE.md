@@ -390,7 +390,11 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   box-shadow of 1.5px = 4.5 device px on a 3x iPhone; WebKit rounds the
   shadow's inner edge the same direction on every side, so left/top drew
   5 px thick and right/bottom 4. Now a `border` (box-sizing:border-box),
-  whose width WebKit floors to whole device pixels on all four sides. Don't
+  whose width WebKit floors to whole device pixels on all four sides
+  (3.59: 1.67px, asked for "a tiny bit thicker" — exactly 5 device px on a
+  3x iPhone, where 1.5px floored to 4 and looked thinner than the 1.5px =
+  4.5 px icon strokes; 2x screens still get 3 px = 1.5px; not 1.6667, whose
+  x3 can fall just under 5 and floor to 4). Don't
   draw thin outlines with fractional inset shadows; this preview is 2x
   (1.5px = 3 device px exactly), so it never shows the 3x asymmetry.
   3.55 follow-up, "still inconsistent for some squares": every Today row's

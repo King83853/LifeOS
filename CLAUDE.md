@@ -699,8 +699,11 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   Enter saves in both. The old inline bars (`addwrap-`, `trk-addwrap-`,
   priority pills `.pri-row/.pri-pill`, `selPri`, `A.addTask`,
   `.trk-addinp`) were removed outright; `.addrow/.addinp/.addbtn` stay
-  because Daily's category sheet still uses them. The Task window hides
-  its Priority row when the (destination) project is a List, in both add
+  because Daily's category sheet still uses them. The Task window has no
+  Project row since 3.73 ("I'm never gonna move a task to another project";
+  TaskSheet.moveToPid/setProject and DB.moveTask were removed), so a task
+  always stays in its project. It hides
+  its Priority row (and the then-empty card) when the project is a List, in both add
   and edit mode — List projects don't sort by priority.
   3.9 — that change broke "+" on every project created before project
   types existed: those have NO `type` saved (everything else treats that
@@ -794,6 +797,10 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   jump back to Settings. New navigation should go through `Nav.go` (not
   navForward directly) or it won't be in the history.
 
+- The edge swipe-back (touchstart in its IIFE) does nothing while any
+  slide-up or pop-up is open (`_overlayCount>0`, 3.73 — it used to slide the
+  page behind an open sheet while the sheet was being pulled closed), and
+  never starts on a chart (`.zchart`, which scrolls sideways itself).
 - Page slides (3.6), after "holding a Settings row long then letting go
   makes the slide stutter; Today is fine": (1) nothing prevented a second
   navForward/navBack while a slide ran — two slide loops each rewrite the

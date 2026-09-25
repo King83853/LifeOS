@@ -1383,7 +1383,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.72';
+var APP_VERSION='Beta 3.73';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2347,6 +2347,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.72',notes:[
     'Charts on Statistics, habit and tracker pages: pinch to zoom (days, weeks, months) and drag sideways to see older history — instead of the Day / Week / Month buttons'
+  ]},
+  {v:'Beta 3.73',notes:[
+    'The Task window no longer has a Project row',
+    'Swiping back from the screen edge does nothing while a slide-up window is open'
   ]}
 ];
 var COLORS={
@@ -2641,22 +2645,6 @@ var DB={
     if(fields.pri!==undefined)t.pri=fields.pri;
     if(fields.desc!==undefined)t.desc=fields.desc;
     this._sortTasks(projId);
-    this.save();
-  },
-  moveTask:function(fromPid,toPid,key,fields){
-    var tasks=this.data.extraTasks[fromPid]||[];
-    var idx=tasks.findIndex(function(x){return x.key===key;});
-    if(idx===-1)return;
-    var t=tasks[idx];
-    tasks.splice(idx,1);
-    if(fields){
-      if(fields.text!==undefined)t.text=fields.text;
-      if(fields.pri!==undefined)t.pri=fields.pri;
-      if(fields.desc!==undefined)t.desc=fields.desc;
-    }
-    if(!this.data.extraTasks[toPid])this.data.extraTasks[toPid]=[];
-    this.data.extraTasks[toPid].push(t);
-    this._sortTasks(toPid);
     this.save();
   },
   completeTask:function(key,text,projName){
@@ -4500,7 +4488,7 @@ function navBack(targetId){
   document.addEventListener('touchstart',function(e){
     sx=e.touches[0].clientX;sy=e.touches[0].clientY;
     if(sx>35)return;
-    if(Alert._open)return; // not behind an open pop-up
+    if(_overlayCount>0)return; // not while a slide-up or pop-up is open
     if(e.target.closest&&e.target.closest('.zchart'))return; // a chart scrolls sideways itself
     var c=document.querySelector('.page.active');
     if(!c||c.id==='p-overview'||c.id==='p-today'||c.id==='p-lockedin'||c.id==='p-stats'||c.id==='p-settings')return;
@@ -6407,11 +6395,11 @@ function renderAllTaskViews(){
 // The Task window, for editing a task (open) or adding one (openNew — the
 // project page's "+"; key stays null until Save creates the task).
 var TaskSheet={
-  pid:null,key:null,pri:'bs',moveToPid:null,
+  pid:null,key:null,pri:'bs',
   open:function(pid,key){
     var t=(DB.data.extraTasks[pid]||[]).find(function(x){return x.key===key;});
     if(!t)return;
-    this.pid=pid;this.key=key;this.pri=t.pri||'bs';this.moveToPid=pid;
+    this.pid=pid;this.key=key;this.pri=t.pri||'bs';
     document.getElementById('task-sheet-name').value=t.text;
     document.getElementById('task-sheet-desc').value=t.desc||'';
     this.renderRows();
@@ -6419,7 +6407,7 @@ var TaskSheet={
     this.autosize();
   },
   openNew:function(pid){
-    this.pid=pid;this.key=null;this.pri='bs';this.moveToPid=pid;
+    this.pid=pid;this.key=null;this.pri='bs';
     document.getElementById('task-sheet-name').value='';
     document.getElementById('task-sheet-desc').value='';
     this.renderRows();
@@ -6432,32 +6420,25 @@ var TaskSheet={
     el.style.height='auto';
     el.style.height=el.scrollHeight+'px';
   },
-  // Priority and project are two dropdown rows (same DSel list as Settings).
+  // Priority is a dropdown row (same DSel list as Settings). Tasks stay in
+  // their project: there's no Project row (removed by request, 3.73).
   renderRows:function(){
     var pri=['bu','bs','bp','bl'].map(function(k){return {value:k,label:PLBL[k]};});
-    var projs=[];
-    for(var id in DB.data.projects){
-      var p=DB.data.projects[id];
-      if(p.type==='todo'||p.type==='list')projs.push({value:id,label:p.name});
-    }
-    function row(title,sel){return '<div class="opt-row"><div class="opt-text"><div class="opt-title">'+title+'</div></div>'+sel+'</div>';}
     // List projects don't sort by priority, so there's nothing to pick there.
-    var dest=DB.data.projects[this.moveToPid],isList=dest&&dest.type==='list';
-    document.getElementById('task-sheet-rows').innerHTML=
-      (isList?'':row('Priority',customSelect(pri,this.pri,'TaskSheet.setPri(this.value)')))
-      +row('Project',customSelect(projs,this.moveToPid,'TaskSheet.setProject(this.value)'));
+    var p=DB.data.projects[this.pid],isList=p&&p.type==='list';
+    var rows=document.getElementById('task-sheet-rows');
+    rows.innerHTML=isList?'':'<div class="opt-row"><div class="opt-text"><div class="opt-title">Priority</div></div>'
+      +customSelect(pri,this.pri,'TaskSheet.setPri(this.value)')+'</div>';
+    rows.style.display=isList?'none':'';
   },
   setPri:function(v){this.pri=v;this.renderRows();},
-  setProject:function(v){this.moveToPid=v;this.renderRows();},
   save:function(){
     var text=document.getElementById('task-sheet-name').value.trim();
     if(!text)return;
     var desc=document.getElementById('task-sheet-desc').value.trim();
     if(!this.key){
-      var key=DB.addTask(this.moveToPid,text,this.pri);
-      if(desc)DB.updateTask(this.moveToPid,key,{desc:desc});
-    } else if(this.moveToPid!==this.pid){
-      DB.moveTask(this.pid,this.moveToPid,this.key,{text:text,pri:this.pri,desc:desc});
+      var key=DB.addTask(this.pid,text,this.pri);
+      if(desc)DB.updateTask(this.pid,key,{desc:desc});
     } else {
       DB.updateTask(this.pid,this.key,{text:text,pri:this.pri,desc:desc});
     }

@@ -854,7 +854,9 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
 
 - Pages scroll inside their OWN frame (3.14), not the document: `.page` is
   `position:fixed; top:0; bottom:var(--tb-h)` with `overflow-y:auto`, and
-  `.tabbar` has `height:var(--tb-h)` (71px + bottom safe area), so the tab
+  `.tabbar` has `height:var(--tb-h)` (since 3.37: 42px + `--tb-pad-b`, the
+  bottom safe area minus 14px, min 6px — "40% lower" than the old 71px +
+  full safe area; 22px icons, 10px labels), so the tab
   bar sits OUTSIDE every scroller, like a native app. Why: an on-device
   readout (iOS 18.1, 3.13) proved iOS delivers NO event at all (no
   touchstart/pointerdown/click) for the tap that stops a coasting scroll —

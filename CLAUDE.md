@@ -148,6 +148,15 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   (it said nothing, since today only counted once ticked), rising 1 / x,
   2 / x as you tick. A single habit's score (best/worst, habit page) keeps
   counting today only once ticked, so it doesn't dip every morning.
+  3.54: Settings > Statistics > Time range (`settings.statsRange`: 'all' /
+  '3m' / '1m' / '1w' = `STATS_RANGES` 0/90/30/7 days, default '3m' = the old
+  fixed 90 days; read via `statsRange()`, which falls back to '3m') sets how
+  far back the Statistics RING looks — asked for as a setting "for the pie
+  chart", so only `aggHabitConsistency` passes it (`habitConsistency(it,
+  true,span)`); best/worst and a habit's own page keep 90 days. All time
+  starts at `habitCreatedDs` (so after a statistics reset, at the reset).
+  Dropdown setters must call `renderSettings()` — customSelect is static
+  markup, and without a redraw the row kept showing the old value.
   Bar charts (`renderBarChart`, shared by Statistics, habit and tracker
   pages) have a slim left axis with ONE number — the tallest bar's value,
   at its height (by request: "don't put all the numbers").

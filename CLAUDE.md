@@ -1470,11 +1470,11 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   sheet and picking another color changed nothing. Opaque photos are still
   small JPEGs. Photos saved before 3.34 keep their baked-in color until
   re-picked.
-  Naming (3.34): "one-time tasks" (`dailyOnce`, `onceRow`, OnceAddSheet)
-  are called CALENDAR TASKS on screen — "Calendar task" window/menu entry,
-  "Calendar tasks" section in Daily, just "Calendar" in Today. The stored
-  archive tag stays `section:'One-time'` (Trash shows "Calendar" for
-  `once` entries); code names are unchanged.
+  Naming: "one-time tasks" (`dailyOnce`, `onceRow`, OnceAddSheet) are
+  called just CALENDAR on screen everywhere since 3.58 (3.34 had "Calendar
+  task(s)"): the window title, Daily's "+" entry, Daily's section, Today's
+  section, Tasks' view, Trash; empty state "Nothing in the calendar yet."
+  The stored archive tag stays `section:'One-time'`; code names unchanged.
   3.30: after a dropdown was closed by tapping elsewhere, the next tap on
   its button did nothing — DSel swallowed EVERY click for 450ms after an
   outside press. Now it swallows only the closing tap's own click (a click

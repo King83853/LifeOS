@@ -1286,7 +1286,7 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
 
 <div class="sheet-overlay" id="once-add-sheet-overlay" onclick="if(event.target===this)OnceAddSheet.close()">
   <div class="sheet">
-    <div class="sheet-title">Calendar task</div>
+    <div class="sheet-title">Calendar</div>
     <div class="sheet-label">Task</div>
     <input class="sheet-inp" id="once-add-text" placeholder="Task">
     <div class="sheet-label">Date</div>
@@ -1346,7 +1346,7 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.57';
+var APP_VERSION='Beta 3.58';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2265,6 +2265,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.57',notes:[
     'Settings is now called Menu'
+  ]},
+  {v:'Beta 3.58',notes:[
+    'Calendar tasks are now just called Calendar'
   ]}
 ];
 var COLORS={
@@ -2801,7 +2804,7 @@ var I18N=(function(){
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
     'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Blocker':'Blocker','Coming soon':'Demnächst verfügbar','App and website blocker: limits, warnings, screen time and app usage.':'App- und Website-Blocker: Limits, Warnungen, Bildschirmzeit und App-Nutzung.','Show War Room':'War Room anzeigen','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
-    '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Calendar task':'Kalenderaufgabe','Calendar tasks':'Kalenderaufgaben','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
+    '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
     'Name':'Name','Type':'Typ','Category':'Kategorie','Color':'Farbe','Description':'Beschreibung','Date':'Datum','Day':'Tag','Days':'Tage','Week':'Woche','Month':'Monat',
@@ -2821,7 +2824,7 @@ var I18N=(function(){
     'Reset skipped tasks every new day':'Übersprungene Aufgaben jeden Tag zurücksetzen',
     "A skipped habit shows in light green in Statistics and doesn't count against your score — for days when you're sick or away.":'Eine übersprungene Gewohnheit erscheint in der Statistik hellgrün und zählt nicht gegen deinen Wert — für Tage, an denen du krank oder unterwegs bist.',
     'A skipped task comes back the next day. To keep it away until you bring it back yourself, turn off Reset skipped tasks every new day in Menu → Today.':'Eine übersprungene Aufgabe kommt am nächsten Tag zurück. Soll sie wegbleiben, bis du sie selbst zurückholst, schalte „Übersprungene Aufgaben jeden Tag zurücksetzen“ in Menü → Heute aus.','Skip by swiping right':'Überspringen durch Wischen nach rechts',
-    'In Today, swipe a task or habit to the right to skip it for the day. This works when Skip tasks or Skip habits is turned on in Menu → Today.':'Wische in Heute eine Aufgabe oder Gewohnheit nach rechts, um sie für den Tag zu überspringen. Das funktioniert, wenn „Aufgaben überspringen“ oder „Gewohnheiten überspringen“ in Menü → Heute eingeschaltet ist.','No calendar tasks yet.':'Noch keine Kalenderaufgaben.','No categories yet.':'Noch keine Kategorien.','Tap the ⋯ button above to add one.':'Tippe oben auf ⋯, um eine hinzuzufügen.',
+    'In Today, swipe a task or habit to the right to skip it for the day. This works when Skip tasks or Skip habits is turned on in Menu → Today.':'Wische in Heute eine Aufgabe oder Gewohnheit nach rechts, um sie für den Tag zu überspringen. Das funktioniert, wenn „Aufgaben überspringen“ oder „Gewohnheiten überspringen“ in Menü → Heute eingeschaltet ist.','Nothing in the calendar yet.':'Noch nichts im Kalender.','No categories yet.':'Noch keine Kategorien.','Tap the ⋯ button above to add one.':'Tippe oben auf ⋯, um eine hinzuzufügen.',
     'No tasks':'Keine Aufgaben','No habits':'Keine Gewohnheiten','No data yet':'Noch keine Daten','No schedule set for this habit.':'Für diese Gewohnheit ist kein Zeitplan festgelegt.',
     'No scheduled habits yet.':'Noch keine geplanten Gewohnheiten.','No completed one-time tasks yet.':'Noch keine erledigten einmaligen Aufgaben.',
     'Skipped':'Übersprungen','Done':'Erledigt','Not done':'Nicht erledigt','Longest streak':'Längste Serie','scheduled days in a row':'geplante Tage in Folge',
@@ -3368,7 +3371,7 @@ function renderLockedInList(){
 function renderLockedInCalendar(){
   var c=document.getElementById('lockedin-list');
   var items=DB.data.dailyOnce.slice().sort(function(a,b){return a.date<b.date?-1:(a.date>b.date?1:0);});
-  if(!items.length){c.innerHTML='<div class="empty">No calendar tasks yet.</div>';return;}
+  if(!items.length){c.innerHTML='<div class="empty">Nothing in the calendar yet.</div>';return;}
   var todayStr=dStr(new Date());
   c.innerHTML='<div class="card-list">'+items.map(function(o){
     var overdue=o.date<todayStr;
@@ -5156,7 +5159,7 @@ function buildPanels(){
     else if(ds>todayStr)onceToday=DB.data.dailyOnce.filter(function(o){return o.date===ds;});
     else onceToday=[];
     if(onceToday.length){
-      h+='<div class="caltitle">Calendar tasks</div><div class="calsec">';
+      h+='<div class="caltitle">Calendar</div><div class="calsec">';
       onceToday.forEach(function(o){h+=onceRow(o);});
       h+='</div>';
     }
@@ -6447,7 +6450,7 @@ var TabPlus={
     var cur=Nav.cur;
     if(cur==='habits'){
       AddChoice.show('Add task',[
-        {icon:'',label:'Calendar task',fn:function(){OnceAddSheet.open();}},
+        {icon:'',label:'Calendar',fn:function(){OnceAddSheet.open();}},
         {icon:'',label:'Repeating task',fn:function(){A.startRepeatingTask();}},
         {icon:'',label:'Track a project',fn:function(){A.startTrackerHabit();}},
         {icon:'',label:'Manage categories',fn:function(){DailyCatSheet.open();}}

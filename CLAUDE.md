@@ -393,6 +393,23 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   when it really starts, `close()` removes it). Keep will-change off
   anything that sits still. Unverifiable here (2x preview); if it persists,
   get a zoomed phone screenshot saying WHICH squares/screen before guessing.
+  3.56, "the lower stripe feels thinner on some boxes" — the real cause:
+  rows were `height:48px` border-box WITH their 0.5px divider inside, so the
+  centred box sat 10.75px down (10.83 on a 3x phone = half a device pixel)
+  in every row except the last (no divider), and its edges were smoothed
+  across two pixels. Rows (`.ti/.cali/.wri`, `.sp`/`.sheet .opt-row`) are
+  now content-box: the divider is added below the 48/46px, box offset is
+  exactly 11px (Settings icons 8px) in every row. `.cali.split>label`
+  line-height 48px to match. DragReorder sets `boxSizing:border-box` inline
+  on a picked-up row (its inline width/height are the outer size) and clears
+  it on drop. Text stacked above cards got whole-pixel line heights too
+  (`.dtitle` 24, `.hh-title` 30, section titles 14, `.wrt` 18, `.wrd` 16,
+  `.dname` 12, `.dnum` 19) so cards start on whole pixels. RULE: anything
+  with thin edges (boxes, outlines, icons) must land on a whole pixel —
+  give new stacked text an integer px line-height, keep dividers outside
+  fixed row heights, and check with getBoundingClientRect: in this 2x
+  preview every box top should be a multiple of .5 and its offset in the
+  row a whole number.
   Count badges: none left. The Trash count in Settings (`.ab`/`#ab2`), the
   War Room count on Overview (`.wrb`) and Tasks' per-priority counts
   (`.sl-count`) were unified in 3.17/3.18, then all removed (3.21, 3.29) as

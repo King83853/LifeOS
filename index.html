@@ -269,6 +269,29 @@ html[data-theme="light"] .sw.h{border-color:#f5f3ef}
    fractional pixel position that differs row to row, so thin lines inside
    (the War Room box outline) were smoothed differently in each row. */
 .sw.on .sw-row{will-change:transform}
+/* Whole-pixel text heights for everything stacked above the tick boxes. With
+   line-height normal / 1.3 the page title was 23.5px tall, a section title
+   14.3px, and so on — each card below started at a different fraction of a
+   pixel, and a box's outline edge that falls between pixels is smoothed over
+   two (reported as "the lower stripe looks thinner on some boxes"). Borders
+   and dividers are fine: they're snapped to whole device pixels anyway. */
+html:not(#x) .dtitle{line-height:24px}
+html:not(#x) .hh-title{line-height:30px}
+html:not(#x) .sl,html:not(#x) .shdr,html:not(#x) .caltitle,html:not(#x) .el-grp{line-height:14px}
+html:not(#x) .wrt{line-height:18px}
+html:not(#x) .wrd{line-height:16px}
+html:not(#x) .dname{line-height:12px}
+html:not(#x) .dnum{line-height:19px}
+/* A row's divider line is added below its 48px (46px for Settings rows)
+   instead of being taken out of it. Inside the height (border-box) it left
+   47.5px of content, so the centred tick box sat 10.75px from the top —
+   10.83px on a 3x phone, half a device pixel — in every row except the last,
+   which has no divider: only some boxes' edges were smoothed ("the lower
+   stripe looks thinner on some boxes"). Settings icons had the same offset.
+   Widths are auto, so content-box doesn't change them; DragReorder sets
+   border-box inline while it sizes a row it picks up. */
+html:not(#x) .ti,html:not(#x) .cali,html:not(#x) .wri,html:not(#x) .sp .opt-row,html:not(#x) .sheet .opt-row{box-sizing:content-box}
+html:not(#x) .cali.split>label{line-height:48px}
 .sw.h .sw-row{background:#fff}
 @media(prefers-color-scheme:dark){.sw.h .sw-row{background:#1e1c1a}}
 html[data-theme="dark"] .sw.h .sw-row{background:#1e1c1a}
@@ -1323,7 +1346,7 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.55';
+var APP_VERSION='Beta 3.56';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2236,6 +2259,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.55',notes:[
     'The red War Room box outline looks the same on every row in Today'
+  ]},
+  {v:'Beta 3.56',notes:[
+    'Tick boxes and Settings icons sit on whole pixels in every row, so their edges look equally sharp everywhere'
   ]}
 ];
 var COLORS={
@@ -6809,6 +6835,7 @@ var DragReorder={
     ph.style.width=r.width+'px';ph.style.height=r.height+'px';
     el.parentNode.insertBefore(ph,el.nextSibling);
     this._ph=ph;
+    el.style.boxSizing='border-box'; // the size below is the row's outer size
     el.style.width=r.width+'px';el.style.height=r.height+'px';
     el.style.position='fixed';el.style.left=r.left+'px';el.style.top=r.top+'px';
     el.style.zIndex='999';el.style.margin='0';
@@ -6902,7 +6929,7 @@ var DragReorder={
     el.removeEventListener('touchmove',this._onMove,{passive:false});
     el.removeEventListener('touchend',this._onEnd,{passive:false});
     el.removeEventListener('touchcancel',this._onEnd,{passive:false});
-    el.style.position='';el.style.left='';el.style.top='';el.style.width='';el.style.height='';el.style.zIndex='';el.style.margin='';
+    el.style.position='';el.style.left='';el.style.top='';el.style.width='';el.style.height='';el.style.zIndex='';el.style.margin='';el.style.boxSizing='';
     el.classList.remove('dragging');
     ph.parentNode.insertBefore(el,ph); // el takes over wherever the placeholder ended up
     ph.remove();

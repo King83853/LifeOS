@@ -851,6 +851,19 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
 html:not(#x) .page :is(.opt-group,.calsec,.card-list,.el-card,.agrid,.wr){margin-bottom:22px}
 html:not(#x) .page :is(.opt-group,.calsec,.card-list,.el-card)+:is(.opt-group,.calsec,.card-list,.el-card),
 html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)+*>:is(.opt-group,.calsec,.card-list,.el-card):first-child{margin-top:-2px}
+/* Overview, minimal layout (Menu > Overview > Minimal layout): like a
+   phone's home screen — just the icon and the name under it, no card and no
+   count, four per row. A press dims the icon (not a grey card); a dragged
+   project lifts its icon with a shadow instead of the card's. */
+#p-overview.ov-min .agrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 10px}
+html:not(#x) #p-overview.ov-min .acard{background:transparent;padding:0;gap:6px;border-radius:0}
+html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
+#p-overview.ov-min .acnt{display:none}
+#p-overview.ov-min .aico{width:60px;height:60px;border-radius:15px;font-size:28px;transition:filter .4s ease .15s}
+#p-overview.ov-min .acard:active .aico{filter:brightness(.82);transition:filter .2s ease}
+#p-overview.ov-min .albl{font-size:12px;line-height:15px;font-weight:500}
+#p-overview.ov-min .acard.dragging{box-shadow:none!important}
+#p-overview.ov-min .acard.dragging .aico{box-shadow:0 10px 24px rgba(0,0,0,.22)}
 /* Centred pop-up (Alert): short confirmations and messages in the middle
    of the screen, like iOS — bold title, optional smaller message, one or two
    buttons (Cancel blue, the action red; or a single OK). Opens with a fade
@@ -1368,7 +1381,7 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.68';
+var APP_VERSION='Beta 3.69';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2320,6 +2333,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.68',notes:[
     'The red button when resetting settings just says Reset'
+  ]},
+  {v:'Beta 3.69',notes:[
+    'Menu → Overview → Minimal layout: projects show as just their icon and name, four per row, like a phone home screen'
   ]}
 ];
 var COLORS={
@@ -2358,7 +2374,7 @@ var DEFAULT_SETTINGS={
   startTab:'today',hiddenTabs:['blocker'],holdToComplete:true,autoUpdate:true,language:'en',theme:'system',
   dayStartHour:3,todayHabitsDisappear:true,skipHabits:false,
   todayTaskCount:3,todayRefill:false,skipTasks:true,skipResetDaily:true,showWarRoom:true,
-  statsRange:'3m',sound:true
+  statsRange:'3m',sound:true,overviewMinimal:false
 };
 // A plain notice card at the top of the screen for the rare data problems
 // in DB.load / DB.save — tap it to dismiss.
@@ -2855,7 +2871,7 @@ var I18N=(function(){
     'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Add habit':'Gewohnheit hinzufügen','Habit name':'Name der Gewohnheit','Edit habit':'Gewohnheit bearbeiten','Delete habit':'Gewohnheit löschen','Description (optional)':'Beschreibung (optional)','Show on chart':'Im Diagramm anzeigen','Add category':'Kategorie hinzufügen','Add project':'Projekt hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
-    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Blocker':'Blocker','Coming soon':'Demnächst verfügbar','Notifications':'Mitteilungen','Sound':'Ton','Sounds':'Töne','App and website blocker: limits, warnings, screen time and app usage.':'App- und Website-Blocker: Limits, Warnungen, Bildschirmzeit und App-Nutzung.','Show War Room':'War Room anzeigen','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Blocker':'Blocker','Coming soon':'Demnächst verfügbar','Notifications':'Mitteilungen','Minimal layout':'Minimales Layout','Sound':'Ton','Sounds':'Töne','App and website blocker: limits, warnings, screen time and app usage.':'App- und Website-Blocker: Limits, Warnungen, Bildschirmzeit und App-Nutzung.','Show War Room':'War Room anzeigen','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
     '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
@@ -3076,13 +3092,14 @@ function renderGrids(){
         cntLbl=n?n+' tasks':'Empty';
       }
       h+='<div class="acard" data-pid="'+pid+'" onclick="_projFromDaily=null;_trackerOrigin=null;Nav.go(\''+pid+'\')">'
-        +'<div class="aico" style="'+tintStyle(col)+'">'+iconOrPhoto(p)+'</div>'
+        +'<div class="aico" style="'+(d.settings.overviewMinimal?solidTintStyle(col):tintStyle(col))+'">'+iconOrPhoto(p)+'</div>'
         +'<div class="albl">'+p.name+'</div>'
         +'<div class="acnt">'+cntLbl+'</div></div>';
     });
     h+='</div></div>';
   });
   document.getElementById('overview-grid').innerHTML=h;
+  document.getElementById('p-overview').classList.toggle('ov-min',!!d.settings.overviewMinimal);
   wireOverviewDrag();
 }
 // Long-press a category title to drag the whole block (reorders
@@ -3747,6 +3764,10 @@ function renderSettings(){
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Show War Room</div></div>'
     +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(DB.data.settings.showWarRoom!==false?'checked':'')+' onchange="A.setShowWarRoom(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div>'
+    +'<div class="opt-row" style="cursor:default">'
+    +'<div class="opt-text"><div class="opt-title">Minimal layout</div></div>'
+    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(DB.data.settings.overviewMinimal?'checked':'')+' onchange="A.setOverviewMinimal(this.checked)"><span class="switch-slider"></span></label>'
     +'</div></div>'
     +'<div class="opt-group">'
     +'<div class="opt-row" onclick="Nav.go(\'editlayout\')">'
@@ -4190,6 +4211,7 @@ var A={
     },'Reset');
   },
   setShowWarRoom:function(val){DB.data.settings.showWarRoom=val;DB.save();renderWar();},
+  setOverviewMinimal:function(val){DB.data.settings.overviewMinimal=val;DB.save();renderGrids();},
   setStatsRange:function(val){DB.data.settings.statsRange=val;DB.save();renderSettings();},
   setSound:function(val){DB.data.settings.sound=val;DB.save();},
   resetSkipped:function(){
@@ -5898,6 +5920,14 @@ function paleFillColor(hex){
   var a=0x20/255;
   var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
   return 'rgb('+Math.round(a*r+(1-a)*255)+','+Math.round(a*g+(1-a)*255)+','+Math.round(a*b+(1-a)*255)+')';
+}
+// Minimal Overview: the same tint as tintStyle, but opaque — blended over
+// the card colour — so a tile standing on the grey page looks exactly like
+// it does on a white (or dark) card, instead of muddier.
+function solidTintStyle(col){
+  var dark=isDarkNow(),a=(dark?0x2e:0x20)/255,base=dark?[30,28,26]:[255,255,255];
+  var c=[parseInt(col.slice(1,3),16),parseInt(col.slice(3,5),16),parseInt(col.slice(5,7),16)];
+  return 'background:rgb('+c.map(function(v,i){return Math.round(a*v+(1-a)*base[i]);}).join(',')+');color:'+(dark?col+'d9':col);
 }
 function tintStyle(col){
   // dark mode: a soft tint of the color, not the full-strength color

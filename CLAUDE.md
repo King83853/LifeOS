@@ -696,6 +696,16 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   `.sheet-overlay`, so the page behind it could be scrolled while it
   downloaded. Any other full-screen, non-sheet overlay needs the same.
 
+- Overview minimal layout (3.69, Menu > Overview > "Minimal layout",
+  `settings.overviewMinimal`, default off — "so I still have access to the
+  old version"): renderGrids toggles `#p-overview.ov-min`; CSS drops the
+  card background and the count line (`.acnt`), four columns, 60px icons,
+  name under the icon — like a phone home screen. Tiles use
+  `solidTintStyle()` (the tint blended opaque over the card colour) there,
+  because the see-through tintStyle looked muddy on the grey page. Press
+  dims the icon instead of greying a card; a dragged project gets its
+  shadow on the icon (`.acard.dragging` box-shadow is turned off). The War
+  Room card and category titles are unchanged.
 - Project cards on Overview (`.acard`) don't scale down on press (removed
   `.acard:active{transform:scale(.95)}`, 2.91) — only the grey press
   color remains. Dragging still scales up via `.dragging`.

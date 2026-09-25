@@ -804,6 +804,16 @@ html:not(#x) .sl,html:not(#x) .shdr,html:not(#x) .caltitle,html:not(#x) .el-grp,
    stripe along the row, which followed each row's rounded corners and
    couldn't look the same in every list. A ticked box looks like any other. */
 html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) .wri input[type=checkbox]:not(:checked){background-color:var(--war-bg);box-shadow:inset 0 0 0 1.5px var(--war)}
+/* Space between the white cards on every page: 22px from a card down to
+   the section title under it (the title stays 8px above its own card), 20px
+   between two cards with no title — the old 16px / 14px plus the same 6px.
+   Done on the cards, not the titles: a bigger title margin would also push
+   the first title of a page away from the header (it collapses with the
+   header's margin). A card right after a card pulls up 2px to make 20 —
+   also when each card sits in its own container (Settings' list). */
+html:not(#x) .page :is(.opt-group,.calsec,.card-list,.el-card,.agrid,.wr){margin-bottom:22px}
+html:not(#x) .page :is(.opt-group,.calsec,.card-list,.el-card)+:is(.opt-group,.calsec,.card-list,.el-card),
+html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)+*>:is(.opt-group,.calsec,.card-list,.el-card):first-child{margin-top:-2px}
 </style>
 </head>
 <body>
@@ -902,7 +912,7 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
     <div class="hh-title">App</div>
   </div>
   <div id="app-main"></div>
-  <div class="sl" style="margin-top:26px">Version history</div>
+  <div class="sl" style="margin-top:32px">Version history</div>
   <div id="app-history"></div>
 </div>
 
@@ -1284,7 +1294,7 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.48';
+var APP_VERSION='Beta 3.49';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2175,6 +2185,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.48',notes:[
     'Ticking off a task flashes the same green tick box as a done habit (it was black)'
+  ]},
+  {v:'Beta 3.49',notes:[
+    'A little more space between the white cards on every page — the same extra amount with or without a title between them'
   ]}
 ];
 var COLORS={

@@ -312,6 +312,19 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   #3a3836 on the #1e1c1a card since 3.22; it was a darker #0d1219.)
   Cards are `var(--card)` on
   `var(--pg)`, radius 14, NO outlines, 1.5px `var(--line)` dividers, rows 46px.
+  Card spacing on pages (3.49, "the same extra amount with and without a
+  title"): 20px between two cards, 22px from a card down to a section title
+  (title to its own card stays 8px) — the old 14 / 16 + 6. It's set on the
+  CARDS (margin-bottom 22px, and -2px margin-top on a card right after a
+  card, also when each card is wrapped in its own container, via `:has`),
+  NOT by raising the titles' margin-top: a title's top margin collapses
+  with the header's 20px, so the first title of a page (Today with or
+  without tasks, Tasks, Statistics, Daily's first category, Overview
+  without a War Room) moved down with it. Rule is scoped to `.page`, so
+  sheets keep their own spacing. Verified by measuring every page's gaps
+  with the rule deleted from the CSSOM vs present: every difference was
+  exactly +6 and no header gap changed. Version history's title keeps its
+  own inline margin (32px, was 26).
   Text roles (weights lightened in 2.56 — the "lighter weights" rule at the end of the
   block wins): page title 20/700 (26/700 on pushed pages via `.hh`), row text
   15/500, secondary 12/500 grey, paragraph 13/500 grey, uppercase label

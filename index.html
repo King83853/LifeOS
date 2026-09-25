@@ -24,10 +24,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @media(prefers-color-scheme:dark){body{background:#1f2937;color:#e8e6df}}
 html[data-theme="dark"] body{background:#1f2937;color:#e8e6df}
 html[data-theme="light"] body{background:#f3f4f6;color:#1a1917}
-:root{--tb-pad-b:max(calc(env(safe-area-inset-bottom) - 6px),6px);--tb-h:calc(48px + var(--tb-pad-b))}
-/* Tab bar height (3.39, ~76px on an iPhone vs the original ~105px): 1px
-   border + 9px top + 38px of icon/label + bottom padding that reaches 6px
-   into the home-indicator strip. Pages end exactly at it. */
+:root{--tb-pad-b:max(env(safe-area-inset-bottom),12px);--tb-h:calc(52px + var(--tb-pad-b))}
+/* Tab bar height (3.41, ~86px on an iPhone vs the original ~105px): 1px
+   border + 13px top + 38px of icon/label + the bottom safe area (at least
+   12px). Pages end exactly at it. */
 /* Every page scrolls inside its own frame, which ends where the tab bar
    begins (like a native app): a tap on the tab bar never lands on what's
    scrolling, so it works even while a page is still coasting — iOS eats the
@@ -45,7 +45,7 @@ body.sliding .statusbar-blur{display:none}
 html[data-theme="dark"] .statusbar-blur{background:rgba(26,25,23,.35)}
 html[data-theme="light"] .statusbar-blur{background:rgba(243,244,246,.35)}
 
-.tabbar{position:fixed;left:0;right:0;bottom:0;height:var(--tb-h);background:#f3f4f6;border-top:1px solid #e8e5e0;display:flex;align-items:stretch;z-index:150;padding:9px 0 var(--tb-pad-b)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;height:var(--tb-h);background:#f3f4f6;border-top:1px solid #e8e5e0;display:flex;align-items:stretch;z-index:150;padding:13px 0 var(--tb-pad-b)}
 @media(prefers-color-scheme:dark){.tabbar{background:#1f2937;border-color:#2a2927}}
 html[data-theme="dark"] .tabbar{background:#1f2937;border-color:#2a2927}
 html[data-theme="light"] .tabbar{background:#f3f4f6;border-color:#e8e5e0}
@@ -1262,7 +1262,7 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.40';
+var APP_VERSION='Beta 3.41';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2127,6 +2127,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.40',notes:[
     'Section titles like TASKS, MORNING and CALENDAR are a little darker in light mode, so they\'re easier to read'
+  ]},
+  {v:'Beta 3.41',notes:[
+    'The menu bar is 10px taller'
   ]}
 ];
 var COLORS={

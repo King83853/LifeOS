@@ -722,7 +722,7 @@ html[data-theme="light"]{--box:#eceef1;--tick-ink:url("data:image/svg+xml,%3Csvg
 html:not(#x) .ti input[type=checkbox],html:not(#x) .wri input[type=checkbox],html:not(#x) .cali input[type=checkbox]{-webkit-appearance:none;appearance:none;width:26px;height:26px;margin:0;border:none;border-radius:8px;background-color:var(--box);background-repeat:no-repeat;background-position:center;background-size:17px;flex-shrink:0;cursor:pointer;transition:background-color .18s ease}
 html:not(#x) .ti input[type=checkbox]:checked,html:not(#x) .wri input[type=checkbox]:checked{background-color:var(--ink);background-image:var(--tick-ink)}
 html:not(#x) .cali input[type=checkbox]:checked{background-color:var(--go);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
-html:not(#x) .cali.skipped input[type=checkbox]:checked{background-color:var(--go);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l6 6-6 6' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html:not(#x) .cali.skipped input[type=checkbox]:checked{background-color:var(--go-skip);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l6 6-6 6' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 /* Every task/habit row is one line of the same height; long titles get an ellipsis */
 .tt,.cali label,.wit,.el-name,.trk-entry-val{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .ti>div,.wri>div,.cali>label{min-width:0}
@@ -1256,7 +1256,7 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.35';
+var APP_VERSION='Beta 3.36';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2105,7 +2105,10 @@ var CHANGELOG=[
     'One-time tasks are called Calendar tasks now (just "Calendar" in Today)'
   ]},
   {v:'Beta 3.35',notes:[
-    'A skipped habit looks like a done one — same green box, name struck through — only the icon is an arrow instead of a tick'
+    'A skipped habit looks like a done one (name struck through and faded) — only its box stays the light green one with the arrow'
+  ]},
+  {v:'Beta 3.36',notes:[
+    'A skipped habit\'s box is the light green one with the arrow again; everything else looks like a done habit'
   ]}
 ];
 var COLORS={

@@ -385,6 +385,14 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   whose width WebKit floors to whole device pixels on all four sides. Don't
   draw thin outlines with fractional inset shadows; this preview is 2x
   (1.5px = 3 device px exactly), so it never shows the 3x asymmetry.
+  3.55 follow-up, "still inconsistent for some squares": every Today row's
+  `.sw-row` had a permanent `will-change:transform` — its own compositing
+  layer, starting at a fractional pixel y that differs per row (row heights
+  include fractional text line heights), so a thin line inside was smoothed
+  differently row to row. Now only `.sw.on .sw-row` (the swipe adds `.on`
+  when it really starts, `close()` removes it). Keep will-change off
+  anything that sits still. Unverifiable here (2x preview); if it persists,
+  get a zoomed phone screenshot saying WHICH squares/screen before guessing.
   Count badges: none left. The Trash count in Settings (`.ab`/`#ab2`), the
   War Room count on Overview (`.wrb`) and Tasks' per-priority counts
   (`.sl-count`) were unified in 3.17/3.18, then all removed (3.21, 3.29) as

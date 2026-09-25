@@ -263,7 +263,12 @@ html[data-theme="light"] .sw.h{border-color:#f5f3ef}
 .sw-act span{display:flex;align-items:center;justify-content:center;gap:6px;opacity:var(--p,0)}
 .sw.anim .sw-act span{transition:opacity .2s ease-out}
 .sw-act svg{width:16px;height:16px}
-.sw-row{position:relative;will-change:transform}
+.sw-row{position:relative}
+/* Its own layer only while it's actually swiped (.on). A permanent
+   will-change put every Today row in a layer of its own, starting at a
+   fractional pixel position that differs row to row, so thin lines inside
+   (the War Room box outline) were smoothed differently in each row. */
+.sw.on .sw-row{will-change:transform}
 .sw.h .sw-row{background:#fff}
 @media(prefers-color-scheme:dark){.sw.h .sw-row{background:#1e1c1a}}
 html[data-theme="dark"] .sw.h .sw-row{background:#1e1c1a}
@@ -1318,7 +1323,7 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.54';
+var APP_VERSION='Beta 3.55';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2228,6 +2233,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.54',notes:[
     'Settings → Statistics → Time range: choose how far back the consistency score looks — all time, 3 months, 1 month or 1 week'
+  ]},
+  {v:'Beta 3.55',notes:[
+    'The red War Room box outline looks the same on every row in Today'
   ]}
 ];
 var COLORS={

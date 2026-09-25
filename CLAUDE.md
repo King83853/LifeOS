@@ -156,7 +156,10 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   `.sw` with the amber action behind `.sw-row`). Two different data
   shapes on purpose: a skipped TASK gets `t.skip = 'YYYY-MM-DD'` and is
   just filtered out of Today for that one day (nothing to clean up — it
-  returns by itself tomorrow, sorted first within its priority); with
+  returns by itself tomorrow, sorted first within its priority — unless
+  Settings > Today > "Reset skipped tasks every new day"
+  (`settings.skipResetDaily`, 3.43, default on) is off: then any `t.skip`
+  keeps it out of Today until "Reset skipped tasks" clears it); with
   "Refill automatically" on Today re-renders so the next task fills in,
   off it just removes the row (same as completing one). A skipped HABIT
   day is stored in `dailyChecks[ds][id]` as the string `'skip'` instead of
@@ -261,7 +264,13 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   `renderSettings()` fills all their containers, so a new setting only needs
   its markup in the right container. Sub-pages have NO icons on their rows (only the main list does) — except Appearance, whose Light/Dark/System rows keep theirs by request. The `.sp` class carries the slim
   no-outline settings styling (it used to be `#p-settings`). The old Version
-  history / Menu bottom sheets were removed. Auto update = a silent
+  history / Menu bottom sheets were removed.
+  Guide (3.43): the very top of Settings is its own one-row card, "Guide"
+  (`#settings-guide`, orange book icon — asked for with "a fitting emoji",
+  done as an icon like the other rows), opening `#p-guide`: tips, each a
+  `.guide-item` (`.guide-t` title + `.guide-p` paragraph) in one white card.
+  New tips go there as another `.guide-item` (+ a DE entry). First tip:
+  skipping by swiping right (needs Skip tasks/habits in Settings > Today). Auto update = a silent
   `A.checkForUpdate(true)` at launch and on resume after 30 min; it only
   speaks up (progress overlay, then reload) when an update exists.
 

@@ -363,6 +363,19 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   consistency with the refined icons (3.46) the tick is stroke 2.6 (was
   3.2), the skip arrow 2.5 (was 3) and the War Room box outline 1.5px (was
   2px).
+  Same half-pixel trap, found twice more in 3.53 from a zoomed phone
+  screenshot: (1) Settings-page icons were 19px in the 30px `.opt-ico`
+  square -> 5.5px margins, and iOS drew every icon a touch right and low;
+  now 20px (`.sp .opt-ico svg`, 5px each side). Also an icon's drawing must
+  be centred on 12,12 of its viewBox — the Today icon (tab bar, reused in
+  Settings) was 0.75 low and `trashSvg` 0.5 low; both moved up. Check with
+  getBBox() centre, not by eye. (2) The War Room box outline was an inset
+  box-shadow of 1.5px = 4.5 device px on a 3x iPhone; WebKit rounds the
+  shadow's inner edge the same direction on every side, so left/top drew
+  5 px thick and right/bottom 4. Now a `border` (box-sizing:border-box),
+  whose width WebKit floors to whole device pixels on all four sides. Don't
+  draw thin outlines with fractional inset shadows; this preview is 2x
+  (1.5px = 3 device px exactly), so it never shows the 3x asymmetry.
   Count badges: none left. The Trash count in Settings (`.ab`/`#ab2`), the
   War Room count on Overview (`.wrb`) and Tasks' per-priority counts
   (`.sl-count`) were unified in 3.17/3.18, then all removed (3.21, 3.29) as

@@ -238,7 +238,7 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   A project can also be deleted from its own edit window (3.30:
   `SheetEditor.remove`, a red "Delete project" row shown only when editing
   an existing project that isn't the Daily one) — same `DB.deleteProject`
-  as Edit layout. The confirm (a sheet on the same layer) opens after the
+  as Edit layout. The confirm (a centred Alert since 3.67) opens after the
   edit sheet has closed; if you're on that project's page, it navigates
   back first and rebuilds the pages after the slide. Completed tasks are
   still `DB.data.archived` and are the first tab (labelled Tasks). A NEW delete path must
@@ -259,8 +259,9 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   placeholder/title attributes (original kept on the node so switching
   back restores it). So: NEW UI TEXT needs an entry in `I18N`'s `DE`
   (or a rule if it has a number/name in it) or it stays English in
-  German mode; strings that never reach the DOM (alert/confirm) must go
-  through `t()`; CSS `content:` strings need an `html[lang="de"]`
+  German mode; `Alert` runs its text through `t()` itself (it splits the
+  TRANSLATED text into title/message, so pass English); other strings that
+  never reach the DOM must go through `t()`; CSS `content:` strings need an `html[lang="de"]`
   override. Text built as one string from a label + user content
   ("Tracking: "+name) needs a rule, not a DE entry. A DE key that is an
   ordinary word can also translate a user's own item with that exact
@@ -325,6 +326,24 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   on resume after 5 min. Every release must still bump CACHE_NAME (that's what the
   comparison keys on).
 
+- Centred pop-ups (3.67, `Alert`, `#alert-overlay`), asked for with an
+  iOS screenshot: short confirmations and messages appear in the middle of
+  the screen instead of a slide-up. `Alert.confirm(text, fn, label)` (Cancel
+  blue + red action, default "Delete") replaced ConfirmSheet everywhere (the
+  sheet and its markup are gone); `Alert.info(text)` (one OK) replaced the
+  browser's own alert()/confirm() — Edit layout's delete category/project,
+  update-check results, Trash "Restore the project first.", Daily's "No
+  tracker projects yet" — which iOS titled with the web address. Text is
+  split into bold title + smaller message after the first "? ", else at
+  " — ", else after the first sentence (title's final "." dropped). Unlike
+  sheets, it HAS Cancel/OK and a tap outside does nothing (iOS alerts work
+  that way); swipe-back is ignored while it's open (`Alert._open`). Opens
+  via `_overlayOpen` (scroll lock, touchmove block, two-frame open): fade +
+  scale 1.1→1; closes with a fade only. Colours: `--blue`, new `--red`
+  (#ff3b30 / #ff453a dark). Not converted (by choice, "C" in the proposal):
+  one-field inputs (new/rename category, rename habit, tracker values) —
+  a centred box with a field needs its own keyboard handling. Longer windows
+  stay sheets.
 - Bottom sheets have NO Cancel/Close/back buttons (only real actions like
   Save/OK/Delete/Got it): they close by pulling down or tapping the dimmed
   background, and every `.sheet` gets a grey `.sheet-drag-handle` injected

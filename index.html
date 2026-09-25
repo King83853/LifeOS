@@ -641,10 +641,10 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
    secondary 12/500 grey · paragraph 13/500 grey · uppercase label 11/800 ·
    buttons + badges 15/600 and 12/600. Cards are var(--card) on var(--pg),
    radius 14, no outlines; dividers 0.5px var(--line) (darker/thinner, 2.82-2.83); rows 46px. */
-:root{--ink:#000;--blue:#007aff;--blue-tint:rgba(0,122,255,.12)}
-@media(prefers-color-scheme:dark){:root{--ink:#fff;--blue:#0a84ff;--blue-tint:rgba(10,132,255,.22)}}
-html[data-theme="dark"]{--ink:#fff;--blue:#0a84ff;--blue-tint:rgba(10,132,255,.22)}
-html[data-theme="light"]{--ink:#000;--blue:#007aff;--blue-tint:rgba(0,122,255,.12)}
+:root{--ink:#000;--blue:#007aff;--blue-tint:rgba(0,122,255,.12);--red:#ff3b30}
+@media(prefers-color-scheme:dark){:root{--ink:#fff;--blue:#0a84ff;--blue-tint:rgba(10,132,255,.22);--red:#ff453a}}
+html[data-theme="dark"]{--ink:#fff;--blue:#0a84ff;--blue-tint:rgba(10,132,255,.22);--red:#ff453a}
+html[data-theme="light"]{--ink:#000;--blue:#007aff;--blue-tint:rgba(0,122,255,.12);--red:#ff3b30}
 /* soft square buttons (header +, back, edit, menu, add) */
 html:not(#x) .hdr-add,html:not(#x) .menu-btn,html:not(#x) .back,html:not(#x) .edit-proj-btn,html:not(#x) .addbtn{width:40px;height:40px;min-height:40px;border:none;border-radius:12px;background:var(--card);color:var(--ink);transition:background .12s ease}
 html:not(#x) .hdr-add:active,html:not(#x) .menu-btn:active,html:not(#x) .back:active,html:not(#x) .edit-proj-btn:active,html:not(#x) .addbtn:active,html:not(#x) .hh-btn:active,html:not(#x) .el-btn:active{background:var(--press);opacity:1}
@@ -851,6 +851,25 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
 html:not(#x) .page :is(.opt-group,.calsec,.card-list,.el-card,.agrid,.wr){margin-bottom:22px}
 html:not(#x) .page :is(.opt-group,.calsec,.card-list,.el-card)+:is(.opt-group,.calsec,.card-list,.el-card),
 html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)+*>:is(.opt-group,.calsec,.card-list,.el-card):first-child{margin-top:-2px}
+/* Centred pop-up (Alert): short confirmations and messages in the middle
+   of the screen, like iOS — bold title, optional smaller message, one or two
+   buttons (Cancel blue, the action red; or a single OK). Opens with a fade
+   and a slight scale-down, closes with a fade only. Tapping outside does
+   nothing (it has its own Cancel/OK), like an iOS alert. */
+.alert-overlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:0 16px;opacity:0;transition:opacity .13s;touch-action:none}
+.alert-overlay.on{display:flex}
+.alert-overlay.show{opacity:1;transition:opacity .2s}
+.alert-box{width:270px;max-width:100%;background:var(--card);border-radius:14px;overflow:hidden;text-align:center;transform:scale(1.1);opacity:0;transition:opacity .13s}
+.alert-overlay.show .alert-box{transform:scale(1);opacity:1;transition:transform .25s cubic-bezier(.2,.9,.3,1),opacity .2s}
+.alert-text{padding:19px 16px 18px}
+.alert-title{font-size:17px;line-height:22px;font-weight:600;color:var(--ink)}
+.alert-msg{font-size:13px;line-height:18px;font-weight:500;color:var(--ink);margin-top:4px}
+.alert-msg:empty{display:none}
+.alert-btns{display:flex;border-top:0.5px solid var(--line)}
+.alert-btn{flex:1;height:44px;border:0;margin:0;padding:0 8px;background:none;font-family:inherit;font-size:17px;line-height:44px;font-weight:500;color:var(--blue);cursor:pointer}
+.alert-btn+.alert-btn{border-left:0.5px solid var(--line)}
+.alert-btn.danger{color:var(--red)}
+.alert-btn:active{background:var(--press)}
 </style>
 </head>
 <body>
@@ -1184,12 +1203,10 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
   </div>
 </div>
 
-<div class="sheet-overlay" id="confirm-overlay" onclick="if(event.target===this)ConfirmSheet.cancel()">
-  <div class="sheet">
-    <div id="confirm-msg" class="sheet-title" style="margin-bottom:16px"></div>
-    <div class="sheet-btns">
-      <button class="sheet-save danger" id="confirm-ok" onclick="ConfirmSheet.confirm()">Delete</button>
-    </div>
+<div class="alert-overlay" id="alert-overlay">
+  <div class="alert-box" role="alertdialog" aria-modal="true" aria-labelledby="alert-title">
+    <div class="alert-text"><div class="alert-title" id="alert-title"></div><div class="alert-msg" id="alert-msg"></div></div>
+    <div class="alert-btns" id="alert-btns"></div>
   </div>
 </div>
 
@@ -1351,7 +1368,7 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.66';
+var APP_VERSION='Beta 3.67';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2297,6 +2314,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.66',notes:[
     'Bigger tab bar icons, a little closer to the line above them'
+  ]},
+  {v:'Beta 3.67',notes:[
+    'Confirmations and short messages (delete, reset, empty trash, update check…) pop up in the middle of the screen instead of sliding up'
   ]}
 ];
 var COLORS={
@@ -2871,6 +2891,12 @@ var I18N=(function(){
     'Nothing to update yet — close and reopen the app once first.':'Noch nichts zu aktualisieren — schließe die App einmal und öffne sie erneut.',
     "You're offline — connect to the internet to check for updates.":'Du bist offline — verbinde dich mit dem Internet, um nach Updates zu suchen.',
     'Update failed — try again later. Nothing was changed.':'Update fehlgeschlagen — versuche es später erneut. Es wurde nichts geändert.',
+    "Couldn't check for updates — try again later. Nothing was changed.":'Update-Prüfung nicht möglich — versuche es später erneut. Es wurde nichts geändert.',
+    "Couldn't check for updates — try again later.":'Update-Prüfung nicht möglich — versuche es später erneut.',
+    "Couldn't reach the network — try again once you have a connection.":'Keine Verbindung — versuche es erneut, sobald du online bist.',
+    "Updates aren't supported in this browser.":'Updates werden in diesem Browser nicht unterstützt.',
+    "You're already on the latest version.":'Du hast bereits die neueste Version.',
+    'Reset':'Zurücksetzen','Move to Trash':'In den Papierkorb',
     // confirms / alerts
     'Delete this forever?':'Endgültig löschen?','Move this entry to the Trash?':'Diesen Eintrag in den Papierkorb legen?','Move this habit to the Trash?':'Diese Gewohnheit in den Papierkorb legen?',
     'Delete this category? Its habits move to the Trash.':'Diese Kategorie löschen? Ihre Gewohnheiten kommen in den Papierkorb.','Restore the project first.':'Stelle zuerst das Projekt wieder her.',
@@ -3834,7 +3860,7 @@ var A={
   },
   restore:function(idx){
     var msg=DB.restoreTask(idx);
-    if(msg){alert(t(msg));return;}
+    if(msg){Alert.info(msg);return;}
     renderArchive();renderWar();renderGrids();
     for(var pid in DB.data.projects)renderProj(pid);
   },
@@ -3846,17 +3872,17 @@ var A={
   },
   trashRestore:function(id){
     var msg=DB.restoreTrash(id);
-    if(msg){alert(t(msg));return;}
+    if(msg){Alert.info(msg);return;}
     A._refreshAll();
   },
   trashDelete:function(id){
-    ConfirmSheet.show('Delete this forever?',function(){
+    Alert.confirm('Delete this forever?',function(){
       DB.data.trash=DB.data.trash.filter(function(t){return t.id!==id;});
       DB.save();renderGrids();renderArchive();
     });
   },
   trashDeleteCompleted:function(idx){
-    ConfirmSheet.show('Delete this forever?',function(){
+    Alert.confirm('Delete this forever?',function(){
       DB.data.archived.splice(idx,1);
       DB.save();renderGrids();renderArchive();
     });
@@ -3865,7 +3891,7 @@ var A={
   trashEmpty:function(){
     var items=Trash.items(Trash.tab);
     if(!items.length)return;
-    ConfirmSheet.show('Delete all '+items.length+' items in this tab forever?',function(){
+    Alert.confirm('Delete all '+items.length+' items in this tab forever?',function(){
       if(Trash.archivedTab(Trash.tab))DB.data.archived=DB.data.archived.filter(function(a){return items.indexOf(a)===-1;});
       else{var ids=items.map(function(t){return t.id;});DB.data.trash=DB.data.trash.filter(function(t){return ids.indexOf(t.id)===-1;});}
       DB.save();renderGrids();renderArchive();
@@ -3885,15 +3911,17 @@ var A={
   moveCat:function(id,dir){DB.moveCategory(id,dir);renderEditLayout();renderGrids();},
   deleteCat:function(id){
     var n=DB.data.categories[id]?DB.data.categories[id].name:id;
-    if(!confirm(t('Delete category "'+n+'"? Its projects move to the Trash.')))return;
-    DB.deleteCategory(id);buildProjPages();renderEditLayout();renderGrids();renderWar();
+    Alert.confirm('Delete category "'+n+'"? Its projects move to the Trash.',function(){
+      DB.deleteCategory(id);buildProjPages();renderEditLayout();renderGrids();renderWar();
+    });
   },
   moveProj:function(catId,pid,dir){DB.moveProject(catId,pid,dir);renderEditLayout();renderGrids();},
   deleteProj:function(catId,pid){
     var n=DB.data.projects[pid]?DB.data.projects[pid].name:pid;
-    if(!confirm(t('Move project "'+n+'" and all its tasks to the Trash?')))return;
-    DB.deleteProject(catId,pid);buildProjPages();renderEditLayout();renderGrids();renderWar();
-    buildPanels();restoreChecks(Nav.sd);
+    Alert.confirm('Move project "'+n+'" and all its tasks to the Trash?',function(){
+      DB.deleteProject(catId,pid);buildProjPages();renderEditLayout();renderGrids();renderWar();
+      buildPanels();restoreChecks(Nav.sd);
+    },'Move to Trash');
   },
   addTrackerEntry:function(pid,val){
     if(!DB.data.trackerEntries)DB.data.trackerEntries={};
@@ -3904,7 +3932,7 @@ var A={
   },
   delTrackerEntry:function(pid,ts){
     var self=this;
-    ConfirmSheet.show('Move this entry to the Trash?',function(){
+    Alert.confirm('Move this entry to the Trash?',function(){
       if(!DB.data.trackerEntries||!DB.data.trackerEntries[pid])return;
       var gone=DB.data.trackerEntries[pid].find(function(e){return e.ts===ts;});
       if(gone){
@@ -4004,7 +4032,7 @@ var A={
       if(pollTimer)clearInterval(pollTimer);
       if(btn){btn.classList.remove('spinning');btn.disabled=false;}
       UpdateOverlay.hide();
-      if(msg&&!silent)alert(t(msg));
+      if(msg&&!silent)Alert.info(msg);
     }
     // Offline (airplane mode): don't even try. Any request made in airplane
     // mode makes iOS show its "Airplane Mode is on" alert — this check ran
@@ -4130,14 +4158,14 @@ var A={
   resetProject:function(pid){
     var d=DB.data,p=d.projects[pid];if(!p)return;
     var what=pid===d.habitsProjectId?'habits and categories':(p.type==='tracker'?'entries':'tasks');
-    ConfirmSheet.show('Move all '+what+' of "'+p.name+'" to the Trash?',function(){
+    Alert.confirm('Move all '+what+' of "'+p.name+'" to the Trash?',function(){
       DB.resetProject(pid);
       A._refreshAll();renderSettings();
     },'Move to Trash');
   },
   // Settings > Statistics: wipes every habit's history and the completed-tasks numbers
   resetAllStats:function(){
-    ConfirmSheet.show('Reset all statistics? The history of every habit and the completed-tasks numbers start over.',function(){
+    Alert.confirm('Reset all statistics? The history of every habit and the completed-tasks numbers start over.',function(){
       DB.resetHabitStats(null);
       DB.resetTaskStats();
       A._refreshAll();renderSettings();
@@ -4149,7 +4177,7 @@ var A={
   setSkipHabits:function(val){DB.data.settings.skipHabits=val;DB.save();renderToday();},
   // Puts every setting back to DEFAULT_SETTINGS (your data is untouched)
   resetSettings:function(){
-    ConfirmSheet.show('Reset all settings to the defaults? Your data stays.',function(){
+    Alert.confirm('Reset all settings to the defaults? Your data stays.',function(){
       var keep=DB.data.settings.lastSeenVersion;
       DB.data.settings=Object.assign({},JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),{lastSeenVersion:keep,blockerSeeded:true});
       DB.data.todaySet=null;DB.save();
@@ -4209,7 +4237,7 @@ var A={
   },
   deleteDailyItem:function(ev,id){
     if(ev){ev.preventDefault();ev.stopPropagation();}
-    ConfirmSheet.show('Move this habit to the Trash?',function(){
+    Alert.confirm('Move this habit to the Trash?',function(){
       DB.deleteDailyItem(id);
       buildPanels();restoreChecks(Nav.sd);
     },'Move to Trash');
@@ -4250,7 +4278,7 @@ var A={
   startTrackerHabit:function(){
     var trackers=Object.keys(DB.data.projects).filter(function(pid){return DB.data.projects[pid].type==='tracker';});
     if(!trackers.length){
-      alert(t('No tracker projects yet — create one first from Overview (+ > Project > Tracker), then come back here to add it to Daily.'));
+      Alert.info('No tracker projects yet — create one first from Overview (+ > Project > Tracker), then come back here to add it to Daily.');
       return;
     }
     function pickCategory(pid){
@@ -4436,6 +4464,7 @@ function navBack(targetId){
   document.addEventListener('touchstart',function(e){
     sx=e.touches[0].clientX;sy=e.touches[0].clientY;
     if(sx>35)return;
+    if(Alert._open)return; // not behind an open pop-up
     var c=document.querySelector('.page.active');
     if(!c||c.id==='p-overview'||c.id==='p-today'||c.id==='p-lockedin'||c.id==='p-stats'||c.id==='p-settings')return;
     tracking=true;ready=false;cur=c;curDx=0;W=window.innerWidth;
@@ -5660,7 +5689,7 @@ var DailyCatSheet={
     document.getElementById('input-sheet-field').value=cat.name;
   },
   remove:function(id){
-    ConfirmSheet.show('Delete this category? Its habits move to the Trash.',function(){
+    Alert.confirm('Delete this category? Its habits move to the Trash.',function(){
       DB.deleteDailyCat(id);
       DailyCatSheet.render();buildPanels();restoreChecks(Nav.sd);renderGrids();
     },'Delete');
@@ -5757,7 +5786,7 @@ var DailyItemSheet={
   // confirm path A.deleteDailyItem used.
   remove:function(){
     var id=this.editId;if(!id)return;
-    ConfirmSheet.show('Move this habit to the Trash?',function(){
+    Alert.confirm('Move this habit to the Trash?',function(){
       DB.deleteDailyItem(id);
       DailyItemSheet.editId=null;
       _overlayClose('daily-item-sheet-overlay');
@@ -6220,22 +6249,44 @@ var InputSheet={
   }
 };
 
-var ConfirmSheet={
-  _cb:null,
-  // label: text of the red action button (default "Delete")
-  show:function(msg,cb,label){
-    this._cb=cb;
-    document.getElementById('confirm-msg').textContent=msg;
-    document.getElementById('confirm-ok').textContent=label||'Delete';
-    _overlayOpen('confirm-overlay');
+// Centred pop-up for short confirmations and messages — instead of a
+// slide-up sheet, or the browser's own alert()/confirm(), which iOS titles
+// with the web address. The text is translated first (t), then split into a
+// bold title and a smaller message: after the first "? ", else at " — ",
+// else after the first sentence ("Reset all statistics?" / "The history…").
+var Alert={
+  _open:false,
+  _split:function(s){
+    var m=s.match(/^(.*?\?)\s+(.+)$/)||s.match(/^(.*?)\s+[\u2014\u2013]\s+(.+)$/)||s.match(/^(.*?\.)\s+(.+)$/);
+    var title=m?m[1]:s,msg=m?m[2]:'';
+    if(msg)msg=msg.charAt(0).toUpperCase()+msg.slice(1);
+    return{title:title.replace(/\.$/,''),msg:msg};
   },
-  confirm:function(){
-    _overlayClose('confirm-overlay');
-    if(this._cb){this._cb();this._cb=null;}
+  // buttons: [{label, danger, fn}] — left to right; any button closes it
+  show:function(text,buttons){
+    var p=this._split(t(text)),box=document.querySelector('#alert-overlay .alert-box');
+    box.style.transform='';box.style.transition=''; // left over from a close still fading
+    document.getElementById('alert-title').textContent=p.title;
+    document.getElementById('alert-msg').textContent=p.msg;
+    var c=document.getElementById('alert-btns');c.innerHTML='';
+    buttons.forEach(function(b){
+      var el=document.createElement('button');
+      el.type='button';el.className='alert-btn'+(b.danger?' danger':'');
+      el.textContent=t(b.label);
+      el.onclick=function(){Alert.close();if(b.fn)b.fn();};
+      c.appendChild(el);
+    });
+    if(!this._open){this._open=true;_overlayOpen('alert-overlay');}
   },
-  cancel:function(){
-    _overlayClose('confirm-overlay');
-    this._cb=null;
+  // label: the red action (default "Delete")
+  confirm:function(text,fn,label){this.show(text,[{label:'Cancel'},{label:label||'Delete',danger:true,fn:fn}]);},
+  info:function(text){this.show(text,[{label:'OK'}]);},
+  close:function(){
+    if(!this._open)return;this._open=false;
+    // fade out in place: hold the scale so it doesn't grow back while fading
+    var box=document.querySelector('#alert-overlay .alert-box');
+    box.style.transform='scale(1)';box.style.transition='opacity .13s';
+    _overlayClose('alert-overlay');
   }
 };
 
@@ -7061,7 +7112,7 @@ var SheetEditor={
     if(!catId||!(DB.data.projectOrder[catId]||[]).length)catId=Object.keys(DB.data.projectOrder).filter(function(c){return (DB.data.projectOrder[c]||[]).indexOf(pid)!==-1;})[0]||p.categoryId;
     this.close();
     setTimeout(function(){
-      ConfirmSheet.show(t('Move project "'+p.name+'" and all its tasks to the Trash?'),function(){
+      Alert.confirm(t('Move project "'+p.name+'" and all its tasks to the Trash?'),function(){
         var onPage=Nav.cur===pid;
         DB.deleteProject(catId,pid);
         function rebuild(){buildProjPages();renderGrids();renderWar();renderEditLayout();buildPanels();restoreChecks(Nav.sd);}

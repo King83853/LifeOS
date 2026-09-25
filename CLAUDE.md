@@ -268,7 +268,7 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   `.page.sp` elements listed in `SETTINGS_SUBPAGES` (back returns to
   Settings, the Settings tab stays lit; Menu's back goes to General);
   `renderSettings()` fills all their containers, so a new setting only needs
-  its markup in the right container. Sub-pages have NO icons on their rows (only the main list does) — except Appearance, whose Light/Dark/System rows keep theirs by request, and the Guide list (3.51: Hidden features = purple #a855f7 sparkles; give new Guide rows an icon too). The `.sp` class carries the slim
+  its markup in the right container. Sub-pages have NO icons on their rows (only the main list does) — except Appearance, whose Light/Dark/System rows keep theirs by request, and the Guide list (Hidden features = white-filled masquerade mask, eyes cut out, centered on 12/12, on #6366f1, the Dark theme icon's violet, 3.52 — was purple sparkles in 3.51; give new Guide rows an icon too). The `.sp` class carries the slim
   no-outline settings styling (it used to be `#p-settings`). The old Version
   history / Menu bottom sheets were removed.
   Guide (3.43): the very top of Settings is its own one-row card, "Guide"

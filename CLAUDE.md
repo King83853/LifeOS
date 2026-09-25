@@ -1336,6 +1336,11 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   customSelect rows still go through `toggle`). They used to open AddChoice
   bottom sheets; asked for as "a normal drop down". Daily's "+" and project
   pages' "+" were not part of the request and still use their windows.
+  Project type icons (3.33, `TYPE_ICONS`): To-do = tick box, List =
+  bulleted list, Tracker = rising chart, Daily = loop — picked from mockups
+  (a scale and repeat arrows were the alternatives). Shown only in the Type
+  dropdown's open list: a DSel option can carry `ico` (SVG markup), drawn
+  before its name (`.dsel-ico` + `.dsel-lbl`).
   3.30: after a dropdown was closed by tapping elsewhere, the next tap on
   its button did nothing — DSel swallowed EVERY click for 450ms after an
   outside press. Now it swallows only the closing tap's own click (a click

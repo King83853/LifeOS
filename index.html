@@ -372,6 +372,8 @@ html[data-theme="light"] .dsel-menu{background:#fff}
 .dsel-opt:active{background:rgba(127,127,127,.14)}
 .dsel-opt.sel{font-weight:700}
 .dsel-opt.sel::after{content:'\2713';font-size:14px}
+.dsel-ico{display:inline-flex;flex-shrink:0;margin-right:-4px;opacity:.75}
+.dsel-lbl{flex:1}
 
 /* On/off toggle for settings that are just one thing to enable, rather
    than a choice between two named options (those still use the
@@ -1254,7 +1256,7 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.32';
+var APP_VERSION='Beta 3.33';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2092,6 +2094,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.32',notes:[
     'Tapping a skipped tracker\'s tick box un-skips it, like a habit, instead of opening the window to enter a value'
+  ]},
+  {v:'Beta 3.33',notes:[
+    'The Type dropdown for a new project shows an icon for each type: a tick box for To-do, a list for List, a chart for Tracker and a loop for Daily',
+    'The window for a new project is titled "New project" again (it said "Edit project")'
   ]}
 ];
 var COLORS={
@@ -3315,7 +3321,9 @@ var DSel=(function(){
   function show(ownerEl,anchor,opts,cur,pick,gap){
     menu=document.createElement('div');menu.className='dsel-menu';
     menu.innerHTML=opts.map(function(o,i){
-      return '<div class="dsel-opt'+(cur!=null&&String(o.value)===String(cur)?' sel':'')+'" data-i="'+i+'">'+esc(o.label)+'</div>';
+      // an option may carry an icon (`ico`, SVG markup) shown before its name
+      var body=o.ico?'<span class="dsel-ico">'+o.ico+'</span><span class="dsel-lbl">'+esc(o.label)+'</span>':esc(o.label);
+      return '<div class="dsel-opt'+(cur!=null&&String(o.value)===String(cur)?' sel':'')+'" data-i="'+i+'">'+body+'</div>';
     }).join('');
     menu.addEventListener('click',function(e){
       var it=e.target.closest('.dsel-opt');if(!it)return;
@@ -6514,7 +6522,15 @@ var CatPicker={
 };
 
 // ── SHEET EDITOR ──────────────────────────────────────────
-var TYPE_OPTS=[{value:'todo',label:'To-do'},{value:'list',label:'List'},{value:'tracker',label:'Tracker'},{value:'daily',label:'Daily'}];
+// Project type icons (shown in the Type dropdown): To-do = a tick box,
+// List = a bulleted list, Tracker = a rising chart, Daily = a loop.
+var TYPE_ICONS={
+  todo:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><polyline points="8 12.2 10.8 15 16 9.2"/></svg>',
+  list:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.1" fill="currentColor" stroke="none"/></svg>',
+  tracker:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 16.5 9 11 13 14.5 20.5 7"/><polyline points="15.5 7 20.5 7 20.5 12"/></svg>',
+  daily:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.35-5.65"/><polyline points="20 4.5 20 8.5 16 8.5"/></svg>'
+};
+var TYPE_OPTS=[{value:'todo',label:'To-do',ico:TYPE_ICONS.todo},{value:'list',label:'List',ico:TYPE_ICONS.list},{value:'tracker',label:'Tracker',ico:TYPE_ICONS.tracker},{value:'daily',label:'Daily',ico:TYPE_ICONS.daily}];
 // A project's icon tile: a chosen photo (cropped to a square, compressed —
 // see SheetEditor.onPhotoPicked) always wins over the emoji if one is set.
 // Only the two tile-shaped spots that actually show a project's icon as a
@@ -6727,7 +6743,7 @@ var SheetEditor={
     document.getElementById('sheet-desc').value='';
     document.getElementById('sheet-icon').value='📋';document.getElementById('sheet-icon').dataset.lastGood='📋';
     this.photo=null;this.photoRaw=null;this.renderPhotoUI();
-    document.querySelector('.sheet-title').textContent='New project';
+    document.querySelector('#proj-sheet .sheet-title').textContent='New project';
     this.selectedColor='c-grey';
     this.renderColors();
     var mar=document.getElementById('ma-edit-row');if(mar)mar.style.display='none';
@@ -6740,7 +6756,7 @@ var SheetEditor={
     this.pid=pid;
     this.newCatId=null;
     this.projectType=null;
-    document.querySelector('.sheet-title').textContent='Edit project';
+    document.querySelector('#proj-sheet .sheet-title').textContent='Edit project';
     document.getElementById('new-proj-rows').style.display='none';
     var p=DB.data.projects[pid];
     document.getElementById('sheet-name').value=p.name||'';

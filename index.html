@@ -45,7 +45,7 @@ body.sliding .statusbar-blur{display:none}
 html[data-theme="dark"] .statusbar-blur{background:rgba(26,25,23,.35)}
 html[data-theme="light"] .statusbar-blur{background:rgba(243,244,246,.35)}
 
-.tabbar{position:fixed;left:0;right:0;bottom:0;height:var(--tb-h);background:#f3f4f6;border-top:1px solid #e8e5e0;display:flex;align-items:stretch;z-index:150;padding:13px 0 var(--tb-pad-b)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;height:var(--tb-h);background:#f3f4f6;border-top:1px solid #e8e5e0;display:flex;align-items:stretch;z-index:150;padding:10px 0 var(--tb-pad-b)}
 @media(prefers-color-scheme:dark){.tabbar{background:#1f2937;border-color:#2a2927}}
 html[data-theme="dark"] .tabbar{background:#1f2937;border-color:#2a2927}
 html[data-theme="light"] .tabbar{background:#f3f4f6;border-color:#e8e5e0}
@@ -55,7 +55,8 @@ body.kb-open .tabbar,body.kb-open .fab{display:none!important}
 @media(prefers-color-scheme:dark){.tab-item.active{color:#fff}}
 html[data-theme="dark"] .tab-item.active{color:#fff}
 html[data-theme="light"] .tab-item.active{color:#000}
-.tab-item svg{stroke:currentColor;width:24px;height:24px}
+/* 27px (was 24) with 10px above instead of 13: bigger icons, same bar height and label spot. Stroke 1.5 at 27px keeps the lines ~1.7px thin, as at 24px. */
+.tab-item svg{stroke:currentColor;width:27px;height:27px;stroke-width:1.5}
 @media(prefers-color-scheme:dark){.tab-item{color:#9ca3af}}
 html[data-theme="dark"] .tab-item{color:#9ca3af}
 html[data-theme="light"] .tab-item{color:#6b7280}
@@ -1350,7 +1351,7 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.65';
+var APP_VERSION='Beta 3.66';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2293,6 +2294,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.65',notes:[
     'Tick-off sound in General is now just called Sounds'
+  ]},
+  {v:'Beta 3.66',notes:[
+    'Bigger tab bar icons, a little closer to the line above them'
   ]}
 ];
 var COLORS={

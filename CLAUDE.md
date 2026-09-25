@@ -985,7 +985,7 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   `.tabbar` has `height:var(--tb-h)` (since 3.41: 52px + `--tb-pad-b`, the
   full bottom safe area, min 12px — ~86px on an iPhone vs the original
   ~105px; tuned by feel: 62px "a bit too short", 70px/76px "a bit higher",
-  then "+10px"; 24px icons, 10px labels), so the tab
+  then "+10px"; icons 27px since 3.66 — was 24px with 13px above them, now 10px above, so the bar height and label spot are unchanged; `.tab-item svg` stroke-width 1.5 in CSS keeps the lines ~1.7px thin at 27px; 10px labels), so the tab
   bar sits OUTSIDE every scroller, like a native app. Why: an on-device
   readout (iOS 18.1, 3.13) proved iOS delivers NO event at all (no
   touchstart/pointerdown/click) for the tap that stops a coasting scroll —

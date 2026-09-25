@@ -95,8 +95,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   no `text`).
   Statistics reset (`DB.resetHabitStats`) covers tracker habits too since
   2.94 (it used to skip them, so their history kept counting): like any
-  habit, `created`=today + `wasReset` (past days show locked on Daily:
-  `ciTracker(...,locked)` — lock icon, no logging), and additionally
+  habit, `created`=today (since 3.74 a reset habit simply isn't shown on
+  Daily's earlier days, like a new habit — "gone in the past, showing in the
+  present"; before that it showed there dimmed with a lock, and `wasReset`
+  flagged it — that flag, LOCK_SVG, the `locked` params of ciEdit/ciTracker
+  and `.cali.locked` are gone; a category left empty that day says "No
+  habits"), and additionally
   `it.statsFrom`=now, because the tracker's entries are KEPT (they're the
   tracker's own data) and some may be from earlier today. The habit reads
   its day value only through `trackerDayValue(it,ds)` (latest entry that
@@ -579,7 +583,7 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   2.92 — see the dailyItems entry above.)
   Since 2.92 every habit bar that opens a page ends in Settings' right
   arrow (`CALI_CHEV`, a `.cali-chev` span that forwards its tap to the
-  label, so it's part of the bar); locked rows show the lock instead. The
+  label, so it's part of the bar). The
   trailing element carries the row's 14px right edge (label has no right
   padding of its own).
   Regression from the 2.89 split, found in 2.92: `paintCheck` found the
@@ -608,8 +612,8 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   ticks (tick zone, not in hold mode) or opens the task (clicks the
   `TaskSheet.open` element) — padding used to be a dead zone. ONE press-
   grey IIFE ("Press grey for task and habit rows") drives `.pressed-row`
-  for `.cali/.ti/.wri`: never in the tick zone, never on one-time tasks or
-  locked habits, and only after `PRESS_DELAY` (110ms) with any >10px
+  for `.cali/.ti/.wri`: never in the tick zone, never on one-time tasks,
+  and only after `PRESS_DELAY` (110ms) with any >10px
   movement cancelling it — so a swipe-to-skip never flashes grey (asked
   for: "a slight delay to the grey… when I start sliding it doesn't come
   but if I hold then it goes grey"); a tap shorter than the delay still

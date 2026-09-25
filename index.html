@@ -305,7 +305,7 @@ html[data-theme="light"] .sw.h .sw-row{background:#fff}
 .cali.split{padding:0;gap:0}
 .cali-tick{align-self:stretch;display:flex;align-items:center;flex-shrink:0;padding:0 12px 0 14px;cursor:pointer}
 .cali.split>label{align-self:stretch;line-height:47px}
-/* Whatever ends the row (Settings' right arrow, or a locked row's lock)
+/* Whatever ends the row (Settings' right arrow)
    carries the row's 14px right edge. The arrow stretches to full height so
    it's part of the bar's tap area. */
 .cali-chev{align-self:stretch;display:flex;align-items:center;flex-shrink:0;padding:0 14px 0 8px;cursor:pointer}
@@ -594,10 +594,6 @@ html[data-theme="dark"] .btn-row .opt-title{color:#0a84ff}
 .soon-t{font-size:20px;font-weight:800}
 .soon-s{font-size:13px;color:#999;max-width:260px;line-height:1.5}
 .hh-desc{font-size:13px;font-weight:500;color:#999;margin-top:4px;line-height:1.4}
-/* Daily: a past day of a habit whose stats were reset — visible but locked */
-.cali.locked{opacity:.4}
-.cali.locked input{cursor:not-allowed}
-.cali.locked label{cursor:default}
 /* Dark mode: keep colors calm — muted War Room header (project colors use a
    soft tint, see tintStyle); settings icon badges keep their colors */
 @media(prefers-color-scheme:dark){
@@ -749,7 +745,7 @@ html:not(#x) .dsel-opt.sel{font-weight:600}
 .dtitle,.hh-title,.sheet-title,.ts-title,.soon-t,.trk-val{font-weight:700}
 html:not(#x) .sl,html:not(#x) .shdr,html:not(#x) .caltitle,html:not(#x) .el-grp,html:not(#x) .sheet-label{font-weight:700}
 /* Tick boxes: soft grey tile that fills with colour (tasks: ink, habits: green,
-   skipped: light green with a double arrow); locked rows are dimmed by .cali.locked */
+   skipped: light green with an arrow) */
 :root{--box:#eceef1;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");--go:#30d158;--go-skip:#a7f3c0}
 @media(prefers-color-scheme:dark){:root{--box:#34322f;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}}
 html[data-theme="dark"]{--box:#34322f;--tick-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
@@ -1383,7 +1379,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.73';
+var APP_VERSION='Beta 3.74';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2351,6 +2347,9 @@ var CHANGELOG=[
   {v:'Beta 3.73',notes:[
     'The Task window no longer has a Project row',
     'Swiping back from the screen edge does nothing while a slide-up window is open'
+  ]},
+  {v:'Beta 3.74',notes:[
+    'After a statistics reset, habits no longer show locked on earlier days in Daily — they start on the day of the reset, like a new habit'
   ]}
 ];
 var COLORS={
@@ -2685,7 +2684,8 @@ var DB={
   // Lists, tracker entries -> Entries, Daily -> its habits (Habits) and its
   // categories are removed. Returns how many things were moved.
   // Statistics reset: wipes a habit's check-off history (all habits when id
-  // is null) and starts its score again from today. A tracker habit's
+  // is null) and starts its score again from today — in Daily it then shows
+  // from today on, like a new habit (not on earlier days). A tracker habit's
   // logged entries stay — they're the tracker's own data — but only ones
   // logged after the reset count for the habit (`statsFrom`, see
   // trackerDayValue), so even earlier today's value stops counting.
@@ -2694,7 +2694,7 @@ var DB={
     var ids=d.dailyItems.filter(function(it){return !id||it.id===id;}).map(function(it){return it.id;});
     ids.forEach(function(hid){for(var ds in d.dailyChecks){delete d.dailyChecks[ds][hid];}});
     for(var ds in d.dailyChecks){if(!Object.keys(d.dailyChecks[ds]).length)delete d.dailyChecks[ds];}
-    d.dailyItems.forEach(function(it){if(ids.indexOf(it.id)!==-1){it.created=today;it.wasReset=true;if(it.trackerPid)it.statsFrom=now;}});
+    d.dailyItems.forEach(function(it){if(ids.indexOf(it.id)!==-1){it.created=today;if(it.trackerPid)it.statsFrom=now;}});
     this.save();
     return ids.length;
   },
@@ -4241,7 +4241,7 @@ var A={
     var id=cb.getAttribute('data-id');
     var ds=pDate(dayIdx);
     var hab=DB.data.dailyItems.find(function(x){return x.id===id;});
-    if(hab&&ds<habitCreatedDs(hab)){cb.checked=false;return;} // before the habit existed / was reset: locked
+    if(hab&&ds<habitCreatedDs(hab)){cb.checked=false;return;} // before the habit counts from (added / reset): nothing to tick
     DB.toggleDailyCheck(id,ds,cb.checked);
     paintCheck(cb,cb.checked);
     if(Nav.cur==='today'&&DB.data.settings.todayHabitsDisappear&&cb.checked){
@@ -4696,11 +4696,10 @@ function tickZone(e,zone){
   if(e.target===cb||DB.data.settings.holdToComplete)return;
   cb.click();
 }
-var LOCK_SVG='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.6"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>';
-function ciEdit(itemId,text,dayIdx,locked){
-  return '<div class="cali split'+(locked?' locked':'')+'" data-id="'+itemId+'">'
-    +'<span class="cali-tick" onclick="tickZone(event,this)"><input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'"'+(locked?' disabled':'')+' onchange="A.toggleDailyItemFor(this,'+dayIdx+')"></span>'
-    +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label>'+(locked?LOCK_SVG:CALI_CHEV)+'</div>';
+function ciEdit(itemId,text,dayIdx){
+  return '<div class="cali split" data-id="'+itemId+'">'
+    +'<span class="cali-tick" onclick="tickZone(event,this)"><input type="checkbox" data-id="'+itemId+'" data-day="'+dayIdx+'" onchange="A.toggleDailyItemFor(this,'+dayIdx+')"></span>'
+    +'<label onclick="HabitDetail.open(\''+itemId+'\')">'+esc(text)+'</label>'+CALI_CHEV+'</div>';
 }
 // The value a tracker habit counts for calendar date `ds` (local time,
 // matching dStr/pDate everywhere else): that day's latest entry, ignoring
@@ -4734,18 +4733,16 @@ var _trackerOrigin=null;
 // opens TrackerDaySheet to enter or adjust that day's value. The value
 // itself sits in front of the arrow like a Settings row's value; the bar
 // opens the tracker's own page.
-// `locked`: a day before the habit's statistics start (after a reset) —
-// dimmed with a lock like a locked habit row, and nothing to log there.
-function ciTracker(it,dayIdx,editable,locked){
+function ciTracker(it,dayIdx,editable){
   var p=DB.data.projects[it.trackerPid];
   if(!p)return ''; // its tracker project was deleted — orphaned link, nothing sane to show
   var ds=pDate(dayIdx),val=trackerDayValue(it,ds),hv=habitDayVal(it,ds);
   var look=hv?'text-decoration:line-through;opacity:.35':''; // as paintCheck (skipped looks like done)
-  return '<div class="cali split trk-row'+(hv==='skip'?' skipped':'')+(locked?' locked':'')+'" data-id="'+it.id+'" data-tracker="'+it.id+'" data-day="'+dayIdx+'">'
-    +'<span class="cali-tick"'+(locked?'':' onclick="TrackerDaySheet.tap(\''+it.id+'\','+dayIdx+')"')+'><input type="checkbox" tabindex="-1"'+(hv?' checked':'')+(locked?' disabled':'')+' onclick="event.preventDefault()"></span>'
+  return '<div class="cali split trk-row'+(hv==='skip'?' skipped':'')+'" data-id="'+it.id+'" data-tracker="'+it.id+'" data-day="'+dayIdx+'">'
+    +'<span class="cali-tick" onclick="TrackerDaySheet.tap(\''+it.id+'\','+dayIdx+')"><input type="checkbox" tabindex="-1"'+(hv?' checked':'')+' onclick="event.preventDefault()"></span>'
     +'<label style="'+look+'" onclick="_projFromDaily=\''+it.trackerPid+'\';_trackerOrigin=\''+(editable?'habits':'today')+'\';Nav.go(\''+it.trackerPid+'\')">'+esc(p.name)+'</label>'
     +(val!=null?'<span class="cali-val" onclick="this.parentNode.querySelector(\'label\').click()">'+esc(fmtTrk(val)+(p.unit?' '+p.unit:''))+'</span>':'')
-    +(locked?LOCK_SVG:CALI_CHEV)+'</div>';
+    +CALI_CHEV+'</div>';
 }
 // A logged value as short as possible (no trailing .0).
 function fmtTrk(v){return String(Math.round(v*100)/100);}
@@ -5281,15 +5278,13 @@ function buildPanels(){
       h+='<div class="empty">No categories yet.<br>Tap the ⋯ button above to add one.</div>';
     } else {
       DB.data.dailyCats.forEach(function(cat){
-        var items=DB.data.dailyItems.filter(function(it){return it.catId===cat.id&&it.days.indexOf(wi)!==-1;});
+        // A habit shows from the day it started counting: the day it was
+        // added, or the day its statistics were reset — not before.
+        var items=DB.data.dailyItems.filter(function(it){return it.catId===cat.id&&it.days.indexOf(wi)!==-1&&ds>=habitCreatedDs(it);});
         h+='<div class="caltitle">'+esc(cat.name)+'</div><div class="calsec" data-cat="'+cat.id+'">';
         if(!items.length)h+='<div class="cal-none">No habits</div>';
         items.forEach(function(it){
-          // Days before a habit existed: a new habit simply isn't there; a
-          // habit whose stats were reset is shown but locked (grey, can't be ticked).
-          var before=ds<habitCreatedDs(it);
-          if(before&&!it.wasReset)return;
-          h+=it.trackerPid?ciTracker(it,pi,true,before):ciEdit(it.id,it.text,pi,before);
+          h+=it.trackerPid?ciTracker(it,pi,true):ciEdit(it.id,it.text,pi);
         });
         h+='</div>';
       });
@@ -5520,7 +5515,7 @@ function tickEdge(row){
 // so every row greys the exact same way — a manual class instead of
 // :active (which can't tell the tick zone apart reliably on a real device):
 //  - never in the tick zone, never on a row with nothing to open (one-time
-//    tasks), a locked habit, or a row holding a switch or a dropdown;
+//    tasks), or a row holding a switch or a dropdown;
 //  - it waits PRESS_DELAY before showing, and any movement (a swipe to skip,
 //    a scroll) cancels it, so a swipe never flashes grey; a quick tap that
 //    ends before the delay still gets the full flash (PRESS_TAP_MS);
@@ -5536,7 +5531,7 @@ var PRESS_DELAY=110,PRESS_TAP_MS=200;
 // if none) — a row held that long can't be swiped to skip any more (see
 // Skip) — and a way for a starting skip swipe to stop a pending grey.
 var _pressHeld=null,_pressCancel=function(){};
-var PRESS_ROWS='.cali:not([data-once]):not(.locked),.ti:not([data-once]),.wri,.opt-row:not(:has(.switch)):not(:has(.dsel-wrap))';
+var PRESS_ROWS='.cali:not([data-once]),.ti:not([data-once]),.wri,.opt-row:not(:has(.switch)):not(:has(.dsel-wrap))';
 (function(){
   var row=null,timer=null,sx=0,sy=0;
   function off(r){r.classList.remove('pressed-row');}
@@ -5980,7 +5975,7 @@ document.addEventListener('touchstart',function(e){
   var box=item.hasAttribute('data-tracker')&&item.querySelector('input[type=checkbox]');
   if(box){
     var br=box.getBoundingClientRect(),bt=e.touches[0];
-    if(parseInt(item.getAttribute('data-day'),10)>0||item.classList.contains('locked'))return;
+    if(parseInt(item.getAttribute('data-day'),10)>0)return;
     if(bt.clientX<br.left-8||bt.clientX>br.right+8||bt.clientY<br.top-8||bt.clientY>br.bottom+8)return;
     holdSX=bt.clientX;holdSY=bt.clientY;
     item.classList.add('holding');

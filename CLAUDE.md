@@ -269,6 +269,14 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   English. To find gaps, switch to German and walk every page/sheet
   listing text nodes that lack `__en`.
 
+- NAMING (3.57): the Settings tab/page is called "Menu" on screen (tab
+  label, page title, "Open app on" option, Guide tips and data notices say
+  "Menu → Today" / "Menu > Data"; German "Menü"). Code names are unchanged —
+  page `p-settings`, tab id 'settings', `renderSettings`, SETTINGS_SUBPAGES,
+  `DB.data.settings` — and these notes still say "Settings > X" for its
+  pages. New user-facing text must say Menu. "Reset settings" keeps its
+  name (it resets settings). Overlap to know about: General has its own
+  "Menu" section (which tabs show in the tab bar) — so Menu > General > Menu.
 - Settings is a LIST of widgets that each open their own full page (no
   sheets): App (version, "Update automatically" switch = `settings.autoUpdate`,
   manual "Check for updates", version history), Appearance (theme), General

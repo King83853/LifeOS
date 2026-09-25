@@ -332,6 +332,13 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   inside an `.opt-row` need the `input` bail-out in the TAPPABLE handler
   (already added). No emojis on categories, section titles, choice rows or
   type buttons (only user-chosen project icons remain).
+  Icon line weight (3.45, picked "A · Refined" from a side-by-side
+  comparison): outline icons use stroke-width 1.7 where they were 2.2 (tab
+  bar, +, lock, type icons) and 1.8 where they were 2 (Settings icons,
+  back/header buttons, chevrons…); the bolder ones shrank by the same step
+  (Skip arrow 2.1). Chart strokes (1, 3, 10) and the tick/skip glyphs inside
+  tick boxes (data-URI SVGs) are separate and unchanged. New icons should
+  use 1.8 (1.7 at 24px in the tab bar).
   Count badges: none left. The Trash count in Settings (`.ab`/`#ab2`), the
   War Room count on Overview (`.wrb`) and Tasks' per-priority counts
   (`.sl-count`) were unified in 3.17/3.18, then all removed (3.21, 3.29) as
@@ -1406,6 +1413,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   future floating element (another menu/popover appended to body rather
   than nested in the sheet) needs to scroll while opened from inside a
   sheet, it needs the same carve-out, not a new one-off case.
+  3.45: DSel closes on scroll (capture listener) — but only for real
+  scrollers (a page/sheet). Scroll events of the document itself are
+  ignored: since 3.14 the document never scrolls, so they're iOS's
+  rubber-band bounce. A drag that slid off an open dropdown bounced the
+  document, closed the list, and the bounce still settling closed the list
+  again right after it was reopened. `html` also has overscroll-behavior:none.
 
 - iOS: a `position:fixed` sheet is anchored to the LAYOUT viewport, which
   does NOT shrink when the on-screen keyboard opens — only the VISUAL

@@ -578,11 +578,11 @@ html[data-theme="dark"] .wrd{color:rgba(255,255,255,.7)}
 html[data-theme="dark"] .bu{background:#7a2e2d}
 /* One divider look everywhere (1.5px, --line): a hair darker than the page
    background, so it reads as a soft gap between rows, as in Settings. */
-:root{--line:#d5d7db;--pg:#f3f4f6;--card:#fff;--press:#d5d6db;--war:#e24b4a;--war-bg:#fde8e8}
+:root{--line:#d5d7db;--pg:#f3f4f6;--card:#fff;--press:#d5d6db;--war:#e24b4a;--war-bg:#fde8e8;--label:#a3a3a3}
 /* Pressed rows: darker than the white card in light mode, LIGHTER than the dark card in dark mode. */
-@media(prefers-color-scheme:dark){:root{--line:#333e4d;--pg:#1f2937;--card:#1e1c1a;--press:#3a3836;--war:#ef5350;--war-bg:#4a1f1f}}
-html[data-theme="dark"]{--line:#333e4d;--pg:#1f2937;--card:#1e1c1a;--press:#3a3836;--war:#ef5350;--war-bg:#4a1f1f}
-html[data-theme="light"]{--line:#d5d7db;--pg:#f3f4f6;--card:#fff;--press:#d5d6db;--war:#e24b4a;--war-bg:#fde8e8}
+@media(prefers-color-scheme:dark){:root{--line:#333e4d;--pg:#1f2937;--card:#1e1c1a;--press:#3a3836;--war:#ef5350;--war-bg:#4a1f1f;--label:#bbb}}
+html[data-theme="dark"]{--line:#333e4d;--pg:#1f2937;--card:#1e1c1a;--press:#3a3836;--war:#ef5350;--war-bg:#4a1f1f;--label:#bbb}
+html[data-theme="light"]{--line:#d5d7db;--pg:#f3f4f6;--card:#fff;--press:#d5d6db;--war:#e24b4a;--war-bg:#fde8e8;--label:#a3a3a3}
 /* War Room rows: same look as Today's list, split by dividers */
 html:not(#x) .wri{background:transparent;border:none;border-bottom:0.5px solid var(--line);border-radius:0;margin:0;padding:8px 10px}
 html:not(#x) .wri:last-child{border-bottom:none}
@@ -790,6 +790,9 @@ html:not(#x) .el-card .el-row:only-child,html:not(#x) .cat-choice:only-child,
 html:not(#x) #daily-cat-list .el-row:only-child{border-radius:14px}
 /* tracker rows and entries */
 .trk-entry{padding:12px 0}
+/* Section titles (TASKS, MORNING, CALENDAR, labels in windows…): --label,
+   a touch darker than the old #bbb in light mode; unchanged in dark mode. */
+html:not(#x) .sl,html:not(#x) .shdr,html:not(#x) .caltitle,html:not(#x) .el-grp,html:not(#x) .sheet-label{color:var(--label)}
 /* War Room tasks (priority "bu", and every row of Overview's War Room
    card): a red tick box — red outline, light red fill — instead of a red
    stripe along the row, which followed each row's rounded corners and
@@ -1259,7 +1262,7 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.39';
+var APP_VERSION='Beta 3.40';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2121,6 +2124,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.39',notes:[
     'The menu bar is a bit taller, with a little more room under the labels'
+  ]},
+  {v:'Beta 3.40',notes:[
+    'Section titles like TASKS, MORNING and CALENDAR are a little darker in light mode, so they\'re easier to read'
   ]}
 ];
 var COLORS={

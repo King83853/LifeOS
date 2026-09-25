@@ -300,7 +300,8 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   Text roles (weights lightened in 2.56 — the "lighter weights" rule at the end of the
   block wins): page title 20/700 (26/700 on pushed pages via `.hh`), row text
   15/500, secondary 12/500 grey, paragraph 13/500 grey, uppercase label
-  (`.sl`/`.shdr`/`.caltitle`/`.el-grp`/`.sheet-label`) 11/700, buttons 15/500,
+  (`.sl`/`.shdr`/`.caltitle`/`.el-grp`/`.sheet-label`) 11/700 in `--label`
+  grey (#a3a3a3 light since 3.40, was #bbb; #bbb dark), buttons 15/500,
   badges/pills 12/500. Groups of rows live in ONE card (`.card-list` for task
   rows, `.opt-group`, `.el-card`, `.calsec`), not one card per row. Header
   buttons are soft 40px squares (`.hh-btn`, and `.hdr-add/.menu-btn/.back/

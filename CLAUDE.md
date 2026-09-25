@@ -356,6 +356,10 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   Skip icon: ONE arrow (3.29; it was a double arrow) — in a skipped tick
   box (`.cali.skipped` checkbox background) and the swipe action
   (`SKIP_ICON`).
+  A ticked TASK box (`.ti`/`.wri` :checked) is the same `--go` green with a
+  white tick as a done habit (3.48; it was the ink/black box) — you only see
+  it for the moment before the row fades out to the Trash, so "done" looks
+  the same everywhere. (`--tick-ink` is now unused by tick boxes.)
   War Room marker (3.31, picked from five mockups): a red TICK BOX (inset
   2px `--war` outline, `--war-bg` fill; unticked only) on `.ti[data-pri=
   "bu"]` and every `.wri`. The red stripe it replaced (inset box-shadow on

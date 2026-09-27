@@ -156,12 +156,6 @@ html[data-theme="dark"] .bu{background:#dc2626;color:#fff}html[data-theme="dark"
 html[data-theme="light"] .bu{background:#dc2626;color:#fff}html[data-theme="light"] .bs{background:#fee2e2;color:#b91c1c}html[data-theme="light"] .bp{background:#fef9c3;color:#854d0e}html[data-theme="light"] .bl{background:#dcfce7;color:#166534}
 .ti .tt,.ti .ts,.wri .wit,.bdg,.cali label{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 
-.ti::before,.wri::before,.cali::before{content:'';position:absolute;left:0;right:0;bottom:0;height:4px;background:#c9c5be;width:0%;transition:width .7s linear;pointer-events:none}
-@media(prefers-color-scheme:dark){.ti::before,.wri::before,.cali::before{background:#5a5750}}
-html[data-theme="dark"] .ti::before,.wri::before,.cali::before{background:#5a5750}
-html[data-theme="light"] .ti::before,.wri::before,.cali::before{background:#c9c5be}
-.ti.holding::before,.wri.holding::before,.cali.holding::before{width:100%}
-.ti.snap::before,.wri.snap::before,.cali.snap::before{transition:none}
 body.hold-mode .ti input[type=checkbox],body.hold-mode .wri input[type=checkbox],body.hold-mode .cali input[type=checkbox]{pointer-events:none}
 
 
@@ -1368,7 +1362,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.78';
+var APP_VERSION='Beta 3.79';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2351,6 +2345,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.78',notes:[
     'Minimal layout: the outline around each project icon is a little thicker and in the project\'s own colour'
+  ]},
+  {v:'Beta 3.79',notes:[
+    'Hold to complete: no more progress bar under the row while holding'
   ]}
 ];
 var COLORS={
@@ -5941,11 +5938,8 @@ document.addEventListener('touchstart',function(e){
     if(parseInt(item.getAttribute('data-day'),10)>0)return;
     if(bt.clientX<br.left-8||bt.clientX>br.right+8||bt.clientY<br.top-8||bt.clientY>br.bottom+8)return;
     holdSX=bt.clientX;holdSY=bt.clientY;
-    item.classList.add('holding');
     holdTimer=setTimeout(function(){
       holdTimer=null;
-      item.classList.add('snap');item.classList.remove('holding');
-      setTimeout(function(){item.classList.remove('snap');},50);
       playClick();
       TrackerDaySheet.press(item.getAttribute('data-tracker'),parseInt(item.getAttribute('data-day'),10));
     },700);
@@ -5960,13 +5954,8 @@ document.addEventListener('touchstart',function(e){
   if(touch.clientX<r.left-pad||touch.clientX>r.right+pad||touch.clientY<r.top-pad||touch.clientY>r.bottom+pad)return;
   holdSX=touch.clientX;holdSY=touch.clientY;
   if(item.classList.contains('cali')){
-    item.classList.add('holding');
     holdTimer=setTimeout(function(){
       holdTimer=null;
-      // Completed, not cancelled — snap the fill away instantly instead of
-      // letting it play the normal .7s retract transition.
-      item.classList.add('snap');item.classList.remove('holding');
-      setTimeout(function(){item.classList.remove('snap');},50);
       if(item.hasAttribute('data-once')){
         cb.checked=true;playClick();
         A.toggleOnceInline(cb,item.getAttribute('data-once'));
@@ -5977,11 +5966,8 @@ document.addEventListener('touchstart',function(e){
     },700);return;
   }
   if(cb.checked)return;
-  item.classList.add('holding');
   holdTimer=setTimeout(function(){
     holdTimer=null;
-    item.classList.add('snap');item.classList.remove('holding');
-    setTimeout(function(){item.classList.remove('snap');},50);
     cb.checked=true;playClick();
     // A one-time task's row (Tasks tab > Calendar) carries data-once, not
     // data-key/data-text/data-sec — falling through to A.done() here read
@@ -5998,7 +5984,6 @@ document.addEventListener('touchstart',function(e){
 },{passive:true});
 function _cancelHold(){
   if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}
-  document.querySelectorAll('.holding').forEach(function(el){el.classList.remove('holding');});
 }
 ['touchend','touchcancel'].forEach(function(evt){
   document.addEventListener(evt,_cancelHold,{passive:true});

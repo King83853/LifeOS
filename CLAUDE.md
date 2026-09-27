@@ -1488,6 +1488,10 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   `instant` too, for the same reason — the generic close always assumes
   it's starting the slide from scratch unless told otherwise.
 
+- Hold to complete shows NO progress while holding (3.79, by request): the
+  grey bar that filled under the row (`::before` driven by `.holding`/
+  `.snap`) and those classes are gone; the hold still completes after
+  700ms with the click sound (Menu > General > Sounds).
 - The "Hold to complete tasks" gesture (global `touchstart` handler,
   search "HOLD TO COMPLETE") has its own separate completion dispatch
   from the normal tap path (a checkbox's native `onchange`) — the two

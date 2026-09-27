@@ -763,11 +763,16 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   dims the icon instead of greying a card; a dragged project gets its
   shadow on the icon (`.acard.dragging` box-shadow is turned off). The War
   Room card and category titles are unchanged.
-  3.70: each tile has a thin outline in var(--ink) (black; white in dark
-  mode, where black was invisible). 0.34px = 1 device px was reported "I
-  can't see it"; 3.71 uses 0.67px = exactly 2 device px on a 3x iPhone
-  (borders floor to whole device px; 0.67 not 0.6667 so x3 can't fall
-  under 2), 1 device px on 2x screens.
+  3.70: each tile has a thin outline. 0.34px (1 device px, ink) was "I
+  can't see it"; 0.67px (2 device px, 3.71) looked thicker at the round
+  corners than along the sides — the border IS one width all round, but
+  the screen smooths a curve across neighbouring pixels, and a very thin
+  dark line smoothed that way reads heavier. 3.78: 1px (3 device px on an
+  iPhone, a whole CSS px) in the project's own colour at full strength
+  (inline `border-color` from `solidTintStyle`; the tile is its pastel),
+  which makes that effect much smaller. If corners are reported heavier
+  again, that's anti-aliasing, not uneven geometry — a thicker or lighter
+  line is the lever, not the radius.
   `fitMinimalGrid()` (after renderGrids, and on resize) sets the four
   columns to a whole, even number of px plus a whole-px left margin, so
   tiles start on whole pixels (1fr columns were 78.25px → outline between

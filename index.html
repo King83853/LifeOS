@@ -853,15 +853,15 @@ html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)
    phone's home screen — just the icon and the name under it, no card and no
    count, four per row. A press dims the icon (not a grey card); a dragged
    project lifts its icon with a shadow instead of the card's. Each tile has
-   a thin outline in the ink colour: 0.67px = two device pixels on a 3x
-   iPhone (borders are rounded down to whole device pixels; one pixel, 0.34px,
-   was too thin to see); fitMinimalGrid() keeps every tile on whole pixels
-   so it stays crisp. */
+   a 1px outline (3 device pixels on an iPhone) in the project's own colour
+   at full strength — the tile is the pastel of the same colour (inline
+   border-color from solidTintStyle); fitMinimalGrid() keeps every tile on
+   whole pixels so it stays crisp. */
 #p-overview.ov-min .agrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 10px}
 html:not(#x) #p-overview.ov-min .acard{background:transparent;padding:0;gap:6px;border-radius:0;border:0}
 html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 #p-overview.ov-min .acnt{display:none}
-#p-overview.ov-min .aico{width:60px;height:60px;border-radius:15px;font-size:28px;transition:filter .4s ease .15s;border:0.67px solid var(--ink)}
+#p-overview.ov-min .aico{width:60px;height:60px;border-radius:15px;font-size:28px;transition:filter .4s ease .15s;border:1px solid var(--ink)}
 #p-overview.ov-min .acard:active .aico{filter:brightness(.82);transition:filter .2s ease}
 #p-overview.ov-min .albl{font-size:12px;line-height:15px;font-weight:500}
 #p-overview.ov-min .acard.dragging{box-shadow:none!important}
@@ -1368,7 +1368,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.77';
+var APP_VERSION='Beta 3.78';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2348,6 +2348,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.77',notes:[
     'You can have several Habits projects: each has its own habits, Today shows one card per project with its name, and Calendar tasks show on all of them'
+  ]},
+  {v:'Beta 3.78',notes:[
+    'Minimal layout: the outline around each project icon is a little thicker and in the project\'s own colour'
   ]}
 ];
 var COLORS={
@@ -5906,7 +5909,8 @@ function paleFillColor(hex){
 function solidTintStyle(col){
   var dark=isDarkNow(),a=(dark?0x2e:0x20)/255,base=dark?[30,28,26]:[255,255,255];
   var c=[parseInt(col.slice(1,3),16),parseInt(col.slice(3,5),16),parseInt(col.slice(5,7),16)];
-  return 'background:rgb('+c.map(function(v,i){return Math.round(a*v+(1-a)*base[i]);}).join(',')+');color:'+(dark?col+'d9':col);
+  return 'background:rgb('+c.map(function(v,i){return Math.round(a*v+(1-a)*base[i]);}).join(',')+');color:'+(dark?col+'d9':col)
+    +';border-color:'+col; // the minimal tile's outline: the colour itself, not the pastel
 }
 function tintStyle(col){
   // dark mode: a soft tint of the color, not the full-strength color

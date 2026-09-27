@@ -981,6 +981,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
     <div class="guide-item">
       <div class="guide-t">Skip by swiping right</div>
       <div class="guide-p">In Today, swipe a task or habit to the right to skip it for the day. This works when Skip tasks or Skip habits is turned on in Menu → Today.</div>
+      <div class="guide-p">In a Habits project, swipe a habit to the right to skip it on the day you're looking at — also a day in the past, if you were sick.</div>
       <div class="guide-p">A skipped habit shows in light green in Statistics and doesn't count against your score — for days when you're sick or away.</div>
       <div class="guide-p">A skipped task comes back the next day. To keep it away until you bring it back yourself, turn off Reset skipped tasks every new day in Menu → Today.</div>
     </div>
@@ -1366,7 +1367,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.80';
+var APP_VERSION='Beta 3.81';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2355,6 +2356,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.80',notes:[
     'Minimal layout: the ring around a project photo lines up with the photo in the corners'
+  ]},
+  {v:'Beta 3.81',notes:[
+    "Habits projects: swipe a habit to the right to skip it on any day, also a past one — for days when you were sick or away"
   ]}
 ];
 var COLORS={
@@ -2905,6 +2909,7 @@ var I18N=(function(){
     "In Overview, hold a project for a second until it lifts, then drag it to a new place in its category. Hold a category's title to move the whole category.":'Halte in der Übersicht ein Projekt eine Sekunde lang, bis es sich anhebt, und ziehe es an eine neue Stelle in seiner Kategorie. Halte den Titel einer Kategorie, um die ganze Kategorie zu verschieben.',
     "In Daily, hold a habit's bar — not its tick box — until it lifts, then drag it up or down. The order is the same on every day and in Today.":'Halte in Täglich den Balken einer Gewohnheit – nicht ihr Kästchen –, bis er sich anhebt, und ziehe ihn nach oben oder unten. Die Reihenfolge gilt an jedem Tag und auch in Heute.',
     'Reset skipped tasks every new day':'Übersprungene Aufgaben jeden Tag zurücksetzen',
+    "In a Habits project, swipe a habit to the right to skip it on the day you're looking at — also a day in the past, if you were sick.":'Wische in einem Gewohnheiten-Projekt eine Gewohnheit nach rechts, um sie an dem angezeigten Tag zu überspringen — auch an einem vergangenen Tag, wenn du krank warst.',
     "A skipped habit shows in light green in Statistics and doesn't count against your score — for days when you're sick or away.":'Eine übersprungene Gewohnheit erscheint in der Statistik hellgrün und zählt nicht gegen deinen Wert — für Tage, an denen du krank oder unterwegs bist.',
     'A skipped task comes back the next day. To keep it away until you bring it back yourself, turn off Reset skipped tasks every new day in Menu → Today.':'Eine übersprungene Aufgabe kommt am nächsten Tag zurück. Soll sie wegbleiben, bis du sie selbst zurückholst, schalte „Übersprungene Aufgaben jeden Tag zurücksetzen“ in Menü → Heute aus.','Skip by swiping right':'Überspringen durch Wischen nach rechts',
     'In Today, swipe a task or habit to the right to skip it for the day. This works when Skip tasks or Skip habits is turned on in Menu → Today.':'Wische in Heute eine Aufgabe oder Gewohnheit nach rechts, um sie für den Tag zu überspringen. Das funktioniert, wenn „Aufgaben überspringen“ oder „Gewohnheiten überspringen“ in Menü → Heute eingeschaltet ist.','Nothing in the calendar yet.':'Noch nichts im Kalender.','No categories yet.':'Noch keine Kategorien.','Tap the ⋯ button above to add one.':'Tippe oben auf ⋯, um eine hinzuzufügen.',
@@ -5288,8 +5293,10 @@ function buildPanels(){
     var items=DB.data.dailyItems.filter(function(it){return habitPid(it)===hpid&&it.days.indexOf(wi)!==-1&&ds>=habitCreatedDs(it);});
     h+='<div class="caltitle">'+esc(habitsTitle(hpid))+'</div><div class="calsec" data-habits="1">';
     if(!items.length)h+='<div class="cal-none">No habits</div>';
+    // Swipe right to skip that day — on any day, also a past one (sick,
+    // away), whatever Menu > Today > Skip habits says (that's Today's).
     items.forEach(function(it){
-      h+=it.trackerPid?ciTracker(it,pi,true):ciEdit(it.id,it.text,pi);
+      h+=swipeWrap('h',it.trackerPid?ciTracker(it,pi,true):ciEdit(it.id,it.text,pi),true);
     });
     h+='</div>';
     p.innerHTML=h;c.appendChild(p);
@@ -5310,9 +5317,11 @@ function buildPanels(){
 function wireDailyDrag(){
   document.querySelectorAll('#dpanels .calsec[data-habits]').forEach(function(calsec){
     markEdgeRows(calsec,'.cali');
-    DragReorder.init(calsec,'.cali','.cali','list',function(container,el){
+    // every row sits in its swipe-to-skip wrapper (.sw.h) — that's what moves
+    DragReorder.init(calsec,'.cali','.sw.h','list',function(container,el){
       var ids=[].slice.call(container.querySelectorAll('.cali[data-id]')).map(function(r){return r.getAttribute('data-id');});
-      var id=el&&el.getAttribute('data-id'),k=ids.indexOf(id);
+      var row=el&&el.querySelector('.cali[data-id]');
+      var id=row&&row.getAttribute('data-id'),k=ids.indexOf(id);
       if(k!==-1)DB.moveDailyItem(id,ids[k+1]||null,ids[k-1]||null);
       buildPanels();restoreChecks(Nav.sd);
     });
@@ -5496,18 +5505,21 @@ function renderToday(){
   });
 }
 
-// ── SWIPE RIGHT TO SKIP (Today's tasks + habits) ─────────────
-// Drag a row right like archiving a chat in WhatsApp: an amber "Skip"
-// action is revealed behind it. Past ~150px it fires; between ~48 and 150
-// it stays open (tap Skip); less snaps back. Tasks: hidden for today only
-// (DB.skipTask), and with "Refill automatically" on the next one takes its
-// place. Habits: stored as a 'skip' day (DB.skipDaily) — counts as done
-// but is amber in the charts. Only unchecked habits can be skipped.
+// ── SWIPE RIGHT TO SKIP (Today's tasks + habits, a Habits project's habits) ──
+// Drag a row right like archiving a chat in WhatsApp: a green "Skip"
+// action is revealed behind it; past THRESH it fires. Tasks: hidden for
+// today only (DB.skipTask), and with "Refill automatically" on the next one
+// takes its place. Habits: stored as a 'skip' day (DB.skipDaily) for the
+// row's own day (Today: today; a Habits project: the day shown, past ones
+// too) — counts as done but is light green in the charts. Only unchecked
+// habits can be skipped.
 var SKIP_ICON='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 5 16 12 9 19"/></svg>';
-function swipeWrap(kind,inner){
+function swipeWrap(kind,inner,always){
+  if(!inner)return '';
   // switched off in Settings > Today: the row is plain, nothing to swipe
+  // (`always`: a Habits project's rows, which that switch doesn't cover)
   if(kind==='t'&&DB.data.settings.skipTasks===false)return inner;
-  if(kind==='h'&&DB.data.settings.skipHabits===false)return inner;
+  if(kind==='h'&&!always&&DB.data.settings.skipHabits===false)return inner;
   return '<div class="sw '+kind+'"><div class="sw-act"><span>Skip'+SKIP_ICON+'</span></div><div class="sw-row">'+inner+'</div></div>';
 }
 // Task and habit rows are two buttons each: the tick zone (a habit's
@@ -5678,10 +5690,15 @@ var Skip=(function(){
       },200);
       setTimeout(function(){w.remove();syncTodaySections();},400);
     } else {
-      var id=w.querySelector('.cali[data-id]').getAttribute('data-id');
-      DB.skipDaily(id,ds);
+      // the day the row belongs to (a Habits project shows any day)
+      var row=w.querySelector('.cali[data-id]'),dayEl=row.hasAttribute('data-day')?row:row.querySelector('[data-day]');
+      var id=row.getAttribute('data-id'),inDaily=!!w.closest('#dpanels');
+      DB.skipDaily(id,pDate(dayEl?parseInt(dayEl.getAttribute('data-day'),10)||0:0));
       close(w,true);
-      setTimeout(renderToday,230);
+      setTimeout(function(){
+        if(inDaily){buildPanels();restoreChecks(Nav.sd);}
+        renderToday();
+      },230);
     }
   }
   return{go:go};

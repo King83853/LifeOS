@@ -231,6 +231,18 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   `dcv`/`paintCheck` rather than assuming a boolean, and any wrapper
   around Today rows means `.remove()` calls must remove the `.sw`, not
   just the inner row (see `A.doneLockedIn`).
+  3.81 ("skip habits inside the projects… from the past in case I was
+  sick"): a Habits project's day panels (buildPanels) wrap every habit row
+  in `swipeWrap('h',row,true)` — `always`, so Menu > Today > Skip habits
+  (Today's switch) doesn't turn it off there. `Skip.go` skips the ROW's own
+  day (`data-day` on the tracker `.cali` or the habit's checkbox → pDate),
+  so any shown day works, past or future; then rebuilds the panels
+  (buildPanels + restoreChecks) and Today. Un-skipping is the same as
+  before: tap the box. Because rows are wrapped there now, Daily's
+  DragReorder picks up `.sw.h` (itemSel), not `.cali` — DragReorder swaps
+  DIRECT children of the container, so whatever wraps a row is what must
+  move. No conflict with the edge swipe-back: it starts at x<=35, which is
+  inside the tick zone, where a skip swipe never starts.
 
 - Today's section headers (🎯 Tasks / 📆 Habits) are hidden when their
   section is empty (`syncTodaySections`), with one "Nothing to do today."

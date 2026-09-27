@@ -773,6 +773,14 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   which makes that effect much smaller. If corners are reported heavier
   again, that's anti-aliasing, not uneven geometry — a thicker or lighter
   line is the lever, not the radius.
+  3.80: the ring is an `::after` overlay on top of the tile (inset 0, 1px,
+  `--ring` from solidTintStyle, radius inherit), not the tile's border. As
+  a border, a project PHOTO sat inside it (58px, `border-radius:inherit` =
+  the outer 15px) — rounder than the border's 14px inner curve, so a light
+  gap showed in every corner ("the ring doesn't align with the picture in
+  the corner"). Now the photo fills the whole tile and the ring covers its
+  edge. Any future outline over content that must meet it exactly: draw it
+  on top, don't wrap the content in a border.
   `fitMinimalGrid()` (after renderGrids, and on resize) sets the four
   columns to a whole, even number of px plus a whole-px left margin, so
   tiles start on whole pixels (1fr columns were 78.25px → outline between

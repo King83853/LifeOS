@@ -354,6 +354,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   `habit` items and its categories are removed. Ticking a one-time task (`dailyOnce`) archives it
   (`section:'One-time', once:true, due`) into Trash > Tasks (2.58); `restoreTask` puts a
   `once` entry back on the calendar with its old date.
+  3.98: `DB.completeTask` (ticking a task off) now stores the task's `pri`
+  and `desc` on the archived entry — it only kept key/text/section, and
+  `restoreTask` falls back to `pri||'bs'`, so every restored task came back
+  as High (a War Room task lost War Room) without its notes. resetProject
+  already stored both. Entries archived before 3.98 have no pri and still
+  restore as High — nothing to recover them from.
 
 - Language (Settings > Language, `I18N` in index.html): English is the
   source text in markup and JS; German is a DOM translation layer — `DE`

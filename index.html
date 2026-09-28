@@ -1409,7 +1409,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.97';
+var APP_VERSION='Beta 3.98';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2455,6 +2455,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.97',notes:[
     'Menu → Data → Export is much shorter again (about 2,000 characters for half a year of data, was ~11,000): internal ids are shortened, habit check-offs and lists are stored compactly, and the text uses a denser alphabet (it looks like Chinese characters). Older exports still import'
+  ]},
+  {v:'Beta 3.98',notes:[
+    'Fixed: a ticked-off task restored from the Trash came back as High priority (a War Room task lost its War Room) and without its notes — ticking a task off now keeps both. Tasks ticked off before this update didn\'t save theirs, so they still come back as High'
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2526,7 +2529,8 @@ var USER_LOG={
   'Beta 3.94':'bug',
   'Beta 3.95':'bug',
   'Beta 3.96':["Data export is 10x shorter"],
-  'Beta 3.97':'design'
+  'Beta 3.97':'design',
+  'Beta 3.98':'bug'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -2854,13 +2858,15 @@ var DB={
     this._sortTasks(projId);
     this.save();
   },
+  // The archived entry keeps the task's priority and notes, so Restore puts
+  // it back as it was (a War Room task came back as High: pri wasn't kept).
   completeTask:function(key,text,projName){
     if(!this.data.doneKeys.includes(key))this.data.doneKeys.push(key);
-    var fromList=false,self=this;
+    var fromList=false,task=null,self=this;
     for(var lp in this.data.extraTasks){
-      if((this.data.extraTasks[lp]||[]).some(function(t){return t.key===key;})){var pr=self.data.projects[lp];fromList=!!(pr&&pr.type==='list');}
+      (this.data.extraTasks[lp]||[]).forEach(function(t){if(t.key===key){task=t;var pr=self.data.projects[lp];fromList=!!(pr&&pr.type==='list');}});
     }
-    this.data.archived.push({key:key,text:text,section:projName,list:fromList,
+    this.data.archived.push({key:key,text:text,section:projName,list:fromList,pri:task&&task.pri,desc:task&&task.desc,
       date:new Date().toLocaleDateString('de-CH',{day:'numeric',month:'short',year:'numeric'}),
       dateISO:dStr(new Date())});
     for(var pid in this.data.extraTasks)

@@ -505,6 +505,18 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   one-field inputs (new/rename category, rename habit, tracker values) —
   a centred box with a field needs its own keyboard handling. Longer windows
   stay sheets.
+- A window's Save must never run twice (3.95, a friend on Android got TWO
+  projects from one creation): SheetEditor.save kept `newCatId` and no
+  `pid` after saving, and the sheet stays tappable while it slides away
+  (SHEET_ANIM_MS), so a double tap / a tap during the slide / Enter + tap
+  created a duplicate — same for new task, habit, calendar item, tracker
+  entry and category. Every creating save/confirm now starts with
+  `if(!_sheetLive('<overlay id>'))return;` — live = `.on` and not
+  `ov._closing` (set at the start of _overlayClose, cleared in
+  _overlayOpen). First try keyed on `.show`, which is added two rAFs after
+  opening: in the preview the very first Save was then ignored — a Save
+  must never depend on a frame having painted. A NEW sheet that creates
+  something needs the same first line.
 - Bottom sheets have NO Cancel/Close/back buttons (only real actions like
   Save/OK/Delete/Got it): they close by pulling down or tapping the dimmed
   background, and every `.sheet` gets a grey `.sheet-drag-handle` injected

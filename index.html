@@ -1409,7 +1409,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.94';
+var APP_VERSION='Beta 3.95';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2446,6 +2446,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.94',notes:[
     'Fixed: a quick tap right after letting go of a held project did nothing — only the release itself is ignored now, the next tap always works'
+  ]},
+  {v:'Beta 3.95',notes:[
+    'Fixed: tapping Save twice (or once more while the window was sliding away) could create a project twice — the same for new tasks, habits, calendar items, tracker entries and categories. A window only saves while it is fully open now'
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2514,7 +2517,8 @@ var USER_LOG={
   'Beta 3.91':'design',
   'Beta 3.92':'bug',
   'Beta 3.93':'bug',
-  'Beta 3.94':'bug'
+  'Beta 3.94':'bug',
+  'Beta 3.95':'bug'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -6108,6 +6112,7 @@ var DailyItemSheet={
     },'Move to Trash');
   },
   save:function(){
+    if(!_sheetLive('daily-item-sheet-overlay'))return; // already saved, window closing
     if(!this.selectedDays.length||!this.catId)return;
     if(this.editId){
       var it=DB.data.dailyItems.find(function(x){return x.id===DailyItemSheet.editId;});
@@ -6438,6 +6443,7 @@ function _overlayOpen(id){
   var ov=document.getElementById(id);
   // Reopening during a close animation must cancel its pending hide.
   if(ov._closeTimer){clearTimeout(ov._closeTimer);ov._closeTimer=null;}
+  ov._closing=false; // its Save works again (see _sheetLive)
   var sh=ov.querySelector('.sheet');if(sh&&!sh.contains(document.activeElement)){sh.style.bottom='';sh.style.paddingBottom='';} // nothing left over from the keyboard last time
   ov.classList.add('on'); // display:none -> block; sheet still off-screen
   if(sh&&KbFit)KbFit.fit(sh); // tall enough that the keyboard won't cover its fields
@@ -6460,9 +6466,17 @@ function _overlayOpen(id){
 // animated the sheet off-screen themselves (Version history's swipe
 // dismiss) — waiting again left a dead pause before the page behind
 // returned.
+// A window's Save only counts while the window is open and not closing:
+// _overlayClose marks it the moment it starts closing, so a second tap on
+// Save during the slide-down (or a double tap, or Enter + tap) can't save —
+// and create — a second time. Every Save/confirm that creates something
+// checks this first. (Not keyed on .show: that arrives a couple of frames
+// after opening, and a Save must never depend on a frame having painted.)
+function _sheetLive(id){var o=document.getElementById(id);return !!o&&o.classList.contains('on')&&!o._closing;}
 function _overlayClose(id,instant){
   instant=instant||_instantClose;_instantClose=false;
   var ov=document.getElementById(id);
+  ov._closing=true;
   if(ov._closeTimer){clearTimeout(ov._closeTimer);ov._closeTimer=null;}
   ov.classList.remove('show');
   _overlayCount=Math.max(0,_overlayCount-1);
@@ -6560,6 +6574,7 @@ var InputSheet={
     setTimeout(function(){_autoFocus(f);},300);
   },
   confirm:function(){
+    if(!_sheetLive('input-sheet-overlay'))return; // already saved, window closing
     var val=document.getElementById('input-sheet-field').value.trim();
     if(!val)return;
     _overlayClose('input-sheet-overlay');
@@ -6638,6 +6653,7 @@ var OnceAddSheet={
     setTimeout(function(){_autoFocus(document.getElementById('once-add-text'));},300);
   },
   save:function(){
+    if(!_sheetLive('once-add-sheet-overlay'))return; // already saved, window closing
     var text=document.getElementById('once-add-text').value.trim();
     var date=document.getElementById('once-add-date').value;
     if(!text||!date)return;
@@ -6697,6 +6713,7 @@ var TaskSheet={
   },
   setPri:function(v){this.pri=v;this.renderRows();},
   save:function(){
+    if(!_sheetLive('task-sheet-overlay'))return; // already saved, window closing
     var text=document.getElementById('task-sheet-name').value.trim();
     if(!text)return;
     var desc=document.getElementById('task-sheet-desc').value.trim();
@@ -6727,6 +6744,7 @@ var TrackerAddSheet={
     setTimeout(function(){_autoFocus(inp);},300);
   },
   save:function(){
+    if(!_sheetLive('trk-add-sheet-overlay'))return; // already saved, window closing
     var val=parseFloat(document.getElementById('trk-add-val').value);
     if(isNaN(val))return;
     A.addTrackerEntry(this.pid,val);
@@ -6779,6 +6797,7 @@ var TrackerDaySheet={
     setTimeout(function(){_autoFocus(inp);},300);
   },
   save:function(){
+    if(!_sheetLive('trk-day-sheet-overlay'))return; // already saved, window closing
     var id=this.itemId,it=DB.data.dailyItems.find(function(x){return x.id===id;});
     var val=parseFloat(document.getElementById('trk-day-val').value);
     if(!it||isNaN(val))return;
@@ -7547,6 +7566,7 @@ var SheetEditor={
   },
 
   save:function(){
+    if(!_sheetLive('proj-sheet-overlay'))return; // already saved, window closing
     var name=document.getElementById('sheet-name').value.trim();
     var desc=document.getElementById('sheet-desc').value.trim();
     var icon=document.getElementById('sheet-icon').value.trim()||'📁';

@@ -147,11 +147,16 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   value window (which forced entering a number just to un-skip).
   The old inline trash icon on Daily's tracker rows is gone — delete is in
   the habit sheet now (openEdit shows Delete for trackers too), reached
-  from the tracker page's "Daily habit" Days/Goal rows.
+  by tapping the days line under the tracker page's title (3.90 — it was
+  a "Daily habit" card with Days/Goal rows, removed by request: the goal
+  shows as the chart's goal line, and the days sit under the title like on
+  a habit page; `#hsub-<pid>` in buildProjPages' header, filled/hidden by
+  renderTracker). That line is the ONLY way from the tracker page to the
+  habit's days/goal/delete — keep it tappable.
   A tracker page for a Daily-linked tracker (`renderTracker` +
   `TrackerPage`): entries fold behind one "Entries N ›" row (closed by
-  default, state kept per pid while the app runs), then Days/Goal rows,
-  Consistency ring and Longest streak. (Its done/not-done habit bar chart
+  default, state kept per pid while the app runs), then the Consistency
+  ring and Longest streak (days: under the title since 3.90). (Its done/not-done habit bar chart
   was removed in 3.89 by request — the tracker's own chart shows the
   values; see "Tracker charts".)
 

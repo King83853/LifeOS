@@ -1368,7 +1368,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.84';
+var APP_VERSION='Beta 3.85';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2369,65 +2369,69 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.84',notes:[
     'Menu → App: everything in one white card — Version, Advanced update info, Update automatically, Check for updates'
+  ]},
+  {v:'Beta 3.85',notes:[
+    'The simple update log (Advanced update info off) is rewritten much shorter: a few words per new feature, no details or menu paths'
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
 // What everyone sees (Menu > App > Advanced update info OFF, the default);
 // CHANGELOG above is the detailed log for testing. A version here is either
-// a real new feature, told in plain words for someone who just uses the app
-// (an array of lines — what you can do now and where), or only fixes:
+// a real new feature, in a few plain words ("Multiple habit projects
+// possible" — no details, no menu paths, no full stop), or only fixes:
 // 'bug', 'design' or 'both'. A version missing here is guessed from its
 // CHANGELOG notes (see userLogKind). Give every new version an entry.
 var USER_LOG={
-  'Beta 1.0':["Choose when your day starts, so a late night still counts for the right day (Menu → Today).","Decide whether habits disappear from Today once you've ticked them off."],
-  'Beta 1.4':["Tap a habit to open its own page: a chart of how often you did it, and your consistency score."],
-  'Beta 1.8':["Dark mode! Pick Light or Dark, or let the app follow your phone (Menu → Appearance)."],
-  'Beta 1.10':["Look back a week and plan a month ahead on the habits page."],
-  'Beta 1.14':["Choose how many tasks Today picks for you (Menu → Today)."],
-  'Beta 1.15':["Choose whether a finished task in Today makes room for the next one right away."],
-  'Beta 1.25':["Overview cards tell you more: a tracker shows its latest number, your habits show how many are left today."],
+  'Beta 1.0':["Set when your day starts","Done habits can disappear from Today"],
+  'Beta 1.4':["Every habit has its own stats page"],
+  'Beta 1.8':["Dark mode"],
+  'Beta 1.10':["Habits page shows a week back and a month ahead"],
+  'Beta 1.14':["Choose how many tasks Today shows"],
+  'Beta 1.15':["Finished tasks in Today can be replaced automatically"],
+  'Beta 1.25':["Overview cards show more info"],
   'Beta 1.38':'bug',
-  'Beta 1.43':["New Statistics tab: see how consistent you are across all your habits, and which one you're crushing."],
-  'Beta 1.53':["Keep track of numbers like your weight as a habit: add a Tracker project to your habits and log the number right there."],
-  'Beta 1.61':["Statistics also shows your weakest habit, so you know where to put in the work."],
-  'Beta 1.65':["Swipe a task or habit to the right to skip it for today. A skipped habit doesn't hurt your score."],
-  'Beta 1.73':["Bring all your skipped tasks back to Today at once with Reset skipped tasks (Menu → Today)."],
-  'Beta 1.75':["Nothing gets lost by accident anymore: everything you delete goes to the Trash first, and you can bring it back from there."],
-  'Beta 1.78':["The app speaks German now: pick Deutsch in Menu → Language."],
-  'Beta 1.84':["Habit pages show your longest streak, and the one you're on right now."],
-  'Beta 2.4':["Choose which tab the app opens on (Menu → General)."],
-  'Beta 2.8':["Clear out a whole project at once with Reset a project (Menu → Overview). Everything in it goes to the Trash."],
-  'Beta 2.9':["Want a fresh start? Reset your statistics in Menu → Statistics."],
+  'Beta 1.43':["New Statistics tab"],
+  'Beta 1.53':["Trackers can be added as habits"],
+  'Beta 1.61':["Statistics shows your weakest habit"],
+  'Beta 1.65':["Swipe right to skip tasks and habits"],
+  'Beta 1.73':["Skipped tasks can be brought back"],
+  'Beta 1.75':["New Trash, deleted things can be restored"],
+  'Beta 1.78':["German language"],
+  'Beta 1.84':["Longest streak on habit pages"],
+  'Beta 2.4':["Choose which tab the app opens on"],
+  'Beta 2.8':["Projects can be reset"],
+  'Beta 2.9':["Statistics can be reset"],
   'Beta 2.19':'bug',
-  'Beta 2.22':["Pick which tabs show in the bar at the bottom (Menu → General)."],
-  'Beta 2.25':["The app now keeps itself up to date. Rather do it yourself? Switch off Update automatically in Menu → App."],
-  'Beta 2.26':["Change a habit's name or days whenever you like. Your past check-offs stay."],
+  'Beta 2.22':["Choose which tabs show in the bottom bar"],
+  'Beta 2.25':["Automatic updates"],
+  'Beta 2.26':["Habits can be edited"],
   'Beta 2.28':'bug',
-  'Beta 2.35':["Not a fan of swipe-to-skip? Turn it off for tasks or habits in Menu → Today."],
-  'Beta 2.41':["Messed up your settings? Reset settings puts them all back to the start. Your data stays."],
-  'Beta 2.44':["Don't need the War Room? Hide it from Overview in Menu → Overview."],
-  'Beta 2.47':["Sneak peek: a Blocker tab is on its way. Curious? Switch it on in Menu → General."],
-  'Beta 2.55':["The whole app got a fresh, cleaner look."],
-  'Beta 2.58':["Ticked off a calendar task by mistake? It's in the Trash now, and you can bring it back."],
-  'Beta 2.64':["Give a habit a description, like why you're doing it. It shows on the habit's page."],
-  'Beta 2.79':["Use a photo from your phone as a project's icon instead of an emoji."],
-  'Beta 2.84':["Hold a project, category or habit for a moment to pick it up, then drag it wherever you want."],
-  'Beta 2.92':["Give a tracked habit a goal, like 10,000 steps: the day counts as done once you hit it."],
-  'Beta 3.4':["Your data is safer: the app asks your phone to keep it even when storage gets full, and tells you if something couldn't be saved."],
+  'Beta 2.35':["Swipe to skip can be turned off"],
+  'Beta 2.41':["Settings can be reset"],
+  'Beta 2.44':["War Room can be hidden"],
+  'Beta 2.47':["Blocker tab coming soon"],
+  'Beta 2.55':["New look for the whole app"],
+  'Beta 2.58':["Done calendar tasks can be restored"],
+  'Beta 2.64':["Habits can have a description"],
+  'Beta 2.79':["Photos as project icons"],
+  'Beta 2.84':["Hold and drag to reorder"],
+  'Beta 2.92':["Goals for tracked habits"],
+  'Beta 3.4':["Better protection for your data"],
   'Beta 3.16':'bug',
   'Beta 3.28':'bug',
-  'Beta 3.30':["Delete a project straight from its edit window. It goes to the Trash, so you can still get it back."],
-  'Beta 3.43':["New Guide at the top of the menu, with tips to get more out of the app.","Want a skipped task to stay away for more than a day? Turn off Reset skipped tasks every new day in Menu → Today."],
-  'Beta 3.54':["Choose how far back your consistency score looks: all time, 3 months, 1 month or just the last week (Menu → Statistics)."],
-  'Beta 3.61':["Don't like the click when you complete something? Turn the sound off in Menu → General."],
-  'Beta 3.69':["New look for Overview: turn on Minimal layout in Menu → Overview, and your projects show up like apps on your home screen."],
-  'Beta 3.72':["The charts zoom now: pinch to switch between days, weeks and months, and drag sideways to look back in time."],
-  'Beta 3.76':["Habits got simpler: no more categories. All the habits of a project sit together in one card."],
-  'Beta 3.77':["Have more than one Habits project, like Morning and Evening. Each keeps its own habits and gets its own card on Today."],
-  'Beta 3.81':["Missed a habit because you were sick? Skip it for days that are already over: open the Habits project, tap the day and swipe the habit to the right. It won't count against you."],
+  'Beta 3.30':["Projects can be deleted from their edit window"],
+  'Beta 3.43':["New Guide with tips","Skipped tasks can stay hidden longer"],
+  'Beta 3.54':["Choose the time range for your score"],
+  'Beta 3.61':["Sounds can be turned off"],
+  'Beta 3.69':["New minimal layout for Overview"],
+  'Beta 3.72':["Zoom and scroll the charts"],
+  'Beta 3.76':["Habit categories removed"],
+  'Beta 3.77':["Multiple habit projects possible"],
+  'Beta 3.81':["Skipping habits now possible in the project itself"],
   'Beta 3.82':'bug',
-  'Beta 3.83':["Update notes are short and simple now: you only hear about things that are actually new. Want every detail? Turn on Advanced update info in Menu → App."],
-  'Beta 3.84':'design'
+  'Beta 3.83':["Update notes are shorter"],
+  'Beta 3.84':'design',
+  'Beta 3.85':'design'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal

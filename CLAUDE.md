@@ -399,9 +399,12 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   Check for updates). On = the detailed `CHANGELOG`
   as before (for the user as tester/dev). Off = `USER_LOG` (right after
   CHANGELOG), for everyone else: a version is either a real new feature,
-  as an array of lines written for someone who just uses the app (what you
-  can do now + where: "Menu → X", casual, benefit first, current names), or
-  'bug' / 'design' / 'both'. Versions not listed are guessed by
+  as an array of lines, or 'bug' / 'design' / 'both'. Feature lines are
+  SUPER short (3.85, the user's own examples: "Update notes are shorter",
+  "Skipping habits now possible in the project itself", "Multiple habit
+  projects possible"): a few words, no details, no "Menu → X" paths, no
+  full stop, usually one line per version. 3.83's first try (a casual
+  sentence or two with where to find it) was still too long. Versions not listed are guessed by
   `userLogKind` (a note starting "Fixed" = bug, anything else = design) —
   the whole history up to 3.83 was backfilled by hand for features (48
   entries, a few kind overrides). `simpleHistory()` merges each run of

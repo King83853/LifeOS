@@ -1087,9 +1087,13 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   (synthetic touches) nothing opened — but the iPhone still produced a
   click. Not reproducible here, so fixed by construction: `_end` stamps
   `DragReorder._endedAt`, and a document CAPTURE click listener swallows
-  every click for 600ms after that (native or TAPPABLE's own .click()).
+  clicks from then until the NEXT touchstart (capture listener resets it),
+  at most 1s — i.e. only clicks produced by the released finger. 3.93 used
+  a flat 600ms instead and ate a real quick tap right after letting go
+  ("I click right after, nothing happens"); 3.94 scoped it to the gesture.
   Covers all drag users (Overview projects/categories, Daily habits,
-  Statistics widgets). A normal tap still opens (checked).
+  Statistics widgets). Checked: release click blocked, a new tap 100ms
+  later opens.
   3.23: holding a project PHOTO (an <img>, not an emoji) on Overview
   started iOS's own image drag — only the picture moved, the card didn't.
   Project photos (`iconOrPhoto`) are `.proj-photo` (pointer-events:none,

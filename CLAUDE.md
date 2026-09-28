@@ -392,6 +392,27 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   on resume after 5 min. Every release must still bump CACHE_NAME (that's what the
   comparison keys on).
 
+- Two update logs (3.83, "no one is reading it — it's way too complicated"):
+  Menu > App has its own card above Version history, "Advanced update info"
+  (`settings.advancedUpdates`, default OFF). On = the detailed `CHANGELOG`
+  as before (for the user as tester/dev). Off = `USER_LOG` (right after
+  CHANGELOG), for everyone else: a version is either a real new feature,
+  as an array of lines written for someone who just uses the app (what you
+  can do now + where: "Menu → X", casual, benefit first, current names), or
+  'bug' / 'design' / 'both'. Versions not listed are guessed by
+  `userLogKind` (a note starting "Fixed" = bug, anything else = design) —
+  the whole history up to 3.83 was backfilled by hand for features (48
+  entries, a few kind overrides). `simpleHistory()` merges each run of
+  fix-only versions into one entry ("Beta 3.78 – 3.80" · Design fixes,
+  grey `.wn-fix`), 281 → 79 entries. What's New in simple mode shows only
+  the pending versions' feature lines, and an update with nothing but
+  fixes doesn't pop up at all (just marked seen) — my call, so the pop-up
+  means "something new to use"; easy to undo in `WhatsNew.open`. Flipping
+  the switch redraws only the history (`renderAppHistory`), not the card.
+  What counts as a feature: something the user can newly DO or see (a new
+  setting, gesture, page, tab); renames, restyles, moves and spacing are
+  design; anything that was broken is bug. A big visible change can still
+  get a line (2.55 redesign, 3.76 categories gone).
 - Centred pop-ups (3.67, `Alert`, `#alert-overlay`), asked for with an
   iOS screenshot: short confirmations and messages appear in the middle of
   the screen instead of a slide-up. `Alert.confirm(text, fn, label)` (Cancel
@@ -1823,6 +1844,9 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
 0b. Also bump `APP_VERSION` in index.html (Beta 1.0 → 1.1 → 1.2 …) and add
     a matching entry to `CHANGELOG` for any user-visible change, so the
     "What's new" sheet has something real to show after the update lands.
+    AND a `USER_LOG` entry for the same version (see "Two update logs"):
+    'bug' / 'design' / 'both' for fixes, or plain-language lines when it's
+    a real new feature.
 1. No console errors on load or on interaction with the changed feature
 2. Existing features still work (see smoke-test.js — run it after every change)
 3. Screenshot review of the changed UI state looks correct (no layout

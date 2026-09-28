@@ -450,6 +450,7 @@ html[data-theme="light"] .update-bar-fill{background:#000}
 html[data-theme="dark"] #whatsnew-body{color:#aaa}
 html[data-theme="light"] #whatsnew-body{color:#555}
 .wn-item{margin-bottom:10px}
+.wn-fix{color:#999} /* the simple log's "Design fixes" / "Bug fixes" line */
 
 .sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;opacity:0;transition:opacity .13s ease-out;touch-action:none}
 .sheet-overlay.on{display:block}
@@ -1367,7 +1368,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.82';
+var APP_VERSION='Beta 3.83';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2362,8 +2363,96 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.82',notes:[
     'Fixed: projects coloured Black had no background on their label and icon tile — and in dark mode they now show in white so they can be read'
+  ]},
+  {v:'Beta 3.83',notes:[
+    'Menu → App: new Advanced update info switch (off by default). Off: a simple log for everyone — new features in plain words, every other version just Design fixes / Bug fixes (runs of them merged), and What\'s new only pops up when there is a new feature. On: this detailed log, as before'
   ]}
 ];
+// ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
+// What everyone sees (Menu > App > Advanced update info OFF, the default);
+// CHANGELOG above is the detailed log for testing. A version here is either
+// a real new feature, told in plain words for someone who just uses the app
+// (an array of lines — what you can do now and where), or only fixes:
+// 'bug', 'design' or 'both'. A version missing here is guessed from its
+// CHANGELOG notes (see userLogKind). Give every new version an entry.
+var USER_LOG={
+  'Beta 1.0':["Choose when your day starts, so a late night still counts for the right day (Menu → Today).","Decide whether habits disappear from Today once you've ticked them off."],
+  'Beta 1.4':["Tap a habit to open its own page: a chart of how often you did it, and your consistency score."],
+  'Beta 1.8':["Dark mode! Pick Light or Dark, or let the app follow your phone (Menu → Appearance)."],
+  'Beta 1.10':["Look back a week and plan a month ahead on the habits page."],
+  'Beta 1.14':["Choose how many tasks Today picks for you (Menu → Today)."],
+  'Beta 1.15':["Choose whether a finished task in Today makes room for the next one right away."],
+  'Beta 1.25':["Overview cards tell you more: a tracker shows its latest number, your habits show how many are left today."],
+  'Beta 1.38':'bug',
+  'Beta 1.43':["New Statistics tab: see how consistent you are across all your habits, and which one you're crushing."],
+  'Beta 1.53':["Keep track of numbers like your weight as a habit: add a Tracker project to your habits and log the number right there."],
+  'Beta 1.61':["Statistics also shows your weakest habit, so you know where to put in the work."],
+  'Beta 1.65':["Swipe a task or habit to the right to skip it for today. A skipped habit doesn't hurt your score."],
+  'Beta 1.73':["Bring all your skipped tasks back to Today at once with Reset skipped tasks (Menu → Today)."],
+  'Beta 1.75':["Nothing gets lost by accident anymore: everything you delete goes to the Trash first, and you can bring it back from there."],
+  'Beta 1.78':["The app speaks German now: pick Deutsch in Menu → Language."],
+  'Beta 1.84':["Habit pages show your longest streak, and the one you're on right now."],
+  'Beta 2.4':["Choose which tab the app opens on (Menu → General)."],
+  'Beta 2.8':["Clear out a whole project at once with Reset a project (Menu → Overview). Everything in it goes to the Trash."],
+  'Beta 2.9':["Want a fresh start? Reset your statistics in Menu → Statistics."],
+  'Beta 2.19':'bug',
+  'Beta 2.22':["Pick which tabs show in the bar at the bottom (Menu → General)."],
+  'Beta 2.25':["The app now keeps itself up to date. Rather do it yourself? Switch off Update automatically in Menu → App."],
+  'Beta 2.26':["Change a habit's name or days whenever you like. Your past check-offs stay."],
+  'Beta 2.28':'bug',
+  'Beta 2.35':["Not a fan of swipe-to-skip? Turn it off for tasks or habits in Menu → Today."],
+  'Beta 2.41':["Messed up your settings? Reset settings puts them all back to the start. Your data stays."],
+  'Beta 2.44':["Don't need the War Room? Hide it from Overview in Menu → Overview."],
+  'Beta 2.47':["Sneak peek: a Blocker tab is on its way. Curious? Switch it on in Menu → General."],
+  'Beta 2.55':["The whole app got a fresh, cleaner look."],
+  'Beta 2.58':["Ticked off a calendar task by mistake? It's in the Trash now, and you can bring it back."],
+  'Beta 2.64':["Give a habit a description, like why you're doing it. It shows on the habit's page."],
+  'Beta 2.79':["Use a photo from your phone as a project's icon instead of an emoji."],
+  'Beta 2.84':["Hold a project, category or habit for a moment to pick it up, then drag it wherever you want."],
+  'Beta 2.92':["Give a tracked habit a goal, like 10,000 steps: the day counts as done once you hit it."],
+  'Beta 3.4':["Your data is safer: the app asks your phone to keep it even when storage gets full, and tells you if something couldn't be saved."],
+  'Beta 3.16':'bug',
+  'Beta 3.28':'bug',
+  'Beta 3.30':["Delete a project straight from its edit window. It goes to the Trash, so you can still get it back."],
+  'Beta 3.43':["New Guide at the top of the menu, with tips to get more out of the app.","Want a skipped task to stay away for more than a day? Turn off Reset skipped tasks every new day in Menu → Today."],
+  'Beta 3.54':["Choose how far back your consistency score looks: all time, 3 months, 1 month or just the last week (Menu → Statistics)."],
+  'Beta 3.61':["Don't like the click when you complete something? Turn the sound off in Menu → General."],
+  'Beta 3.69':["New look for Overview: turn on Minimal layout in Menu → Overview, and your projects show up like apps on your home screen."],
+  'Beta 3.72':["The charts zoom now: pinch to switch between days, weeks and months, and drag sideways to look back in time."],
+  'Beta 3.76':["Habits got simpler: no more categories. All the habits of a project sit together in one card."],
+  'Beta 3.77':["Have more than one Habits project, like Morning and Evening. Each keeps its own habits and gets its own card on Today."],
+  'Beta 3.81':["Missed a habit because you were sick? Skip it for days that are already over: open the Habits project, tap the day and swipe the habit to the right. It won't count against you."],
+  'Beta 3.82':'bug',
+  'Beta 3.83':["Update notes are short and simple now: you only hear about things that are actually new. Want every detail? Turn on Advanced update info in Menu → App."]
+};
+// For a version without a new feature: 'bug', 'design' or 'both' (null for
+// a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
+// change) is a bug fix, anything else a design fix.
+function userLogKind(e){
+  var u=USER_LOG[e.v];
+  if(Array.isArray(u))return null;
+  if(u)return u;
+  var bug=false,des=false;
+  e.notes.forEach(function(n){if(/^(Fixed|Internal changes|Behind-the-scenes)/.test(n))bug=true;else des=true;});
+  return bug&&des?'both':bug?'bug':'design';
+}
+var FIX_LABEL={bug:'Bug fixes',design:'Design fixes',both:'Design and bug fixes'};
+// The simple history, newest first: each feature version on its own, and
+// every run of fix-only versions in between merged into one entry
+// ("Beta 3.78 – 3.80" · Design fixes).
+function simpleHistory(){
+  var out=[],run=null;
+  CHANGELOG.slice().reverse().forEach(function(e){
+    var k=userLogKind(e);
+    if(!k){run=null;out.push({v:e.v,lines:USER_LOG[e.v]});return;}
+    if(!run){run={v:e.v,from:e.v,bug:false,design:false};out.push(run);}
+    run.from=e.v;run.bug=run.bug||k!=='design';run.design=run.design||k!=='bug';
+  });
+  return out.map(function(r){
+    if(r.lines)return r;
+    return{v:r.from===r.v?r.v:r.from+' – '+r.v.replace(/^Beta /,''),fix:FIX_LABEL[r.bug&&r.design?'both':r.bug?'bug':'design']};
+  });
+}
 var COLORS={
   'c-grey': '#6b7280',
   'c-red':  '#ef4444',
@@ -2400,7 +2489,7 @@ var DEFAULT_SETTINGS={
   startTab:'today',hiddenTabs:['blocker'],holdToComplete:true,autoUpdate:true,language:'en',theme:'system',
   dayStartHour:3,todayHabitsDisappear:true,skipHabits:false,
   todayTaskCount:3,todayRefill:false,skipTasks:true,skipResetDaily:true,showWarRoom:true,
-  statsRange:'3m',sound:true,overviewMinimal:false
+  statsRange:'3m',sound:true,overviewMinimal:false,advancedUpdates:false
 };
 // A plain notice card at the top of the screen for the rare data problems
 // in DB.load / DB.save — tap it to dismiss.
@@ -2881,7 +2970,7 @@ var I18N=(function(){
     // tab bar + page titles
     'Today':'Heute','Overview':'Übersicht','Tasks':'Aufgaben','Stats':'Statistik','Settings':'Einstellungen','Statistics':'Statistik',
     'Daily':'Täglich','Habits':'Gewohnheiten','Trash':'Papierkorb','Edit layout':'Layout bearbeiten','Reorder or remove':'Neu ordnen oder entfernen',
-    'Version history':'Versionsverlauf',"What's new":'Neuigkeiten','Got it':'Verstanden','General':'Allgemein','Data':'Daten',
+    'Version history':'Versionsverlauf','Advanced update info':'Erweiterte Update-Infos','Bug fixes':'Fehlerbehebungen','Design fixes':'Design-Korrekturen','Design and bug fixes':'Design-Korrekturen und Fehlerbehebungen',"What's new":'Neuigkeiten','Got it':'Verstanden','General':'Allgemein','Data':'Daten',
     // headers
     '📆 Daily':'📆 Täglich','📅 One-time':'📅 Einmalig','One-time tasks':'Einmalige Aufgaben','One-time':'Einmalig',
     'Consistency score':'Konsistenz-Wert','Time range':'Zeitraum','All time':'Gesamte Zeit','3 months':'3 Monate','1 month':'1 Monat','1 week':'1 Woche','Best score':'Bester Wert','Worst score':'Schlechtester Wert','Consistency':'Konsistenz',
@@ -3686,12 +3775,23 @@ function renderAppPage(){
     +'</div>'
     +'</div>'
     +'<div class="opt-group"><div class="opt-row btn-row" id="update-btn" onclick="A.checkForUpdate()"><div class="opt-text"><div class="opt-title">Check for updates</div></div></div></div>'
+    // its own card, right above Version history: which log it shows
+    +'<div class="opt-group"><div class="opt-row" style="cursor:default">'
+    +'<div class="opt-text"><div class="opt-title">Advanced update info</div></div>'
+    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(DB.data.settings.advancedUpdates?'checked':'')+' onchange="A.setAdvancedUpdates(this.checked)"><span class="switch-slider"></span></label>'
+    +'</div></div>'
 ;
-  document.getElementById('app-history').innerHTML='<div class="calsec" style="padding:14px 15.5px 2px">'+CHANGELOG.slice().reverse().map(function(entry){
-    return '<div style="margin-bottom:18px"><div style="font-weight:700;font-size:15px;margin-bottom:6px">'+esc(entry.v)+'</div>'
-      +entry.notes.map(function(n){return '<div class="wn-item">• '+esc(n)+'</div>';}).join('')
-      +'</div>';
-  }).join('')+'</div>';
+  renderAppHistory();
+}
+// Version history: every detailed CHANGELOG note (Advanced update info on),
+// or the simple log (USER_LOG via simpleHistory) everyone else gets.
+function renderAppHistory(){
+  var head=function(v){return '<div style="margin-bottom:18px"><div style="font-weight:700;font-size:15px;margin-bottom:6px">'+esc(v)+'</div>';};
+  var bullets=function(a){return a.map(function(n){return '<div class="wn-item">• '+esc(n)+'</div>';}).join('');};
+  var h=DB.data.settings.advancedUpdates
+    ?CHANGELOG.slice().reverse().map(function(e){return head(e.v)+bullets(e.notes)+'</div>';})
+    :simpleHistory().map(function(r){return head(r.v)+(r.lines?bullets(r.lines):'<div class="wn-item wn-fix">'+r.fix+'</div>')+'</div>';});
+  document.getElementById('app-history').innerHTML='<div class="calsec" style="padding:14px 15.5px 2px">'+h.join('')+'</div>';
 }
 // General page: which tab to open on + hold to complete, then the footer menu
 function renderGeneralTop(){
@@ -4250,6 +4350,8 @@ var A={
     DB.data.settings.startTab=val;DB.save();
     renderSettings();
   },
+  // only the history below redraws, so the switch itself isn't replaced mid-flip
+  setAdvancedUpdates:function(val){DB.data.settings.advancedUpdates=val;DB.save();renderAppHistory();},
   setAutoUpdate:function(val){
     DB.data.settings.autoUpdate=val;DB.save();
     if(val)A.checkForUpdate(true);
@@ -6237,8 +6339,16 @@ var WhatsNew={
     var pending=CHANGELOG.slice(i+1);
     return pending.length?pending:[CHANGELOG[CHANGELOG.length-1]];
   },
+  // Simple log (Advanced update info off): only the new features, in plain
+  // words — an update with nothing but fixes doesn't pop up at all, it's
+  // just marked as seen.
   open:function(){
-    this._render(this._pending());
+    var list=this._pending();
+    if(!DB.data.settings.advancedUpdates){
+      list=list.filter(function(e){return !userLogKind(e);}).map(function(e){return{v:e.v,notes:USER_LOG[e.v]};});
+      if(!list.length){DB.data.settings.lastSeenVersion=APP_VERSION;DB.save();return;}
+    }
+    this._render(list);
     _overlayOpen('whatsnew-overlay');
   },
   // Every version you missed, newest first, in one scrolling sheet; closing

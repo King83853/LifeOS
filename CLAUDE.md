@@ -179,6 +179,14 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   chart", so only `aggHabitConsistency` passes it (`habitConsistency(it,
   true,span)`); best/worst and a habit's own page keep 90 days. All time
   starts at `habitCreatedDs` (so after a statistics reset, at the reset).
+  3.86: Menu > Statistics > Widgets — a switch per Statistics widget
+  (`STAT_WIDGETS`: score, chart, best, worst; `settings.statsHidden` lists
+  the switched-off ones, default none). Each widget on #p-stats is wrapped
+  in `.stat-w[data-w]`; `Stats.applyWidgets()` toggles `.off` and shows
+  "All widgets are turned off" when none is left; a hidden widget isn't
+  rendered (a hidden chart can't measure itself). The 20px card-after-card
+  rule skips a switched-off wrapper (`:not(.off)+*`), so the widget after it
+  keeps normal spacing — measured 20 / 44px gaps in every combination.
   Dropdown setters must call `renderSettings()` — customSelect is static
   markup, and without a redraw the row kept showing the old value.
   Bar charts (`ZChart`, shared by Statistics, habit and tracker pages) have

@@ -151,8 +151,13 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   a "Daily habit" card with Days/Goal rows, removed by request: the goal
   shows as the chart's goal line, and the days sit under the title like on
   a habit page; `#hsub-<pid>` in buildProjPages' header, filled/hidden by
-  renderTracker). That line is the ONLY way from the tracker page to the
-  habit's days/goal/delete — keep it tappable.
+  renderTracker). That line is the only way from the tracker page to the
+  habit's days/delete — keep it tappable. The GOAL is also editable in the
+  project's own edit window (SheetEditor, tap the name; `#sheet-goal-row`,
+  shown only for a tracker added as a habit, writes the habit's `goal`) —
+  3.92, after 3.90 read "remove the goal widget" as the Days/Goal card and
+  the user then missed the goal setting there ("only meant to be removed
+  in the project tab, not the project edit tab"). Keep both places.
   A tracker page for a Daily-linked tracker (`renderTracker` +
   `TrackerPage`): entries fold behind one "Entries N ›" row (closed by
   default, state kept per pid while the app runs), then the Consistency

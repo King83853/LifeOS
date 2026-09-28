@@ -203,6 +203,17 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   position decides a swap (the middle-60% check sideways made a hold near a
   row's left edge never swap — Daily habits too). ZChart ignores touchmove
   while DragReorder.active, so dragging the chart widget doesn't pan it.
+  3.88: 5th widget "Perfect streak" (`perfect`, last by default): current
+  run of days on which EVERY habit scheduled that day, across all Habits
+  projects, was done (`perfectStreaks()`; skip = done; a day with nothing
+  scheduled — rest day or before any habit existed — neither counts nor
+  breaks it; an unfinished today doesn't break it; a tracker habit whose
+  tracker project is gone is left out, since it can never be done), with
+  "Longest streak: N" under it — the habit page's streak card pattern, but
+  the CURRENT streak is the big number here ("the streak" was asked for).
+  Adding a widget = markup `.stat-w[data-w]` + STAT_WIDGETS + render branch
+  + DEFAULT_SETTINGS.statsOrder; `Stats.order()` appends it for people who
+  already reordered.
   Dropdown setters must call `renderSettings()` — customSelect is static
   markup, and without a redraw the row kept showing the old value.
   Bar charts (`ZChart`, shared by Statistics, habit and tracker pages) have

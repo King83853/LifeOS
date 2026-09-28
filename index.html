@@ -1146,6 +1146,15 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
   <div id="stats-worst"></div>
   </div>
 
+  <div class="stat-w" data-w="perfect">
+  <div class="sl">Perfect streak</div>
+  <div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:18px 14px;gap:4px">
+    <div id="stats-perfect" class="stat-num"></div>
+    <div class="stat-note">days in a row with every habit done</div>
+    <div id="stats-perfect-best" class="stat-note"></div>
+  </div>
+  </div>
+
   <div class="opt-group" id="stats-none" style="display:none"><div class="cal-none">All widgets are turned off</div></div>
 
 </div>
@@ -1394,7 +1403,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.87';
+var APP_VERSION='Beta 3.88';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2405,6 +2414,9 @@ var CHANGELOG=[
   {v:'Beta 3.87',notes:[
     'Statistics: hold a widget to pick it up and drag it to a new place, like projects on Overview; Menu → Statistics lists the widgets in the same order',
     'Switches: the knob no longer bumps at the start when turning one off (its stretch and slide now run on the same timing), and the setting is saved and applied right after the knob has moved instead of during it'
+  ]},
+  {v:'Beta 3.88',notes:[
+    'Statistics: new Perfect streak widget — how many days in a row every scheduled habit (all Habits projects) was done, skipped counting as done, with your longest such streak under it. Days with nothing scheduled don\'t count or break it; an unfinished today doesn\'t break it yet. On by default, last in the order, switchable and movable like the others'
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2466,7 +2478,8 @@ var USER_LOG={
   'Beta 3.84':'design',
   'Beta 3.85':'design',
   'Beta 3.86':["Choose which statistics you see"],
-  'Beta 3.87':["Rearrange your statistics"]
+  'Beta 3.87':["Rearrange your statistics"],
+  'Beta 3.88':["New perfect streak in statistics"]
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -2532,7 +2545,7 @@ var DEFAULT_SETTINGS={
   startTab:'today',hiddenTabs:['blocker'],holdToComplete:true,autoUpdate:true,language:'en',theme:'system',
   dayStartHour:3,todayHabitsDisappear:true,skipHabits:false,
   todayTaskCount:3,todayRefill:false,skipTasks:true,skipResetDaily:true,showWarRoom:true,
-  statsRange:'3m',sound:true,overviewMinimal:false,advancedUpdates:false,statsHidden:[],statsOrder:['score','chart','best','worst']
+  statsRange:'3m',sound:true,overviewMinimal:false,advancedUpdates:false,statsHidden:[],statsOrder:['score','chart','best','worst','perfect']
 };
 // A plain notice card at the top of the screen for the rare data problems
 // in DB.load / DB.save — tap it to dismiss.
@@ -3016,7 +3029,7 @@ var I18N=(function(){
     'Version history':'Versionsverlauf','Advanced update info':'Erweiterte Update-Infos','Bug fixes':'Fehlerbehebungen','Design fixes':'Design-Korrekturen','Design and bug fixes':'Design-Korrekturen und Fehlerbehebungen',"What's new":'Neuigkeiten','Got it':'Verstanden','General':'Allgemein','Data':'Daten',
     // headers
     '📆 Daily':'📆 Täglich','📅 One-time':'📅 Einmalig','One-time tasks':'Einmalige Aufgaben','One-time':'Einmalig',
-    'Consistency score':'Konsistenz-Wert','Time range':'Zeitraum','All time':'Gesamte Zeit','3 months':'3 Monate','1 month':'1 Monat','1 week':'1 Woche','Best score':'Bester Wert','Widgets':'Widgets','Chart':'Diagramm','All widgets are turned off':'Alle Widgets sind ausgeschaltet','Worst score':'Schlechtester Wert','Consistency':'Konsistenz',
+    'Consistency score':'Konsistenz-Wert','Time range':'Zeitraum','All time':'Gesamte Zeit','3 months':'3 Monate','1 month':'1 Monat','1 week':'1 Woche','Best score':'Bester Wert','Widgets':'Widgets','Chart':'Diagramm','Perfect streak':'Perfekte Serie','days in a row with every habit done':'Tage in Folge mit allen Gewohnheiten erledigt','All widgets are turned off':'Alle Widgets sind ausgeschaltet','Worst score':'Schlechtester Wert','Consistency':'Konsistenz',
     '⚠️ War Room':'⚠️ War Room','War Room':'War Room','📈 Tracker':'📈 Tracker','📋 List':'📋 Liste','✅ To-do':'✅ To-do',
     'Nothing else matters until the War Room is clear.':'Nichts anderes zählt, bis der War Room leer ist.',
     'Nothing to do today.':'Heute nichts zu tun.','Nothing scheduled for today.':'Für heute ist nichts geplant.','Nothing here.':'Hier ist nichts.',
@@ -3088,6 +3101,7 @@ var I18N=(function(){
     [/^Tracking: (.*)$/,'Verfolge: $1'],
     [/^Move all (habits and categories|habits|entries|tasks) of "(.*)" to the Trash\?$/,function(m,w,n){return 'Alle '+({'habits and categories':'Gewohnheiten und Kategorien','habits':'Gewohnheiten','entries':'Einträge','tasks':'Aufgaben'})[w]+' von „'+n+'“ in den Papierkorb legen?';}],
     [/^Current streak: (\d+)$/,'Aktuelle Serie: $1'],
+    [/^Longest streak: (\d+)$/,'Längste Serie: $1'],
     [/^Goal: (.*)$/,'Ziel: $1'],
     [/^What's new in (.*)$/,'Neuigkeiten in $1'],
     [/^Category: (.*)$/,'Kategorie: $1'],
@@ -5271,6 +5285,28 @@ function habitStreaks(item){
   }
   return{best:best,current:run};
 }
+// Statistics' Perfect streak: days in a row on which EVERY habit scheduled
+// that day (all Habits projects) was done — skipped counts as done, like
+// everywhere else. A day with nothing scheduled (a rest day, or before any
+// habit existed) neither counts nor breaks the run; an unfinished today
+// doesn't break it yet. A tracker habit whose tracker is gone isn't shown
+// anywhere, so it can't be done — it's left out.
+function perfectStreaks(){
+  var items=DB.data.dailyItems.filter(function(it){return it.days&&it.days.length&&(!it.trackerPid||DB.data.projects[it.trackerPid]);});
+  if(!items.length)return{best:0,current:0};
+  var todayS=dStr(T),first=items.map(habitCreatedDs).sort()[0];
+  var d=new Date(T);d.setDate(d.getDate()-400);
+  if(first>=dStr(d)){var p=first.split('-');d=new Date(+p[0],+p[1]-1,+p[2]);}
+  var best=0,run=0;
+  for(var guard=0;dStr(d)<=todayS&&guard<800;guard++,d.setDate(d.getDate()+1)){
+    var ds=dStr(d),wi=wIdx(d),due=0,done=0;
+    items.forEach(function(it){if(it.days.indexOf(wi)!==-1&&ds>=habitCreatedDs(it)){due++;if(habitDayVal(it,ds))done++;}});
+    if(!due)continue;
+    if(done===due){run++;if(run>best)best=run;}
+    else if(ds!==todayS)run=0;
+  }
+  return{best:best,current:run};
+}
 // Settings > Statistics > Time range: how far back the Statistics ring
 // looks (days; 0 = all time). Only the ring — best/worst and a habit's own
 // page keep the 90 days.
@@ -5316,7 +5352,7 @@ function worstHabitConsistency(){
 var STAT_ICON_UP='<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><polygon points="12 6.5 19.5 17.5 4.5 17.5"/></svg>';
 var STAT_ICON_DOWN='<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><polygon points="12 17.5 19.5 6.5 4.5 6.5"/></svg>';
 // The Statistics page's widgets, in page order: [key, name in the menu]
-var STAT_WIDGETS=[['score','Consistency score'],['chart','Chart'],['best','Best score'],['worst','Worst score']];
+var STAT_WIDGETS=[['score','Consistency score'],['chart','Chart'],['best','Best score'],['worst','Worst score'],['perfect','Perfect streak']];
 var Stats={
   view:'day',
   // With habits scheduled but nothing counted yet (e.g. right after a
@@ -5367,6 +5403,11 @@ var Stats={
     if(this.shown('chart'))this.renderChart();
     if(this.shown('best'))document.getElementById('stats-best').innerHTML=this.habitRow(bestHabitConsistency(),STAT_ICON_UP,'#22c55e');
     if(this.shown('worst'))document.getElementById('stats-worst').innerHTML=this.habitRow(worstHabitConsistency(),STAT_ICON_DOWN,'#ef4444');
+    if(this.shown('perfect')){
+      var ps=perfectStreaks();
+      document.getElementById('stats-perfect').textContent=ps.current;
+      document.getElementById('stats-perfect-best').textContent='Longest streak: '+ps.best;
+    }
   },
   // Best/worst habit as a one-line Settings row (icon, name, score, arrow)
   // that opens the habit's page — or a tracked project's page — with back

@@ -1409,7 +1409,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.92';
+var APP_VERSION='Beta 3.93';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2440,6 +2440,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.92',notes:[
     'A tracker added as a habit: its goal can be set in the project\'s own edit window again (tap the name) — the same goal as in the habit\'s window (tap the days)'
+  ]},
+  {v:'Beta 3.93',notes:[
+    'Fixed: letting go of a project you held on Overview (it had grown to be moved) opened it — now nothing that was picked up opens on release, moved or not (projects, categories, habits, Statistics widgets)'
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2506,7 +2509,8 @@ var USER_LOG={
   'Beta 3.89':["Goal line on tracker charts","Bar chart option for trackers"],
   'Beta 3.90':'design',
   'Beta 3.91':'design',
-  'Beta 3.92':'bug'
+  'Beta 3.92':'bug',
+  'Beta 3.93':'bug'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -7174,7 +7178,7 @@ var TYPE_OPTS=[{value:'todo',label:'To-do',ico:TYPE_ICONS.todo},{value:'list',la
 // How long a project, category or habit must be held before it can be moved (ms).
 var DRAG_HOLD_MS=900;
 var DragReorder={
-  active:false,_timer:null,_el:null,_ph:null,_container:null,_itemSel:null,_mode:'grid',
+  active:false,_endedAt:0,_timer:null,_el:null,_ph:null,_container:null,_itemSel:null,_mode:'grid',
   _onDrop:null,_startX:0,_startY:0,_offX:0,_offY:0,_preMove:null,_preEnd:null,
   _onMove:null,_onEnd:null,
   init:function(container,handleSel,itemSel,mode,onDrop){
@@ -7327,6 +7331,7 @@ var DragReorder={
   _end:function(e){
     e.preventDefault();
     e.stopPropagation();
+    this._endedAt=Date.now(); // see the click guard below
     var el=this._el,ph=this._ph;
     el.removeEventListener('touchmove',this._onMove,{passive:false});
     el.removeEventListener('touchend',this._onEnd,{passive:false});
@@ -7342,6 +7347,13 @@ var DragReorder={
     if(onDrop)onDrop(container,el);
   }
 };
+// Once something has been picked up, letting go never opens it — moved or
+// not. preventDefault on the touchend wasn't enough on the iPhone (a held
+// project on Overview opened on release), so every click in the moment
+// after a pick-up ends is swallowed before it reaches anything.
+document.addEventListener('click',function(e){
+  if(Date.now()-DragReorder._endedAt<600){e.stopPropagation();e.preventDefault();}
+},true);
 // A project's photo ignores touches (.proj-photo), so holding it picks up the
 // card like holding an emoji does — on iOS a held <img> otherwise starts the
 // system's own image drag and only the picture moves.

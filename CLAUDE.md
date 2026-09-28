@@ -1081,6 +1081,15 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   Fixed with a `dataset.dragWired` guard so that specific container is
   only ever wired once; the per-category `.agrid`s and Daily's `.calsec`s
   genuinely ARE fresh elements every render, so they need no such guard.
+  3.93: releasing a picked-up item must NEVER open it ("when I let it go
+  and haven't moved it, it opens the project"). `_end` already
+  preventDefault()s + stopPropagation()s the touchend, and in the preview
+  (synthetic touches) nothing opened — but the iPhone still produced a
+  click. Not reproducible here, so fixed by construction: `_end` stamps
+  `DragReorder._endedAt`, and a document CAPTURE click listener swallows
+  every click for 600ms after that (native or TAPPABLE's own .click()).
+  Covers all drag users (Overview projects/categories, Daily habits,
+  Statistics widgets). A normal tap still opens (checked).
   3.23: holding a project PHOTO (an <img>, not an emoji) on Overview
   started iOS's own image drag — only the picture moved, the card didn't.
   Project photos (`iconOrPhoto`) are `.proj-photo` (pointer-events:none,

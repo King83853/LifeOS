@@ -411,7 +411,10 @@ html[data-theme="light"] .dsel-menu{background:#fff}
 @media(prefers-color-scheme:dark){.switch-slider{background:#3a3a3a}}
 html[data-theme="dark"] .switch-slider{background:#3a3a3a}
 html[data-theme="light"] .switch-slider{background:#d1d1d1}
-.switch-slider::before{content:'';position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .25s cubic-bezier(.4,0,.2,1),width .2s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+/* width and transform share one duration + curve: pressed while ON, the knob
+   stretches LEFT (wider + slid left) and its right edge must stay put — with
+   width faster than the slide it poked out ~1px and snapped back (a bump) */
+.switch-slider::before{content:'';position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .25s cubic-bezier(.4,0,.2,1),width .25s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .switch input:checked+.switch-slider{background:#3b82f6}
 .switch input:checked+.switch-slider::before{transform:translateX(20px)}
 /* the knob stretches a little while pressed */
@@ -843,8 +846,19 @@ html:not(#x) .ti[data-pri="bu"] input[type=checkbox]:not(:checked),html:not(#x) 
    also when each card sits in its own container (Settings' list). */
 html:not(#x) .page :is(.opt-group,.calsec,.card-list,.el-card,.agrid,.wr){margin-bottom:22px}
 html:not(#x) .page :is(.opt-group,.calsec,.card-list,.el-card)+:is(.opt-group,.calsec,.card-list,.el-card),
-html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child):not(.off)+*>:is(.opt-group,.calsec,.card-list,.el-card):first-child{margin-top:-2px}
-.stat-w.off{display:none}
+html:not(#x) .page :has(>:is(.opt-group,.calsec,.card-list,.el-card):last-child)+*>:is(.opt-group,.calsec,.card-list,.el-card):first-child{margin-top:-2px}
+/* Statistics widgets (switched on/off and reordered in Menu > Statistics /
+   by holding): each wrapper holds its own spacing (flow-root, so nothing
+   inside collapses through it) — same gaps as the page rule above, but a
+   picked-up widget keeps its exact shape. .after-card = a widget starting
+   with a card right below another widget (20px, not 22). */
+html:not(#x) #p-stats .stat-w{display:flow-root;margin:0 0 22px}
+html:not(#x) #p-stats .stat-w.off{display:none}
+html:not(#x) #p-stats .stat-w.after-card{margin-top:-2px}
+html:not(#x) #p-stats .stat-w>.sl{margin-top:0}
+html:not(#x) #p-stats .stat-w :is(.calsec,.opt-group){margin-top:0;margin-bottom:0}
+#p-stats .stat-w.dragging{box-shadow:none!important;transform:scale(1.03)!important}
+#p-stats .stat-w.dragging :is(.calsec,.opt-group){box-shadow:0 10px 24px rgba(0,0,0,.22)}
 /* Overview, minimal layout (Menu > Overview > Minimal layout): like a
    phone's home screen — just the icon and the name under it, no card and no
    count, four per row. A press dims the icon (not a grey card); a dragged
@@ -1380,7 +1394,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.86';
+var APP_VERSION='Beta 3.87';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2387,6 +2401,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.86',notes:[
     'Menu → Statistics → Widgets: a switch for each Statistics widget (Consistency score, Chart, Best score, Worst score) to show or hide it; with all off, Statistics says so'
+  ]},
+  {v:'Beta 3.87',notes:[
+    'Statistics: hold a widget to pick it up and drag it to a new place, like projects on Overview; Menu → Statistics lists the widgets in the same order',
+    'Switches: the knob no longer bumps at the start when turning one off (its stretch and slide now run on the same timing), and the setting is saved and applied right after the knob has moved instead of during it'
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2447,7 +2465,8 @@ var USER_LOG={
   'Beta 3.83':["Update notes are shorter"],
   'Beta 3.84':'design',
   'Beta 3.85':'design',
-  'Beta 3.86':["Choose which statistics you see"]
+  'Beta 3.86':["Choose which statistics you see"],
+  'Beta 3.87':["Rearrange your statistics"]
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -2513,7 +2532,7 @@ var DEFAULT_SETTINGS={
   startTab:'today',hiddenTabs:['blocker'],holdToComplete:true,autoUpdate:true,language:'en',theme:'system',
   dayStartHour:3,todayHabitsDisappear:true,skipHabits:false,
   todayTaskCount:3,todayRefill:false,skipTasks:true,skipResetDaily:true,showWarRoom:true,
-  statsRange:'3m',sound:true,overviewMinimal:false,advancedUpdates:false,statsHidden:[]
+  statsRange:'3m',sound:true,overviewMinimal:false,advancedUpdates:false,statsHidden:[],statsOrder:['score','chart','best','worst']
 };
 // A plain notice card at the top of the screen for the rare data problems
 // in DB.load / DB.save — tap it to dismiss.
@@ -3927,7 +3946,7 @@ function renderSettings(){
   // button that resets everything
   document.getElementById('settings-stats').innerHTML=
     '<div class="sl" style="margin-top:0">Widgets</div>'
-    +'<div class="opt-group">'+STAT_WIDGETS.map(function(w){
+    +'<div class="opt-group">'+Stats.order().map(function(k){return STAT_WIDGETS.find(function(w){return w[0]===k;});}).map(function(w){
       return '<div class="opt-row" style="cursor:default">'
         +'<div class="opt-text"><div class="opt-title">'+w[1]+'</div></div>'
         +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(Stats.shown(w[0])?'checked':'')+' onchange="A.setStatWidget(\''+w[0]+'\',this.checked)"><span class="switch-slider"></span></label>'
@@ -5136,6 +5155,7 @@ ZChart.prototype._wire=function(){
     else if(mode!==3&&mode!==4){mode=1;sx=e.touches[0].clientX;sy=e.touches[0].clientY;o0=self.offset;moves=[];}
   },{passive:true});
   h.addEventListener('touchmove',function(e){
+    if(DragReorder.active){mode=0;return;} // the widget itself is being moved (Statistics)
     if(mode===3){if(e.touches.length<2)return;e.preventDefault();self.zoomTo(D0*d0/dist(e.touches));draw();return;}
     if(mode===4){e.preventDefault();return;}
     if(mode===1){
@@ -5308,12 +5328,32 @@ var Stats={
   // Which widgets show (Menu > Statistics > Widgets) — a hidden one isn't
   // drawn at all (the chart can't measure itself while hidden anyway).
   shown:function(w){return (DB.data.settings.statsHidden||[]).indexOf(w)===-1;},
+  // The widgets in the chosen order (settings.statsOrder; anything unknown
+  // is dropped, anything missing goes to the end).
+  order:function(){
+    var keys=STAT_WIDGETS.map(function(w){return w[0];});
+    var o=(DB.data.settings.statsOrder||[]).filter(function(k,i,a){return keys.indexOf(k)!==-1&&a.indexOf(k)===i;});
+    return o.concat(keys.filter(function(k){return o.indexOf(k)===-1;}));
+  },
   applyWidgets:function(){
+    var pg=document.getElementById('p-stats'),none=document.getElementById('stats-none');
     var any=false,self=this;
-    document.querySelectorAll('#p-stats .stat-w').forEach(function(el){
-      var on=self.shown(el.getAttribute('data-w'));el.classList.toggle('off',!on);any=any||on;
+    this.order().forEach(function(k){pg.insertBefore(pg.querySelector('.stat-w[data-w="'+k+'"]'),none);});
+    pg.querySelectorAll('.stat-w').forEach(function(el){
+      var on=self.shown(el.getAttribute('data-w'));el.classList.toggle('off',!on);
+      el.classList.toggle('after-card',on&&any&&!el.firstElementChild.classList.contains('sl'));
+      any=any||on;
     });
-    document.getElementById('stats-none').style.display=any?'none':'';
+    none.style.display=any?'none':'';
+    // hold a widget to move it, like projects on Overview (wired once: the
+    // page element stays)
+    if(!pg.dataset.dragWired){
+      pg.dataset.dragWired='1';
+      DragReorder.init(pg,'.stat-w','.stat-w','list',function(c){
+        DB.data.settings.statsOrder=[].map.call(c.querySelectorAll('.stat-w'),function(el){return el.getAttribute('data-w');});
+        DB.save();self.applyWidgets();renderSettings();
+      });
+    }
   },
   render:function(){
     this.applyWidgets();
@@ -5863,6 +5903,18 @@ var Skip=(function(){
   return{go:go};
 })();
 
+// Switches: the knob slides first, then the setting does its work (save +
+// redraw) — done inside the tap, that work held up the knob's first frames
+// on the phone and it bumped/lagged. Catches every switch's change before
+// its own onchange and runs that onchange once the slide (.25s) is over.
+var SWITCH_MS=260;
+document.addEventListener('change',function(e){
+  var cb=e.target;
+  if(!cb.closest||!cb.closest('.switch')||!cb.onchange)return;
+  e.stopPropagation();
+  clearTimeout(cb._swT);
+  cb._swT=setTimeout(function(){cb.onchange.call(cb,{target:cb});},SWITCH_MS);
+},true);
 var MenuPage={
   TABS:[['today','Today'],['overview','Overview'],['lockedin','Tasks'],['stats','Stats'],['blocker','Blocker']],
   render:function(){
@@ -7115,6 +7167,7 @@ var DragReorder={
     var ph=document.createElement('div');
     ph.className='drag-placeholder';
     ph.style.width=r.width+'px';ph.style.height=r.height+'px';
+    var ecs=getComputedStyle(el);ph.style.marginTop=ecs.marginTop;ph.style.marginBottom=ecs.marginBottom; // so nothing around it shifts
     el.parentNode.insertBefore(ph,el.nextSibling);
     this._ph=ph;
     el.style.boxSizing='border-box'; // the size below is the row's outer size
@@ -7163,8 +7216,10 @@ var DragReorder={
       // meaningfully INSIDE the neighbor (its middle 60%), not the moment
       // it grazes an edge — same deliberate-feeling threshold Android/iOS
       // home-screen reordering uses, rather than triggering on first touch.
-      var mx=r.width*0.2,my=r.height*0.2;
-      if(t.clientX>=r.left+mx&&t.clientX<=r.right-mx&&t.clientY>=r.top+my&&t.clientY<=r.bottom-my){
+      // In a list only up/down counts (a finger near the row's edge still
+      // moves it); in a grid both directions do.
+      var mx=r.width*0.2,my=r.height*0.2,inX=this._mode==='list'||(t.clientX>=r.left+mx&&t.clientX<=r.right-mx);
+      if(inX&&t.clientY>=r.top+my&&t.clientY<=r.bottom-my){
         this._swap(it);
         this._lastSwapWith=it;this._lastSwapAt=Date.now();
         break;

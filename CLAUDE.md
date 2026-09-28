@@ -187,6 +187,22 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   rendered (a hidden chart can't measure itself). The 20px card-after-card
   rule skips a switched-off wrapper (`:not(.off)+*`), so the widget after it
   keeps normal spacing — measured 20 / 44px gaps in every combination.
+  3.87: the widgets can be REORDERED by holding one (DragReorder on #p-stats,
+  wired once via dataset.dragWired, list mode; `settings.statsOrder`, default
+  score/chart/best/worst, read via `Stats.order()`; Menu > Statistics lists
+  the switches in that order). Because a picked-up element becomes
+  position:fixed (its own formatting context), a widget whose title margin
+  collapsed through its wrapper jumped when lifted — so each `.stat-w` is
+  now `display:flow-root` with its own margins (0 0 22px, `.after-card`
+  -2px for a card-first widget below another, set in applyWidgets), inner
+  margins zeroed. Default layout measured pixel-identical to before. Careful:
+  that flow-root rule outranks a plain `.stat-w.off{display:none}` — the
+  hide rule must be at least as specific (it wasn't, hidden widgets kept
+  their space for one build). DragReorder's placeholder now copies the
+  item's vertical margins, and in 'list' mode only the finger's up/down
+  position decides a swap (the middle-60% check sideways made a hold near a
+  row's left edge never swap — Daily habits too). ZChart ignores touchmove
+  while DragReorder.active, so dragging the chart widget doesn't pan it.
   Dropdown setters must call `renderSettings()` — customSelect is static
   markup, and without a redraw the row kept showing the old value.
   Bar charts (`ZChart`, shared by Statistics, habit and tracker pages) have
@@ -1631,6 +1647,19 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   screenshot literally — one of those guesses came from picking the
   easiest reading of a circled region.
 
+- Switches (3.87, "laggy… when on and turning off, right at the beginning it
+  bumps"): two causes. (1) Pressed while ON the knob stretches left (width
+  22→27 AND translateX 20→15); width ran .2s and transform .25s, so its
+  right edge poked out ~1px and came back — now both .25s, same curve, right
+  edge constant (x+w=42). OFF→pressed only widens rightward, which is why
+  only turning OFF bumped. (2) Every switch's onchange saved all data
+  (DB.save = JSON of everything, photos included) and redrew a page inside
+  the tap, delaying the knob's first frames on the phone. A document-level
+  CAPTURE 'change' listener now stops a `.switch` input's change and runs
+  its inline onchange SWITCH_MS (260ms) later, after the slide; rapid
+  re-taps collapse into one call with the final state. New switches need
+  nothing extra. Side effect to know: for those 260ms the setting isn't
+  saved yet (a re-render in that window shows the old state).
 - `body.kb-open` (hides the tab bar/FAB while typing) is set on focusin
   only for fields that bring up a keyboard (`_isTypingField`: textarea,
   and inputs other than checkbox/radio/range/buttons/color/file/hidden).

@@ -393,8 +393,10 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   comparison keys on).
 
 - Two update logs (3.83, "no one is reading it — it's way too complicated"):
-  Menu > App has its own card above Version history, "Advanced update info"
-  (`settings.advancedUpdates`, default OFF). On = the detailed `CHANGELOG`
+  Menu > App has a switch "Advanced update info" (`settings.advancedUpdates`,
+  default OFF; 3.83 as its own card, since 3.84 the App page is ONE card in
+  the order asked for: Version, Advanced update info, Update automatically,
+  Check for updates). On = the detailed `CHANGELOG`
   as before (for the user as tester/dev). Off = `USER_LOG` (right after
   CHANGELOG), for everyone else: a version is either a real new feature,
   as an array of lines written for someone who just uses the app (what you

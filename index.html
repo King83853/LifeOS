@@ -544,8 +544,8 @@ html[data-theme="light"] .seg-btn.active{background:#fff;color:#000;box-shadow:0
 html[data-theme="dark"] .type-btn.active{border-color:#fff;color:#fff;background:#252320}
 html[data-theme="light"] .type-btn.active{border-color:#000;color:#000;background:#f3f4f6}
 
-.trk-val{font-size:32px;font-weight:800;letter-spacing:-.02em;margin:4px 0 2px}
-.trk-unit{font-size:13px;color:#999;font-weight:500;margin-bottom:12px}
+.trk-val{font-size:32px;font-weight:800;letter-spacing:-.02em;margin:4px 0 12px;line-height:38px}
+.trk-u{font-size:15px;font-weight:500;color:#999;letter-spacing:0;margin-left:5px}
 .trk-chart{width:100%;height:140px;margin:4px 0 12px}
 .trk-entry{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0ede8}
 .trk-entry-val{font-size:15px;font-weight:700}
@@ -652,7 +652,6 @@ html:not(#x) .dhdr{min-height:40px}
 /* text roles */
 .tt,.cali label,.wit,.el-name,.trk-entry-val,.archi-title,.cat-choice,.color-field-label{font-size:15px;font-weight:600}
 .ts,.archi-sub,.trk-entry-date{font-size:12px;font-weight:500}
-.trk-unit{font-size:13px;font-weight:500}
 .empty{font-size:14px;font-weight:500}
 .albl{font-size:12px;font-weight:600}
 .acnt{font-size:11px;font-weight:500;color:#999}
@@ -1296,10 +1295,10 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
       <svg class="color-field-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
     </div>
     <div id="ma-edit-row" style="display:none">
-      <div class="sheet-label">Moving average</div>
+      <div class="sheet-label">Chart</div>
       <div class="opt-group">
-        <div class="opt-row"><div class="opt-text"><div class="opt-title">Show on chart</div></div><label class="switch"><input type="checkbox" id="sheet-ma-enabled"><span class="switch-slider"></span></label></div>
-        <div class="opt-row"><div class="opt-text"><div class="opt-title">Window size</div></div><input type="number" class="row-num" id="sheet-ma-window" min="2" max="90"></div>
+        <div class="opt-row"><div class="opt-text"><div class="opt-title">Bar chart</div></div><label class="switch"><input type="checkbox" id="sheet-bar-chart" onchange="SheetEditor.syncChartRows()"><span class="switch-slider"></span></label></div>
+        <div class="opt-row" id="sheet-ma-row"><div class="opt-text"><div class="opt-title">Moving average</div></div><label class="switch"><input type="checkbox" id="sheet-ma-enabled"><span class="switch-slider"></span></label></div>
       </div>
     </div>
     <div class="sheet-btns">
@@ -1403,7 +1402,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.88';
+var APP_VERSION='Beta 3.89';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2417,6 +2416,13 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.88',notes:[
     'Statistics: new Perfect streak widget — how many days in a row every scheduled habit (all Habits projects) was done, skipped counting as done, with your longest such streak under it. Days with nothing scheduled don\'t count or break it; an unfinished today doesn\'t break it yet. On by default, last in the order, switchable and movable like the others'
+  ]},
+  {v:'Beta 3.89',notes:[
+    'Tracker charts: one style for the line — 3px in the Statistics green, with a dot on every entry. With the moving average on, the line is the average and the dots stay without the connecting line. The moving average is always the last 7 entries (no more window size)',
+    'Trackers added as a habit with a goal: a dotted goal line; the line is green above it and red below, with a soft green/red fade between the line and the goal; dots are coloured by their own value',
+    'New Bar chart switch for every tracker (edit window → Chart): one bar per entry from 0, green — or red below the goal when there is one',
+    'The unit sits next to the big number instead of under it',
+    'A tracker added as a habit no longer shows the done / not done bar chart'
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2479,7 +2485,8 @@ var USER_LOG={
   'Beta 3.85':'design',
   'Beta 3.86':["Choose which statistics you see"],
   'Beta 3.87':["Rearrange your statistics"],
-  'Beta 3.88':["New perfect streak in statistics"]
+  'Beta 3.88':["New perfect streak in statistics"],
+  'Beta 3.89':["Goal line on tracker charts","Bar chart option for trackers"]
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -3029,12 +3036,12 @@ var I18N=(function(){
     'Version history':'Versionsverlauf','Advanced update info':'Erweiterte Update-Infos','Bug fixes':'Fehlerbehebungen','Design fixes':'Design-Korrekturen','Design and bug fixes':'Design-Korrekturen und Fehlerbehebungen',"What's new":'Neuigkeiten','Got it':'Verstanden','General':'Allgemein','Data':'Daten',
     // headers
     '📆 Daily':'📆 Täglich','📅 One-time':'📅 Einmalig','One-time tasks':'Einmalige Aufgaben','One-time':'Einmalig',
-    'Consistency score':'Konsistenz-Wert','Time range':'Zeitraum','All time':'Gesamte Zeit','3 months':'3 Monate','1 month':'1 Monat','1 week':'1 Woche','Best score':'Bester Wert','Widgets':'Widgets','Chart':'Diagramm','Perfect streak':'Perfekte Serie','days in a row with every habit done':'Tage in Folge mit allen Gewohnheiten erledigt','All widgets are turned off':'Alle Widgets sind ausgeschaltet','Worst score':'Schlechtester Wert','Consistency':'Konsistenz',
+    'Consistency score':'Konsistenz-Wert','Time range':'Zeitraum','All time':'Gesamte Zeit','3 months':'3 Monate','1 month':'1 Monat','1 week':'1 Woche','Best score':'Bester Wert','Widgets':'Widgets','Chart':'Diagramm','Bar chart':'Balkendiagramm','Perfect streak':'Perfekte Serie','days in a row with every habit done':'Tage in Folge mit allen Gewohnheiten erledigt','All widgets are turned off':'Alle Widgets sind ausgeschaltet','Worst score':'Schlechtester Wert','Consistency':'Konsistenz',
     '⚠️ War Room':'⚠️ War Room','War Room':'War Room','📈 Tracker':'📈 Tracker','📋 List':'📋 Liste','✅ To-do':'✅ To-do',
     'Nothing else matters until the War Room is clear.':'Nichts anderes zählt, bis der War Room leer ist.',
     'Nothing to do today.':'Heute nichts zu tun.','Nothing scheduled for today.':'Für heute ist nichts geplant.','Nothing here.':'Hier ist nichts.',
     // actions
-    'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Add habit':'Gewohnheit hinzufügen','Habit name':'Name der Gewohnheit','Edit habit':'Gewohnheit bearbeiten','Delete habit':'Gewohnheit löschen','Description (optional)':'Beschreibung (optional)','Show on chart':'Im Diagramm anzeigen','Add category':'Kategorie hinzufügen','Add project':'Projekt hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
+    'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Add habit':'Gewohnheit hinzufügen','Habit name':'Name der Gewohnheit','Edit habit':'Gewohnheit bearbeiten','Delete habit':'Gewohnheit löschen','Description (optional)':'Beschreibung (optional)','Add category':'Kategorie hinzufügen','Add project':'Projekt hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
     'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Blocker':'Blocker','Coming soon':'Demnächst verfügbar','Notifications':'Mitteilungen','Minimal layout':'Minimales Layout','Sound':'Ton','Sounds':'Töne','App and website blocker: limits, warnings, screen time and app usage.':'App- und Website-Blocker: Limits, Warnungen, Bildschirmzeit und App-Nutzung.','Show War Room':'War Room anzeigen','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
@@ -3043,7 +3050,7 @@ var I18N=(function(){
     // form labels
     'Name':'Name','Type':'Typ','Category':'Kategorie','Color':'Farbe','Description':'Beschreibung','Date':'Datum','Day':'Tag','Days':'Tage','Week':'Woche','Month':'Monat',
     'Habit':'Gewohnheit','Task':'Aufgabe','Project':'Projekt','Priority':'Priorität','Notes':'Notizen','Emoji icon':'Emoji-Symbol','Choose photo':'Foto auswählen','Change photo':'Foto ändern','Remove photo':'Foto entfernen','View':'Ansicht','List':'Liste','Calendar':'Kalender',
-    'Every day':'Jeden Tag','Window size':'Fenstergröße','Moving average':'Gleitender Durchschnitt','Show moving average on chart':'Gleitenden Durchschnitt im Diagramm zeigen',
+    'Every day':'Jeden Tag','Moving average':'Gleitender Durchschnitt','Show moving average on chart':'Gleitenden Durchschnitt im Diagramm zeigen',
     'Unit (e.g. kg, kcal, h)':'Einheit (z. B. kg, kcal, h)','Category name':'Kategoriename','New category name':'Neuer Kategoriename','New category name…':'Neuer Kategoriename…',
     'Project name':'Projektname','Task name':'Aufgabenname','Short description (optional)':'Kurze Beschreibung (optional)','Add a task…':'Aufgabe hinzufügen…',
     'Enter value':'Wert eingeben','Value':'Wert',"Your saved data couldn't be opened right now. Nothing will be saved over it — close the app completely and open it again.":'Deine gespeicherten Daten konnten gerade nicht geöffnet werden. Es wird nichts darüber gespeichert — schliesse die App ganz und öffne sie wieder.',"Your saved data couldn't be read. It's kept safe and won't be overwritten — export a copy in Menu > Data. Changes you make now won't be saved.":'Deine gespeicherten Daten konnten nicht gelesen werden. Sie bleiben erhalten und werden nicht überschrieben — exportiere eine Kopie unter Menü > Daten. Änderungen werden jetzt nicht gespeichert.',"Your latest changes couldn't be saved — your phone's storage refused them. Free up some space and export a backup in Menu > Data.":'Deine letzten Änderungen konnten nicht gespeichert werden — der Speicher deines Handys hat sie abgelehnt. Gib etwas Speicher frei und exportiere ein Backup unter Menü > Daten.','Goal (optional)':'Ziel (optional)','Done when this is reached':'Erledigt, sobald erreicht','Daily habit':'Tägliche Gewohnheit','Goal':'Ziel','None':'Keins','New project':'Neues Projekt','Edit project':'Projekt bearbeiten','Daily categories':'Tageskategorien','Daily habits':'Tägliche Gewohnheiten',
@@ -3325,84 +3332,9 @@ function renderTracker(pid){
   var unit=p.unit||'';
   var latest=entries.length?entries[entries.length-1].val:'--';
 
-  // SVG chart with axes
-  var PL=44,PR=12,PT=12,PB=28; // padding left/right/top/bottom
-  var W=300,H=140;
-  var CW=W-PL-PR, CH=H-PT-PB;
-  var inkCol=isDarkNow()?'#fff':'#000'; // line + dots — was hardcoded dark, invisible on a dark card
-  var gridCol=isDarkNow()?'#333':'#e8e5e0';
-  var svgH='<svg class="trk-chart" viewBox="0 0 '+W+' '+H+'" style="overflow:visible">';
-
-  if(entries.length>0){
-    var vals=entries.map(function(e){return e.val;});
-    var minV=Math.min.apply(null,vals),maxV=Math.max.apply(null,vals);
-    var range=maxV-minV||1;
-    // Nice round Y axis labels
-    var yMid=Math.round((minV+maxV)/2*10)/10;
-    var yLabels=[
-      {v:maxV, y:PT},
-      {v:yMid, y:PT+CH/2},
-      {v:minV, y:PT+CH}
-    ];
-    // Y axis grid lines + labels
-    yLabels.forEach(function(l){
-      svgH+='<line x1="'+PL+'" y1="'+l.y+'" x2="'+(W-PR)+'" y2="'+l.y+'" stroke="'+gridCol+'" stroke-width="1"/>';
-      svgH+='<text x="'+(PL-6)+'" y="'+(l.y+4)+'" text-anchor="end" fill="#bbb" font-size="9">'+l.v+'</text>';
-    });
-
-    if(entries.length===1){
-      var x=PL+CW/2, y=PT+CH/2;
-      svgH+='<circle cx="'+x+'" cy="'+y+'" r="3.5" fill="'+inkCol+'"/>';
-    } else {
-      // X position proportional to actual elapsed time between entries
-      var minTs=entries[0].ts, maxTs=entries[entries.length-1].ts;
-      var tRange=maxTs-minTs||1;
-      var xOf=function(ts){return PL+((ts-minTs)/tRange)*CW;};
-
-      // Line + dots — when the moving average is on, the raw points are
-      // just noise (water weight etc.) so they're de-emphasized (thin,
-      // faint) and the average becomes the prominent line instead of a
-      // thin dashed overlay.
-      var pts=entries.map(function(e){
-        var y=PT+(1-(e.val-minV)/range)*CH;
-        return xOf(e.ts)+','+y;
-      }).join(' ');
-      var rawOpacity=p.maEnabled?0.35:1;
-      var rawWidth=p.maEnabled?1.5:2;
-      var rawDotR=p.maEnabled?2:3;
-      svgH+='<polyline fill="none" stroke="'+inkCol+'" stroke-width="'+rawWidth+'" stroke-linecap="round" stroke-linejoin="round" opacity="'+rawOpacity+'" points="'+pts+'"/>';
-      entries.forEach(function(e){
-        var y=PT+(1-(e.val-minV)/range)*CH;
-        svgH+='<circle cx="'+xOf(e.ts)+'" cy="'+y+'" r="'+rawDotR+'" fill="'+inkCol+'" opacity="'+rawOpacity+'"/>';
-      });
-
-      if(p.maEnabled){
-        var win=p.maWindow||7;
-        var maPts=entries.map(function(e,i){
-          var start=Math.max(0,i-win+1);
-          var slice=entries.slice(start,i+1);
-          var avg=slice.reduce(function(s,x){return s+x.val;},0)/slice.length;
-          var y=PT+(1-(avg-minV)/range)*CH;
-          return xOf(e.ts)+','+y;
-        }).join(' ');
-        svgH+='<polyline fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="'+maPts+'"/>';
-      }
-
-      // X axis labels — show first, middle, last
-      var xIdxs=[0,Math.floor((entries.length-1)/2),entries.length-1];
-      // deduplicate
-      xIdxs=xIdxs.filter(function(v,i,a){return a.indexOf(v)===i;});
-      xIdxs.forEach(function(i){
-        var e=entries[i];
-        var d=new Date(e.ts);
-        var lbl=d.toLocaleDateString('de-CH',{day:'numeric',month:'short'});
-        svgH+='<text x="'+xOf(e.ts)+'" y="'+(H-4)+'" text-anchor="middle" fill="#bbb" font-size="9">'+lbl+'</text>';
-      });
-    }
-  } else {
-    svgH+='<text x="'+W/2+'" y="'+(H/2)+'" text-anchor="middle" fill="#ccc" font-size="12">No data yet</text>';
-  }
-  svgH+='</svg>';
+  // A tracker added as a habit can have a goal (on its Daily habit)
+  var link=DB.data.dailyItems.find(function(x){return x.trackerPid===pid;});
+  var svgH=trackerChart(pid,p,entries,link&&hasGoal(link)?link.goal:null);
 
   // Entry list newest first
   var listH=entries.slice().reverse().map(function(e){
@@ -3415,8 +3347,7 @@ function renderTracker(pid){
   }).join('');
 
   // Linked into Daily: entries fold away behind one row (closed by default,
-  // remembered while the app is open) and the habit's charts follow.
-  var link=DB.data.dailyItems.find(function(x){return x.trackerPid===pid;});
+  // remembered while the app is open) and the habit's stats follow.
   var entriesH;
   if(!listH)entriesH='<div class="empty">No entries yet</div>';
   else if(link)entriesH='<div class="calsec trk-entries'+(TrackerPage.open[pid]?' open':'')+'" style="padding:0">'
@@ -3424,16 +3355,88 @@ function renderTracker(pid){
     +'<span class="trk-entries-n">'+entries.length+'</span><span class="trk-entries-chev">'+ICON_CHEVRON+'</span></div>'
     +'<div class="trk-entries-list">'+listH+'</div></div>';
   else entriesH='<div class="sl">Entries</div><div class="calsec" style="padding:2px 14px">'+listH+'</div>';
-  c.innerHTML='<div class="calsec" style="padding:16px 14px 6px"><div class="trk-val">'+latest+'</div>'
-    +'<div class="trk-unit">'+unit+'</div>'
+  c.innerHTML='<div class="calsec" style="padding:16px 14px 6px"><div class="trk-val">'+latest+(unit&&entries.length?'<span class="trk-u">'+esc(unit)+'</span>':'')+'</div>'
     +svgH+'</div>'
     +entriesH
     +(link?TrackerPage.habitHTML(pid,link):'');
-  if(link)TrackerPage.renderChart(pid);
+}
+// A tracker's chart (its own entries, oldest → newest). Line (default): a
+// 3px line in the Statistics green with a dot on every entry — with the
+// moving average on (always the last 7 entries) the line is the average
+// and the dots stay, unconnected. Bar chart (p.chartBars): one bar per
+// entry from 0, the latest that fit. With a goal (a tracker added as a
+// habit): a dotted goal line; the line is green above it and red below,
+// with a soft fade between the line and the goal, dots and bars coloured by
+// their own value (reaching the goal = green, like habitDayVal).
+var TRK_GREEN='#30d158';
+function trackerChart(pid,p,entries,goal){
+  var PL=44,PR=12,PT=12,PB=28,W=300,H=140,CW=W-PL-PR,CH=H-PT-PB;
+  var dark=isDarkNow(),RED=dark?'#ff453a':'#ff3b30',gridCol=dark?'#333':'#e8e5e0',goalCol='#9a9a9a';
+  var has=goal!=null,svg='<svg class="trk-chart" viewBox="0 0 '+W+' '+H+'" style="overflow:visible">';
+  if(!entries.length)return svg+'<text x="'+W/2+'" y="'+(H/2)+'" text-anchor="middle" fill="#ccc" font-size="12">No data yet</text></svg>';
+  var bars=!!p.chartBars;
+  if(bars)entries=entries.slice(-Math.floor(CW/4)); // bars at least ~2.4px wide
+  var vals=entries.map(function(e){return e.val;});
+  var lo=Math.min.apply(null,vals),hi=Math.max.apply(null,vals);
+  if(bars)lo=Math.min(0,lo);
+  if(has){lo=Math.min(lo,goal);hi=Math.max(hi,goal);}
+  var range=hi-lo||1;
+  function yOf(v){return PT+(1-(v-lo)/range)*CH;}
+  function colOf(v){return has&&v<goal?RED:TRK_GREEN;}
+  // y axis: top, middle, bottom
+  [hi,(hi+lo)/2,lo].forEach(function(v,i){
+    var y=PT+CH*i/2;
+    svg+='<line x1="'+PL+'" y1="'+y+'" x2="'+(W-PR)+'" y2="'+y+'" stroke="'+gridCol+'" stroke-width="1"/>'
+      +'<text x="'+(PL-6)+'" y="'+(y+4)+'" text-anchor="end" fill="#bbb" font-size="9">'+fmtTrk(v)+'</text>';
+  });
+  var gy=has?yOf(goal):0,xs;
+  var goalLine=has?'<line x1="'+PL+'" y1="'+gy+'" x2="'+(W-PR)+'" y2="'+gy+'" stroke="'+goalCol+'" stroke-width="1" stroke-dasharray="2 3"/>':'';
+  if(bars){
+    var slot=CW/entries.length,bw=Math.min(18,slot*0.6),y0=yOf(Math.max(0,lo));
+    xs=entries.map(function(e,i){return PL+slot*(i+0.5);});
+    entries.forEach(function(e,i){
+      var y=yOf(e.val),x=xs[i]-bw/2,h=Math.abs(y0-y),r=Math.min(3,bw/2,h/2),top=Math.min(y,y0);
+      if(h<=0)return;
+      // rounded on top, flat on the baseline
+      svg+='<path fill="'+colOf(e.val)+'" d="M'+x+','+(top+h)+'V'+(top+r)+'Q'+x+','+top+' '+(x+r)+','+top+'H'+(x+bw-r)+'Q'+(x+bw)+','+top+' '+(x+bw)+','+(top+r)+'V'+(top+h)+'Z"/>';
+    });
+    svg+=goalLine;
+  } else {
+    var t0=entries[0].ts,tR=(entries[entries.length-1].ts-t0)||1,one=entries.length===1;
+    xs=entries.map(function(e){return one?PL+CW/2:PL+(e.ts-t0)/tR*CW;});
+    svg+=goalLine;
+    if(!one){
+      var line=entries.map(function(e,i){
+        var v=e.val;
+        if(p.maEnabled){var sl=entries.slice(Math.max(0,i-6),i+1);v=sl.reduce(function(a,x){return a+x.val;},0)/sl.length;}
+        return xs[i]+','+yOf(v);
+      });
+      var poly='<polyline fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="'+line.join(' ')+'" ';
+      if(has){
+        // green above the goal, red below: the same line (and the fade
+        // between it and the goal) drawn twice, each half clipped at the goal
+        var A='trkA-'+pid,B='trkB-'+pid,area='<path d="M'+line.join('L')+'L'+xs[xs.length-1]+','+gy+'L'+xs[0]+','+gy+'Z" ';
+        svg+='<defs><clipPath id="'+A+'"><rect x="0" y="-20" width="'+W+'" height="'+(gy+20)+'"/></clipPath>'
+          +'<clipPath id="'+B+'"><rect x="0" y="'+gy+'" width="'+W+'" height="'+(H+20-gy)+'"/></clipPath>'
+          +'<linearGradient id="'+A+'g" gradientUnits="userSpaceOnUse" x1="0" y1="'+PT+'" x2="0" y2="'+gy+'"><stop offset="0" stop-color="'+TRK_GREEN+'" stop-opacity=".3"/><stop offset="1" stop-color="'+TRK_GREEN+'" stop-opacity="0"/></linearGradient>'
+          +'<linearGradient id="'+B+'g" gradientUnits="userSpaceOnUse" x1="0" y1="'+gy+'" x2="0" y2="'+(PT+CH)+'"><stop offset="0" stop-color="'+RED+'" stop-opacity="0"/><stop offset="1" stop-color="'+RED+'" stop-opacity=".3"/></linearGradient></defs>'
+          +area+'fill="url(#'+A+'g)" clip-path="url(#'+A+')"/>'+area+'fill="url(#'+B+'g)" clip-path="url(#'+B+')"/>'
+          +poly+'stroke="'+TRK_GREEN+'" clip-path="url(#'+A+')"/>'+poly+'stroke="'+RED+'" clip-path="url(#'+B+')"/>';
+      } else svg+=poly+'stroke="'+TRK_GREEN+'"/>';
+    }
+    entries.forEach(function(e,i){svg+='<circle cx="'+xs[i]+'" cy="'+yOf(e.val)+'" r="3" fill="'+colOf(e.val)+'"/>';});
+  }
+  // x axis: first, middle, last entry
+  [0,Math.floor((entries.length-1)/2),entries.length-1].filter(function(v,i,a){return a.indexOf(v)===i;}).forEach(function(i){
+    var lbl=new Date(entries[i].ts).toLocaleDateString('de-CH',{day:'numeric',month:'short'});
+    svg+='<text x="'+xs[i]+'" y="'+(H-4)+'" text-anchor="middle" fill="#bbb" font-size="9">'+lbl+'</text>';
+  });
+  return svg+'</svg>';
 }
 // The habit side of a tracker page (see renderTracker): its Days/Goal
-// (tap to edit, same sheet as any habit), then the same bar chart,
-// consistency ring and streak as a habit's own page.
+// (tap to edit, same sheet as any habit), then the consistency ring and
+// streak like a habit's own page (no done/not-done bar chart: the tracker's
+// own chart above shows the values).
 var TrackerPage={
   open:{},
   toggle:function(hdr,pid){
@@ -3451,9 +3454,6 @@ var TrackerPage={
     return '<div class="shdr">Daily habit</div>'
       +'<div class="opt-group">'+row('Days',esc(daysLabel(it.days)))
       +row('Goal',hasGoal(it)?esc(fmtTrk(it.goal)+(p.unit?' '+p.unit:'')):'None')+'</div>'
-      +'<div class="calsec" style="padding:12px 14px 10px"><div class="chart-hdr">'
-      +'<div id="trk-readout-'+pid+'" class="chart-readout">&nbsp;</div><div class="chart-scale" id="trk-scale-'+pid+'"></div>'
-      +'</div><div id="trk-chart-'+pid+'" class="zchart"></div></div>'
       +'<div class="shdr">Consistency</div>'
       +'<div class="calsec" style="display:flex;flex-direction:column;align-items:center;padding:22px 14px;gap:10px">'
       +renderPieChart(s.pct,s.skipped,s.target)
@@ -3463,11 +3463,6 @@ var TrackerPage={
       +'<div class="stat-num">'+st.best+'</div>'
       +'<div class="stat-note">scheduled days in a row</div>'
       +'<div class="stat-note">Current streak: '+st.current+'</div></div>';
-  },
-  renderChart:function(pid){
-    var it=DB.data.dailyItems.find(function(x){return x.trackerPid===pid;});
-    if(!it)return;
-    zChart('trk-chart-'+pid,'trk-readout-'+pid,'trk-scale-'+pid,chartSource(it));
   }
 };
 
@@ -7348,7 +7343,7 @@ var SheetEditor={
     this.renderColors();
     var mar=document.getElementById('ma-edit-row');if(mar)mar.style.display='none';
     document.getElementById('sheet-ma-enabled').checked=false;
-    document.getElementById('sheet-ma-window').value=7;
+    document.getElementById('sheet-bar-chart').checked=false;this.syncChartRows();
     document.getElementById('proj-delete-row').style.display='none';
     _overlayOpen('proj-sheet-overlay');
   },
@@ -7368,7 +7363,7 @@ var SheetEditor={
     var mar=document.getElementById('ma-edit-row');
     if(mar)mar.style.display=p.type==='tracker'?'block':'none';
     document.getElementById('sheet-ma-enabled').checked=!!p.maEnabled;
-    document.getElementById('sheet-ma-window').value=p.maWindow||7;
+    document.getElementById('sheet-bar-chart').checked=!!p.chartBars;this.syncChartRows();
     // Delete: any project but the Daily one (that's the Habits page itself)
     document.getElementById('proj-delete-row').style.display=pid===DB.data.habitsProjectId?'none':'';
     _overlayOpen('proj-sheet-overlay');
@@ -7379,6 +7374,10 @@ var SheetEditor={
     var d=DB.data;
     var catOpts=d.categoryOrder.map(function(cid){var cat=d.categories[cid];return cat&&{value:cid,label:cat.name};}).filter(Boolean);
     document.getElementById('new-proj-cat').innerHTML=customSelect(catOpts,v,'SheetEditor.setCat(this.value)');
+  },
+  // Tracker chart options: the moving average only belongs to the line chart
+  syncChartRows:function(){
+    document.getElementById('sheet-ma-row').style.display=document.getElementById('sheet-bar-chart').checked?'none':'';
   },
   setType:function(t){
     this.projectType=t;
@@ -7505,7 +7504,7 @@ var SheetEditor={
       if(this.projectType==='daily'&&!isHabitsProject(DB.data.habitsProjectId)){DB.data.habitsProjectId=pid;DB.save();} // the first one only
       if(this.projectType==='tracker'){
         DB.data.projects[pid].maEnabled=document.getElementById('sheet-ma-enabled').checked;
-        DB.data.projects[pid].maWindow=Math.max(2,parseInt(document.getElementById('sheet-ma-window').value)||7);
+        DB.data.projects[pid].chartBars=document.getElementById('sheet-bar-chart').checked;
         DB.save();
       }
       buildProjPages();
@@ -7519,7 +7518,8 @@ var SheetEditor={
       if(this.photo)p.photo=this.photo; else delete p.photo;
       if(p.type==='tracker'){
         p.maEnabled=document.getElementById('sheet-ma-enabled').checked;
-        p.maWindow=Math.max(2,parseInt(document.getElementById('sheet-ma-window').value)||7);
+        p.chartBars=document.getElementById('sheet-bar-chart').checked;
+        delete p.maWindow; // always 7 now
       }
       DB.save();
       // Update header inline without navigation

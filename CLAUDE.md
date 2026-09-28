@@ -151,8 +151,9 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   A tracker page for a Daily-linked tracker (`renderTracker` +
   `TrackerPage`): entries fold behind one "Entries N ›" row (closed by
   default, state kept per pid while the app runs), then Days/Goal rows,
-  the habit bar chart (Day/Week/Month), Consistency ring and Longest
-  streak — same pieces as a habit's own page (`barReadout` is shared).
+  Consistency ring and Longest streak. (Its done/not-done habit bar chart
+  was removed in 3.89 by request — the tracker's own chart shows the
+  values; see "Tracker charts".)
 
 - Habit consistency scores (`habitConsistency`, and the Statistics tab's
   ring/best/worst built on it) count only days ON OR AFTER the habit was
@@ -216,7 +217,8 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   already reordered.
   Dropdown setters must call `renderSettings()` — customSelect is static
   markup, and without a redraw the row kept showing the old value.
-  Bar charts (`ZChart`, shared by Statistics, habit and tracker pages) have
+  Bar charts (`ZChart`, shared by Statistics and habit pages — tracker pages
+  had one too until 3.89) have
   a slim left axis with ONE number — the tallest bar's value, at its
   height (by request: "don't put all the numbers").
   3.72 — the charts zoom and scroll ("like TradingView"), replacing the
@@ -427,6 +429,24 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   on resume after 5 min. Every release must still bump CACHE_NAME (that's what the
   comparison keys on).
 
+- Tracker charts (3.89, `trackerChart(pid,p,entries,goal)`, drawn by
+  renderTracker; asked for with a CoinMarketCap screenshot): ONE line style
+  — 3px, round, `TRK_GREEN` #30d158 (the Statistics ring green), a dot on
+  every entry. Moving average on = the line IS the 7-entry average and the
+  dots stay unconnected (it used to be a thin faint raw line + a thick amber
+  average). The average window is fixed at 7 (the Window size field is
+  gone; `maWindow` is deleted on the next save and ignored). Goal = the
+  linked Daily habit's `goal` (only trackers added as a habit have one):
+  dotted grey goal line, the y range always includes it; line + fade are
+  drawn twice, clipped above/below the goal (clipPath ids per pid, since
+  every project page is in the DOM) — green above, red (#ff3b30 / #ff453a
+  dark) below, the fade is a gradient from the chart edge to the goal;
+  dots and bars are coloured by their own value, reaching the goal = green
+  (same as habitDayVal). Bar chart (`p.chartBars`, a switch in the edit
+  window's "Chart" section): one bar per ENTRY (the values, not done/not
+  done), from 0, evenly spaced, only the latest entries that fit at ≥ ~2.4px
+  (CW/4); rounded tops. The Moving average row is hidden while Bar chart is
+  on (it's line-only). The big number has its unit next to it (`.trk-u`).
 - Two update logs (3.83, "no one is reading it — it's way too complicated"):
   Menu > App has a switch "Advanced update info" (`settings.advancedUpdates`,
   default OFF; 3.83 as its own card, since 3.84 the App page is ONE card in

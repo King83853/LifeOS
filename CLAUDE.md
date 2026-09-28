@@ -513,9 +513,11 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   entry and category. Every creating save/confirm now starts with
   `if(!_sheetLive('<overlay id>'))return;` — live = `.on` and not
   `ov._closing` (set at the start of _overlayClose, cleared in
-  _overlayOpen). First try keyed on `.show`, which is added two rAFs after
-  opening: in the preview the very first Save was then ignored — a Save
-  must never depend on a frame having painted. A NEW sheet that creates
+  _overlayOpen). Not keyed on `.show` (added two rAFs after opening): a
+  Save must never depend on a frame having painted. (A first test looked
+  like `.show` was late — it wasn't: the fresh preview data had no
+  category, so "new project" opened the category window instead. Seed a
+  category before testing project creation.) A NEW sheet that creates
   something needs the same first line.
 - Bottom sheets have NO Cancel/Close/back buttons (only real actions like
   Save/OK/Delete/Got it): they close by pulling down or tapping the dimmed

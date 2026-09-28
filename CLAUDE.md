@@ -505,6 +505,21 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   one-field inputs (new/rename category, rename habit, tracker values) —
   a centred box with a field needs its own keyboard handling. Longer windows
   stay sheets.
+- Export / Import (Menu > Data, 3.96 "10x less text"): `DataCodec.pack`
+  deflates the saved JSON (CompressionStream 'deflate') and base64s it
+  behind a `LOS1:` tag; `unpack` reverses it and passes anything without
+  the tag through as plain JSON, so OLD exports still import. Measured on a
+  synthetic half-year dataset: 111,085 → 11,465 chars (9.7x), exact round
+  trip; photos (already JPEG/PNG) shrink little. Export hands the
+  clipboard a ClipboardItem whose value is a PROMISE (Safari only allows
+  clipboard writes inside the tap, and compressing is async), falls back
+  to writeText, then to the copy-by-hand InputSheet; success shows "Data
+  copied" (it was silent). Import shows an Alert on text it can't read (it
+  silently ignored it). No device without CompressionStream is known in
+  use; such a device exports plain JSON. The app has no hardcoded address
+  (manifest/sw use relative paths), so the same data moves to a new
+  address via Export → Import inside the NEW home-screen icon (each icon
+  has its own storage).
 - A window's Save must never run twice (3.95, a friend on Android got TWO
   projects from one creation): SheetEditor.save kept `newCatId` and no
   `pid` after saving, and the sheet stays tappable while it slides away

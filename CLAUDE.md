@@ -526,7 +526,22 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   words around the pasted text (`_fromCjk` skips anything off-alphabet).
   `unpack` still reads "LOS1:" (3.96, base64 deflate) and plain JSON. Ids
   change on import by design; habitCreatedDs still works (time kept). A new
-  id prefix must be added to `_shortIds`' regex or its ids just stay long. Export hands the
+  id prefix must be added to `_shortIds`' regex or its ids just stay long.
+  3.99, "export and paste into Telegram, nothing happens": 3.96–3.98 copied
+  from the Export tap itself via ClipboardItem with a PROMISE (to stay in
+  the tap while compressing) — on the iPhone the clipboard ended up empty
+  (can't be tested here). Now Export opens `ExportSheet`: the text is
+  compressed first and shown (selectable: `.exp-text` re-enables
+  user-select/touch-callout, which `*` turns off app-wide), then Copy does
+  a plain writeText of READY text inside its own tap (fallback: select +
+  execCommand('copy'), else "Tap and hold the text to copy it"), and Share
+  = navigator.share({text}) → iOS share sheet (Telegram etc.; hidden where
+  there's no share). Don't go back to copying async-made text from the
+  opening tap. Preview can't exercise the clipboard/share: synthetic
+  touches give no activation, and `.opt-row` rows open on the native click
+  (TAPPABLE skips them), so use el.click() to open things in tests. With
+  many project photos the export gets long (photos barely compress) and
+  may exceed a chat message (Telegram: 4096 characters). Export hands the
   clipboard a ClipboardItem whose value is a PROMISE (Safari only allows
   clipboard writes inside the tap, and compressing is async), falls back
   to writeText, then to the copy-by-hand InputSheet; success shows "Data

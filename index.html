@@ -507,6 +507,9 @@ html[data-theme="light"] .color-field{background:#fff;border-color:#e8e5e0;color
 html[data-theme="dark"] .sheet-color.sel{border-color:#fff}
 html[data-theme="light"] .sheet-color.sel{border-color:#000}
 .sheet-btns{display:flex;gap:10px}
+/* Export window: the data as selectable text (the app blocks selection elsewhere) */
+.exp-note{font-size:13px;line-height:18px;color:#999;margin:0 2px 10px}
+.exp-text{background:var(--card,#fff);color:var(--ink,#000);border-radius:14px;padding:12px 14px;max-height:132px;overflow-y:auto;font-size:13px;line-height:18px;word-break:break-all;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;margin-bottom:10px}
 .sheet-save{flex:1;padding:14px;background:#fff;color:#000;border:1.5px solid #000;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer}
 @media(prefers-color-scheme:dark){.sheet-save{background:#1e1c1a;border-color:#fff;color:#fff}}
 html[data-theme="dark"] .sheet-save{background:#1e1c1a;border-color:#fff;color:#fff}
@@ -1238,6 +1241,16 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
   </div>
 </div>
 
+<div class="sheet-overlay" id="export-sheet-overlay" onclick="if(event.target===this)ExportSheet.close()">
+  <div class="sheet">
+    <div class="sheet-title">Export</div>
+    <div class="exp-note">Your data as text. Keep it somewhere safe — Import in Menu → Data brings it back.</div>
+    <div class="exp-text" id="export-text"></div>
+    <div class="sheet-btns"><button class="sheet-save" id="export-copy" onclick="ExportSheet.copy()">Copy</button></div>
+    <div class="sheet-btns" id="export-share-row" style="margin-top:8px"><button class="sheet-save" onclick="ExportSheet.share()">Share</button></div>
+  </div>
+</div>
+
 <div class="sheet-overlay" id="input-sheet-overlay" onclick="if(event.target===this)InputSheet.cancel()">
   <div class="sheet">
     <div id="input-sheet-title" class="sheet-title">Name</div>
@@ -1409,7 +1422,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.98';
+var APP_VERSION='Beta 3.99';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2458,6 +2471,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.98',notes:[
     'Fixed: a ticked-off task restored from the Trash came back as High priority (a War Room task lost its War Room) and without its notes — ticking a task off now keeps both. Tasks ticked off before this update didn\'t save theirs, so they still come back as High'
+  ]},
+  {v:'Beta 3.99',notes:[
+    'Fixed: Export could leave nothing on the clipboard on iPhone. Export now opens a window with the data and two buttons — Copy (copies text that is already ready) and Share (the phone\'s share sheet, e.g. straight to Telegram); the text itself can also be selected'
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2530,7 +2546,8 @@ var USER_LOG={
   'Beta 3.95':'bug',
   'Beta 3.96':["Data export is 10x shorter"],
   'Beta 3.97':'design',
-  'Beta 3.98':'bug'
+  'Beta 3.98':'bug',
+  'Beta 3.99':'bug'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -3082,7 +3099,7 @@ var I18N=(function(){
     'Version history':'Versionsverlauf','Advanced update info':'Erweiterte Update-Infos','Bug fixes':'Fehlerbehebungen','Design fixes':'Design-Korrekturen','Design and bug fixes':'Design-Korrekturen und Fehlerbehebungen',"What's new":'Neuigkeiten','Got it':'Verstanden','General':'Allgemein','Data':'Daten',
     // headers
     '📆 Daily':'📆 Täglich','📅 One-time':'📅 Einmalig','One-time tasks':'Einmalige Aufgaben','One-time':'Einmalig',
-    'Consistency score':'Konsistenz-Wert','Time range':'Zeitraum','All time':'Gesamte Zeit','3 months':'3 Monate','1 month':'1 Monat','1 week':'1 Woche','Best score':'Bester Wert','Widgets':'Widgets','Chart':'Diagramm','Data copied — paste it somewhere safe. Import in Menu → Data brings it back.':'Daten kopiert — füge sie an einem sicheren Ort ein. Import in Menü → Daten holt sie zurück.',"That isn't Life OS data — copy the whole export and try again.":'Das sind keine Life-OS-Daten — kopiere den ganzen Export und versuche es nochmal.','Bar chart':'Balkendiagramm','Perfect streak':'Perfekte Serie','days in a row with every habit done':'Tage in Folge mit allen Gewohnheiten erledigt','All widgets are turned off':'Alle Widgets sind ausgeschaltet','Worst score':'Schlechtester Wert','Consistency':'Konsistenz',
+    'Consistency score':'Konsistenz-Wert','Time range':'Zeitraum','All time':'Gesamte Zeit','3 months':'3 Monate','1 month':'1 Monat','1 week':'1 Woche','Best score':'Bester Wert','Widgets':'Widgets','Chart':'Diagramm','Your data as text. Keep it somewhere safe — Import in Menu → Data brings it back.':'Deine Daten als Text. Bewahre ihn sicher auf — Import in Menü → Daten holt sie zurück.','Copy':'Kopieren','Copied':'Kopiert','Share':'Teilen','Preparing…':'Wird vorbereitet…','Tap and hold the text to copy it':'Halte den Text gedrückt, um ihn zu kopieren',"That isn't Life OS data — copy the whole export and try again.":'Das sind keine Life-OS-Daten — kopiere den ganzen Export und versuche es nochmal.','Bar chart':'Balkendiagramm','Perfect streak':'Perfekte Serie','days in a row with every habit done':'Tage in Folge mit allen Gewohnheiten erledigt','All widgets are turned off':'Alle Widgets sind ausgeschaltet','Worst score':'Schlechtester Wert','Consistency':'Konsistenz',
     '⚠️ War Room':'⚠️ War Room','War Room':'War Room','📈 Tracker':'📈 Tracker','📋 List':'📋 Liste','✅ To-do':'✅ To-do',
     'Nothing else matters until the War Room is clear.':'Nichts anderes zählt, bis der War Room leer ist.',
     'Nothing to do today.':'Heute nichts zu tun.','Nothing scheduled for today.':'Für heute ist nichts geplant.','Nothing here.':'Hier ist nichts.',
@@ -4202,32 +4219,8 @@ var A={
       DB.save();renderTracker(pid);
     },'Move to Trash');
   },
-  // Export: the saved data, compressed (DataCodec) and copied. Safari only
-  // lets a page use the clipboard during the tap itself, and compressing is
-  // async — so the clipboard gets the text as a promise right away
-  // (ClipboardItem); elsewhere it's written once ready. If copying fails,
-  // the text is shown to copy by hand.
-  exportData:function(){
-    var data=localStorage.getItem('lifeos');
-    if(!data)return;
-    var packed=DataCodec.pack(data);
-    function done(){Alert.info('Data copied — paste it somewhere safe. Import in Menu → Data brings it back.');}
-    function show(text){
-      InputSheet.show('Copy & save this data','',function(){});
-      document.getElementById('input-sheet-field').value=text;
-    }
-    if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write){
-      try{
-        navigator.clipboard.write([new ClipboardItem({'text/plain':packed.then(function(t){return new Blob([t],{type:'text/plain'});})})])
-          .then(done).catch(function(){packed.then(show);});
-        return;
-      }catch(e){}
-    }
-    packed.then(function(t){
-      if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done).catch(function(){show(t);});
-      else show(t);
-    });
-  },
+  // Export: a window with the compressed data (ExportSheet)
+  exportData:function(){ExportSheet.open();},
   // Import takes the compressed export or an old plain one.
   importData:function(){
     InputSheet.show('Paste exported data','Paste here',function(pasted){
@@ -6017,6 +6010,45 @@ document.addEventListener('change',function(e){
   clearTimeout(cb._swT);
   cb._swT=setTimeout(function(){cb.onchange.call(cb,{target:cb});},SWITCH_MS);
 },true);
+// Menu > Data > Export: a window with the (compressed) data and a Copy and
+// a Share button. Copying straight from the Export tap (the text was handed
+// to the clipboard before it was ready, to stay inside the tap) left the
+// clipboard empty on the iPhone ("paste into Telegram, nothing happens").
+// Here the text is ready before Copy is tapped; Share opens the phone's own
+// share sheet (Telegram, Notes…); and the text itself can be selected.
+var ExportSheet={
+  text:'',
+  open:function(){
+    var data=localStorage.getItem('lifeos');if(!data)return;
+    var box=document.getElementById('export-text'),self=this;
+    this.text='';box.textContent='Preparing…';
+    document.getElementById('export-copy').textContent='Copy';
+    document.getElementById('export-share-row').style.display=navigator.share?'':'none';
+    _overlayOpen('export-sheet-overlay');
+    DataCodec.pack(data).then(function(t){self.text=t;box.textContent=t;});
+  },
+  close:function(){_overlayClose('export-sheet-overlay');},
+  copy:function(){
+    if(!this.text)return;
+    var btn=document.getElementById('export-copy'),self=this;
+    function ok(){btn.textContent='Copied';}
+    // clipboard refused: select the text and try the old copy command; if
+    // that fails too, the text stays selected for the phone's own Copy
+    function manual(){if(self._selectCopy())ok();else btn.textContent='Tap and hold the text to copy it';}
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(this.text).then(ok,manual);
+    else manual();
+  },
+  _selectCopy:function(){
+    try{
+      var r=document.createRange(),sel=window.getSelection();
+      r.selectNodeContents(document.getElementById('export-text'));sel.removeAllRanges();sel.addRange(r);
+      return document.execCommand('copy');
+    }catch(e){return false;}
+  },
+  share:function(){
+    if(this.text&&navigator.share)navigator.share({text:this.text}).catch(function(){});
+  }
+};
 // Menu > Data's export text, as small as it gets: "LOS2:" + the data
 //  1. with shorter internal ids — the random tail of every id (prefix +
 //     13-digit creation time + random) becomes a short counter, the same

@@ -1402,7 +1402,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.90';
+var APP_VERSION='Beta 3.91';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2426,6 +2426,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.90',notes:[
     'A tracker added as a habit: the Days / Goal card is gone — its days sit under the page title like on a habit page (tap them to change days or goal), and the goal shows as the line in the chart'
+  ]},
+  {v:'Beta 3.91',notes:[
+    'Tracker bar chart: the bars start a little below the lowest entry instead of at 0, so small changes (like a kg of weight) are visible',
+    'Tracker charts: the entry dots are dark grey (light grey in dark mode) and a bit smaller (radius 2.25 instead of 3), no longer green/red'
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2490,7 +2494,8 @@ var USER_LOG={
   'Beta 3.87':["Rearrange your statistics"],
   'Beta 3.88':["New perfect streak in statistics"],
   'Beta 3.89':["Goal line on tracker charts","Bar chart option for trackers"],
-  'Beta 3.90':'design'
+  'Beta 3.90':'design',
+  'Beta 3.91':'design'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -3373,25 +3378,34 @@ function renderTracker(pid){
     +(link?TrackerPage.habitHTML(pid,link):'');
 }
 // A tracker's chart (its own entries, oldest → newest). Line (default): a
-// 3px line in the Statistics green with a dot on every entry — with the
-// moving average on (always the last 7 entries) the line is the average
-// and the dots stay, unconnected. Bar chart (p.chartBars): one bar per
-// entry from 0, the latest that fit. With a goal (a tracker added as a
-// habit): a dotted goal line; the line is green above it and red below,
-// with a soft fade between the line and the goal, dots and bars coloured by
-// their own value (reaching the goal = green, like habitDayVal).
+// 3px line in the Statistics green with a small dark grey dot on every
+// entry — with the moving average on (always the last 7 entries) the line
+// is the average and the dots stay, unconnected. Bar chart (p.chartBars):
+// one bar per entry from a little below the lowest value, the latest that
+// fit. With a goal (a tracker added as a habit): a dotted goal line; the
+// line is green above it and red below, with a soft fade between the line
+// and the goal; bars are coloured by their own value (reaching the goal =
+// green, like habitDayVal).
 var TRK_GREEN='#30d158';
 function trackerChart(pid,p,entries,goal){
   var PL=44,PR=12,PT=12,PB=28,W=300,H=140,CW=W-PL-PR,CH=H-PT-PB;
   var dark=isDarkNow(),RED=dark?'#ff453a':'#ff3b30',gridCol=dark?'#333':'#e8e5e0',goalCol='#9a9a9a';
+  var DOT=dark?'#aeaeb2':'#3a3a3c'; // entry dots: dark grey (a light grey on a dark card)
   var has=goal!=null,svg='<svg class="trk-chart" viewBox="0 0 '+W+' '+H+'" style="overflow:visible">';
   if(!entries.length)return svg+'<text x="'+W/2+'" y="'+(H/2)+'" text-anchor="middle" fill="#ccc" font-size="12">No data yet</text></svg>';
   var bars=!!p.chartBars;
   if(bars)entries=entries.slice(-Math.floor(CW/4)); // bars at least ~2.4px wide
   var vals=entries.map(function(e){return e.val;});
   var lo=Math.min.apply(null,vals),hi=Math.max.apply(null,vals);
-  if(bars)lo=Math.min(0,lo);
   if(has){lo=Math.min(lo,goal);hi=Math.max(hi,goal);}
+  // Bars start a little below the lowest value (a quarter of the spread,
+  // rounded down to a round number), not at 0 — from 0, a kg or two of
+  // weight change was invisible. Never below 0 for positive values.
+  if(bars){
+    var pad=(hi-lo)/4||Math.abs(lo)/10||1,step=Math.pow(10,Math.floor(Math.log10(pad)));
+    lo=Math.floor((lo-pad)/step)*step;
+    if(lo<0&&Math.min.apply(null,vals)>=0)lo=0;
+  }
   var range=hi-lo||1;
   function yOf(v){return PT+(1-(v-lo)/range)*CH;}
   function colOf(v){return has&&v<goal?RED:TRK_GREEN;}
@@ -3436,7 +3450,7 @@ function trackerChart(pid,p,entries,goal){
           +poly+'stroke="'+TRK_GREEN+'" clip-path="url(#'+A+')"/>'+poly+'stroke="'+RED+'" clip-path="url(#'+B+')"/>';
       } else svg+=poly+'stroke="'+TRK_GREEN+'"/>';
     }
-    entries.forEach(function(e,i){svg+='<circle cx="'+xs[i]+'" cy="'+yOf(e.val)+'" r="3" fill="'+colOf(e.val)+'"/>';});
+    entries.forEach(function(e,i){svg+='<circle cx="'+xs[i]+'" cy="'+yOf(e.val)+'" r="2.25" fill="'+DOT+'"/>';});
   }
   // x axis: first, middle, last entry
   [0,Math.floor((entries.length-1)/2),entries.length-1].filter(function(v,i,a){return a.indexOf(v)===i;}).forEach(function(i){

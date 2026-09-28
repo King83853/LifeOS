@@ -437,7 +437,8 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
 - Tracker charts (3.89, `trackerChart(pid,p,entries,goal)`, drawn by
   renderTracker; asked for with a CoinMarketCap screenshot): ONE line style
   — 3px, round, `TRK_GREEN` #30d158 (the Statistics ring green), a dot on
-  every entry. Moving average on = the line IS the 7-entry average and the
+  every entry (3.91: small, r 2.25, dark grey #3a3a3c / #aeaeb2 in dark
+  mode — "dark grey and a bit smaller"; they were green/red by value). Moving average on = the line IS the 7-entry average and the
   dots stay unconnected (it used to be a thin faint raw line + a thick amber
   average). The average window is fixed at 7 (the Window size field is
   gone; `maWindow` is deleted on the next save and ignored). Goal = the
@@ -446,10 +447,13 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   drawn twice, clipped above/below the goal (clipPath ids per pid, since
   every project page is in the DOM) — green above, red (#ff3b30 / #ff453a
   dark) below, the fade is a gradient from the chart edge to the goal;
-  dots and bars are coloured by their own value, reaching the goal = green
-  (same as habitDayVal). Bar chart (`p.chartBars`, a switch in the edit
-  window's "Chart" section): one bar per ENTRY (the values, not done/not
-  done), from 0, evenly spaced, only the latest entries that fit at ≥ ~2.4px
+  bars are coloured by their own value, reaching the goal = green (same as
+  habitDayVal). Bar chart (`p.chartBars`, a switch in the edit window's
+  "Chart" section): one bar per ENTRY (the values, not done/not done),
+  evenly spaced, starting a little below the lowest value (lowest of
+  entries/goal minus a quarter of the spread, floored to a round step, never
+  below 0 for positive data — 3.91; from 0, "1 or 2 kg won't be a visible
+  difference"), only the latest entries that fit at ≥ ~2.4px
   (CW/4); rounded tops. The Moving average row is hidden while Bar chart is
   on (it's line-only). The big number has its unit next to it (`.trk-u`).
 - Two update logs (3.83, "no one is reading it — it's way too complicated"):

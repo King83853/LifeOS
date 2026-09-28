@@ -505,12 +505,22 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   one-field inputs (new/rename category, rename habit, tracker values) —
   a centred box with a field needs its own keyboard handling. Longer windows
   stay sheets.
-- Export / Import (Menu > Data, 3.96 "10x less text"): `DataCodec.pack`
-  deflates the saved JSON (CompressionStream 'deflate') and base64s it
-  behind a `LOS1:` tag; `unpack` reverses it and passes anything without
-  the tag through as plain JSON, so OLD exports still import. Measured on a
-  synthetic half-year dataset: 111,085 → 11,465 chars (9.7x), exact round
-  trip; photos (already JPEG/PNG) shrink little. Export hands the
+- Export / Import (Menu > Data; 3.96 "10x less text", 3.97 "as small as
+  possible"): `DataCodec.pack` writes "LOS2:" + CJK text. Pipeline (see the
+  comment on DataCodec): shorten ids (`_shortIds`: prefix + 13-digit time
+  kept, random tail → a counter, mapped identically in every key/value —
+  random text is incompressible, ~25%), `_packChecks` (dailyChecks → day
+  gaps + one mark row per habit), `_enc` (lists of 3+ same-shaped objects →
+  columns, whole-number columns → deltas), deflate, then `_toCjk`: 14 bits
+  per character from U+4E00 (2.3x fewer chars than base64; ~28% MORE bytes
+  in UTF-8 — the user counts visible text, and the bytes never matter
+  here). Half-year test set: plain 111,851 → LOS1 11,425 → LOS2 2,005
+  chars; round trip identical (canonical compare after the same id
+  mapping), incl. false/'skip'/odd check values, line breaks and extra
+  words around the pasted text (`_fromCjk` skips anything off-alphabet).
+  `unpack` still reads "LOS1:" (3.96, base64 deflate) and plain JSON. Ids
+  change on import by design; habitCreatedDs still works (time kept). A new
+  id prefix must be added to `_shortIds`' regex or its ids just stay long. Export hands the
   clipboard a ClipboardItem whose value is a PROMISE (Safari only allows
   clipboard writes inside the tap, and compressing is async), falls back
   to writeText, then to the copy-by-hand InputSheet; success shows "Data

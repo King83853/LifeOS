@@ -1409,7 +1409,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.96';
+var APP_VERSION='Beta 3.97';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2452,6 +2452,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.96',notes:[
     'Menu → Data → Export: the copied data is compressed (about a tenth of the text; photos shrink less) and a message confirms it was copied. Import reads both the new short export and old plain ones, and says so when the pasted text isn\'t Life OS data'
+  ]},
+  {v:'Beta 3.97',notes:[
+    'Menu → Data → Export is much shorter again (about 2,000 characters for half a year of data, was ~11,000): internal ids are shortened, habit check-offs and lists are stored compactly, and the text uses a denser alphabet (it looks like Chinese characters). Older exports still import'
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2522,7 +2525,8 @@ var USER_LOG={
   'Beta 3.93':'bug',
   'Beta 3.94':'bug',
   'Beta 3.95':'bug',
-  'Beta 3.96':["Data export is 10x shorter"]
+  'Beta 3.96':["Data export is 10x shorter"],
+  'Beta 3.97':'design'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -6007,27 +6011,142 @@ document.addEventListener('change',function(e){
   clearTimeout(cb._swT);
   cb._swT=setTimeout(function(){cb.onchange.call(cb,{target:cb});},SWITCH_MS);
 },true);
-// Menu > Data's export text: the saved JSON, deflate-compressed and base64'd
-// behind a "LOS1:" tag — roughly a tenth of the plain JSON, since ids and
-// field names repeat a lot (photos, already compressed, shrink little).
-// unpack() also passes an old plain-JSON export straight through. A device
-// without CompressionStream exports plain JSON.
+// Menu > Data's export text, as small as it gets: "LOS2:" + the data
+//  1. with shorter internal ids — the random tail of every id (prefix +
+//     13-digit creation time + random) becomes a short counter, the same
+//     everywhere it's used (the time stays: a habit's start date is read
+//     from it). Random text can't be compressed, so this alone is ~25%;
+//  2. restructured — habit check-offs as one row of marks per habit (was
+//     one entry per habit per day), every list of same-shaped items (tasks,
+//     entries, done tasks…) as columns without repeated field names, whole
+//     numbers in a column (times) as differences;
+//  3. deflate-compressed;
+//  4. written with 16,384 CJK characters (U+4E00…), 14 bits each instead of
+//     base64's 6 — the same bytes in ~2.3x fewer characters.
+// ~36x fewer characters than the plain data on a half-year test set.
+// unpack() also reads the older "LOS1:" export (base64 deflate) and plain
+// JSON. Only in-app ids change (they're internal names); nothing else does.
 var DataCodec={
-  TAG:'LOS1:',
+  COL:'\u0002c',DEL:'\u0002d',CHK:'\u0002k',CJK:0x4E00,
   pack:function(json){
     if(typeof CompressionStream==='undefined')return Promise.resolve(json);
-    return new Response(new Blob([json]).stream().pipeThrough(new CompressionStream('deflate'))).arrayBuffer().then(function(buf){
-      var b=new Uint8Array(buf),bin='';
-      for(var i=0;i<b.length;i+=0x8000)bin+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));
-      return DataCodec.TAG+btoa(bin);
-    });
+    var o=this._shortIds(JSON.parse(json));
+    if(o.dailyChecks)o.dailyChecks=this._packChecks(o.dailyChecks);
+    return this._zip(JSON.stringify(this._enc(o)),'deflate').then(function(b){return 'LOS2:'+DataCodec._toCjk(b);});
   },
   unpack:function(text){
-    text=(text||'').trim();
-    if(text.indexOf(DataCodec.TAG)!==0)return Promise.resolve(text);
-    var bin=atob(text.slice(DataCodec.TAG.length).replace(/\s+/g,'')),b=new Uint8Array(bin.length);
-    for(var i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);
-    return new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('deflate'))).text();
+    text=text||'';
+    var i2=text.indexOf('LOS2:'),i1=text.indexOf('LOS1:');
+    if(i2!==-1)return this._unzip(this._fromCjk(text.slice(i2+5)),'deflate').then(function(s){
+      var o=DataCodec._dec(JSON.parse(s));
+      if(o.dailyChecks&&o.dailyChecks[DataCodec.CHK])o.dailyChecks=DataCodec._unpackChecks(o.dailyChecks);
+      return JSON.stringify(o);
+    });
+    if(i1!==-1){
+      var bin=atob(text.slice(i1+5).replace(/\s+/g,'')),b=new Uint8Array(bin.length);
+      for(var i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);
+      return this._unzip(b,'deflate');
+    }
+    return Promise.resolve(text.trim()); // plain JSON
+  },
+  _zip:function(str,f){return new Response(new Blob([str]).stream().pipeThrough(new CompressionStream(f))).arrayBuffer().then(function(a){return new Uint8Array(a);});},
+  _unzip:function(bytes,f){return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream(f))).text();},
+  // bytes -> CJK text: 2 characters of length, then 14 bits per character
+  _toCjk:function(b){
+    var C=this.CJK,n=b.length,out=[C+((n>>>14)&0x3FFF),C+(n&0x3FFF)],acc=0,bits=0,s='',i;
+    for(i=0;i<n;i++){acc=(acc<<8)|b[i];bits+=8;if(bits>=14){bits-=14;out.push(C+((acc>>>bits)&0x3FFF));acc&=(1<<bits)-1;}}
+    if(bits>0)out.push(C+((acc<<(14-bits))&0x3FFF));
+    for(i=0;i<out.length;i+=0x2000)s+=String.fromCharCode.apply(null,out.slice(i,i+0x2000));
+    return s;
+  },
+  // anything else a notes/chat app may have added (spaces, line breaks) is skipped
+  _fromCjk:function(s){
+    var c=[],i,v;
+    for(i=0;i<s.length;i++){v=s.charCodeAt(i)-this.CJK;if(v>=0&&v<16384)c.push(v);}
+    var n=(c[0]<<14)|c[1],b=new Uint8Array(n),acc=0,bits=0,j=0;
+    for(i=2;i<c.length&&j<n;i++){acc=(acc<<14)|c[i];bits+=14;while(bits>=8&&j<n){bits-=8;b[j++]=(acc>>>bits)&0xFF;}acc&=(1<<bits)-1;}
+    return b;
+  },
+  _shortIds:function(o){
+    var re=/^(cat|tr|di|once|proj|t)(\d{13})[a-z0-9]+$/,map={},n=0;
+    function id(s){var m=re.exec(s);if(!m)return s;if(!map[s])map[s]=m[1]+m[2]+(n++).toString(36);return map[s];}
+    function walk(v){
+      if(typeof v==='string')return id(v);
+      if(Array.isArray(v))return v.map(walk);
+      if(v&&typeof v==='object'){var r={};for(var k in v)r[id(k)]=walk(v[k]);return r;}
+      return v;
+    }
+    return walk(o);
+  },
+  // {date:{habitId:true|false|'skip'}} -> day gaps, habit ids, one row of
+  // marks per habit ('.' none, '1' done, '0' unticked, 's' skipped); any
+  // other value goes to x as [date, id, value]
+  _packChecks:function(dc){
+    var dates=Object.keys(dc).sort(),ids=[],seen={},x=[];
+    dates.forEach(function(ds){for(var id in dc[ds])if(!seen[id]){seen[id]=1;ids.push(id);}});
+    function day(ds){return Date.UTC(+ds.slice(0,4),+ds.slice(5,7)-1,+ds.slice(8,10))/864e5;}
+    var r={};r[this.CHK]=1;
+    r.g=dates.map(function(ds,i){return i?day(ds)-day(dates[i-1]):day(ds);});
+    r.i=ids;
+    r.r=ids.map(function(id){return dates.map(function(ds){
+      if(!(id in dc[ds]))return '.';var v=dc[ds][id];
+      if(v===true)return '1';if(v===false)return '0';if(v==='skip')return 's';
+      x.push([ds,id,v]);return '.';
+    }).join('');});
+    r.x=x;return r;
+  },
+  _unpackChecks:function(p){
+    var dc={},d=0;
+    var dates=p.g.map(function(g,i){d=i?d+g:g;return new Date(d*864e5).toISOString().slice(0,10);});
+    dates.forEach(function(ds){dc[ds]={};});
+    p.i.forEach(function(id,k){
+      var row=p.r[k];
+      for(var j=0;j<dates.length;j++){var c=row.charAt(j);if(c==='1')dc[dates[j]][id]=true;else if(c==='0')dc[dates[j]][id]=false;else if(c==='s')dc[dates[j]][id]='skip';}
+    });
+    p.x.forEach(function(e){(dc[e[0]]=dc[e[0]]||{})[e[1]]=e[2];});
+    return dc;
+  },
+  // lists of 3+ items with the same fields -> {COL:fields, v:columns}; a
+  // column of whole numbers -> {DEL:[first, differences…]}
+  _enc:function(v){
+    var self=this;
+    function isObj(o){return o&&typeof o==='object'&&!Array.isArray(o);}
+    if(Array.isArray(v)){
+      if(v.length>=3&&v.every(isObj)){
+        var keys=Object.keys(v[0]),sig=keys.join('\u0001');
+        if(keys.length&&v.every(function(o){return Object.keys(o).join('\u0001')===sig;})){
+          var r={};r[self.COL]=keys;
+          r.v=keys.map(function(k){
+            var col=v.map(function(o){return self._enc(o[k]);});
+            if(col.every(function(n){return Number.isInteger(n)&&Math.abs(n)<9e15;})){
+              var dl=[col[0]];for(var i=1;i<col.length;i++)dl.push(col[i]-col[i-1]);
+              var q={};q[self.DEL]=dl;return q;
+            }
+            return col;
+          });
+          return r;
+        }
+      }
+      return v.map(function(x){return self._enc(x);});
+    }
+    if(isObj(v)){var o={};for(var k in v)o[k]=self._enc(v[k]);return o;}
+    return v;
+  },
+  _dec:function(v){
+    var self=this;
+    if(Array.isArray(v))return v.map(function(x){return self._dec(x);});
+    if(v&&typeof v==='object'){
+      if(v[self.COL]){
+        var keys=v[self.COL],cols=v.v.map(function(c){
+          if(c&&!Array.isArray(c)&&c[self.DEL]){var s=0;return c[self.DEL].map(function(d,i){s=i?s+d:d;return s;});}
+          return c;
+        }),n=cols.length?cols[0].length:0,out=[];
+        for(var i=0;i<n;i++){var o={};keys.forEach(function(k,j){o[k]=self._dec(cols[j][i]);});out.push(o);}
+        return out;
+      }
+      var r={};for(var k in v)r[k]=self._dec(v[k]);return r;
+    }
+    return v;
   }
 };
 var MenuPage={

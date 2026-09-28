@@ -1246,8 +1246,9 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
     <div class="sheet-title">Export</div>
     <div class="exp-note">Your data as text. Keep it somewhere safe — Import in Menu → Data brings it back.</div>
     <div class="exp-text" id="export-text"></div>
-    <div class="sheet-btns"><button class="sheet-save" id="export-copy" onclick="ExportSheet.copy()">Copy</button></div>
-    <div class="sheet-btns" id="export-share-row" style="margin-top:8px"><button class="sheet-save" onclick="ExportSheet.share()">Share</button></div>
+    <div class="exp-note" id="export-len"></div>
+    <div class="sheet-btns"><button class="sheet-save native-tap" id="export-copy" onclick="ExportSheet.copy()">Copy</button></div>
+    <div class="sheet-btns" id="export-share-row" style="margin-top:8px"><button class="sheet-save native-tap" onclick="ExportSheet.share()">Share</button></div>
   </div>
 </div>
 
@@ -1422,7 +1423,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 3.99';
+var APP_VERSION='Beta 4.0';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2474,6 +2475,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 3.99',notes:[
     'Fixed: Export could leave nothing on the clipboard on iPhone. Export now opens a window with the data and two buttons — Copy (copies text that is already ready) and Share (the phone\'s share sheet, e.g. straight to Telegram); the text itself can also be selected'
+  ]},
+  {v:'Beta 4.0',notes:[
+    'Export: plain letters instead of Chinese characters (those were slow to show on the iPhone and made the window lag); project photos are left out (they were most of the length — projects show their emoji after an import); ids are even shorter and settings left at their default aren't included; the window shows the length and what takes the room. Copy and Share use the phone\'s own tap, the most reliable way to be allowed to copy. Older exports still import'
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2547,7 +2551,8 @@ var USER_LOG={
   'Beta 3.96':["Data export is 10x shorter"],
   'Beta 3.97':'design',
   'Beta 3.98':'bug',
-  'Beta 3.99':'bug'
+  'Beta 3.99':'bug',
+  'Beta 4.0':'both'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -3099,7 +3104,7 @@ var I18N=(function(){
     'Version history':'Versionsverlauf','Advanced update info':'Erweiterte Update-Infos','Bug fixes':'Fehlerbehebungen','Design fixes':'Design-Korrekturen','Design and bug fixes':'Design-Korrekturen und Fehlerbehebungen',"What's new":'Neuigkeiten','Got it':'Verstanden','General':'Allgemein','Data':'Daten',
     // headers
     '📆 Daily':'📆 Täglich','📅 One-time':'📅 Einmalig','One-time tasks':'Einmalige Aufgaben','One-time':'Einmalig',
-    'Consistency score':'Konsistenz-Wert','Time range':'Zeitraum','All time':'Gesamte Zeit','3 months':'3 Monate','1 month':'1 Monat','1 week':'1 Woche','Best score':'Bester Wert','Widgets':'Widgets','Chart':'Diagramm','Your data as text. Keep it somewhere safe — Import in Menu → Data brings it back.':'Deine Daten als Text. Bewahre ihn sicher auf — Import in Menü → Daten holt sie zurück.','Copy':'Kopieren','Copied':'Kopiert','Share':'Teilen','Preparing…':'Wird vorbereitet…','Tap and hold the text to copy it':'Halte den Text gedrückt, um ihn zu kopieren',"That isn't Life OS data — copy the whole export and try again.":'Das sind keine Life-OS-Daten — kopiere den ganzen Export und versuche es nochmal.','Bar chart':'Balkendiagramm','Perfect streak':'Perfekte Serie','days in a row with every habit done':'Tage in Folge mit allen Gewohnheiten erledigt','All widgets are turned off':'Alle Widgets sind ausgeschaltet','Worst score':'Schlechtester Wert','Consistency':'Konsistenz',
+    'Consistency score':'Konsistenz-Wert','Time range':'Zeitraum','All time':'Gesamte Zeit','3 months':'3 Monate','1 month':'1 Monat','1 week':'1 Woche','Best score':'Bester Wert','Widgets':'Widgets','Chart':'Diagramm','Your data as text. Keep it somewhere safe — Import in Menu → Data brings it back.':'Deine Daten als Text. Bewahre ihn sicher auf — Import in Menü → Daten holt sie zurück.','Copy':'Kopieren','characters':'Zeichen','Habit history':'Gewohnheits-Verlauf','Done tasks':'Erledigte Aufgaben','Projects & settings':'Projekte & Einstellungen','Copied':'Kopiert','Share':'Teilen','Preparing…':'Wird vorbereitet…','Tap and hold the text to copy it':'Halte den Text gedrückt, um ihn zu kopieren',"That isn't Life OS data — copy the whole export and try again.":'Das sind keine Life-OS-Daten — kopiere den ganzen Export und versuche es nochmal.','Bar chart':'Balkendiagramm','Perfect streak':'Perfekte Serie','days in a row with every habit done':'Tage in Folge mit allen Gewohnheiten erledigt','All widgets are turned off':'Alle Widgets sind ausgeschaltet','Worst score':'Schlechtester Wert','Consistency':'Konsistenz',
     '⚠️ War Room':'⚠️ War Room','War Room':'War Room','📈 Tracker':'📈 Tracker','📋 List':'📋 Liste','✅ To-do':'✅ To-do',
     'Nothing else matters until the War Room is clear.':'Nichts anderes zählt, bis der War Room leer ist.',
     'Nothing to do today.':'Heute nichts zu tun.','Nothing scheduled for today.':'Für heute ist nichts geplant.','Nothing here.':'Hier ist nichts.',
@@ -6020,12 +6025,19 @@ var ExportSheet={
   text:'',
   open:function(){
     var data=localStorage.getItem('lifeos');if(!data)return;
-    var box=document.getElementById('export-text'),self=this;
-    this.text='';box.textContent='Preparing…';
+    var box=document.getElementById('export-text'),len=document.getElementById('export-len'),self=this;
+    this.text='';box.textContent='Preparing…';len.textContent='';
     document.getElementById('export-copy').textContent='Copy';
     document.getElementById('export-share-row').style.display=navigator.share?'':'none';
     _overlayOpen('export-sheet-overlay');
-    DataCodec.pack(data).then(function(t){self.text=t;box.textContent=t;});
+    DataCodec.pack(data).then(function(txt){
+      self.text=txt;box.textContent=txt;
+      // how long it is, and what takes the room (biggest first)
+      return DataCodec.sizes(data).then(function(parts){
+        len.textContent=txt.length+' '+t('characters')+' — '+parts.filter(function(p){return p[1]>12;})
+          .sort(function(a,b){return b[1]-a[1];}).map(function(p){return t(p[0])+' '+p[1];}).join(' · ');
+      });
+    }).catch(function(){});
   },
   close:function(){_overlayClose('export-sheet-overlay');},
   copy:function(){
@@ -6049,55 +6061,86 @@ var ExportSheet={
     if(this.text&&navigator.share)navigator.share({text:this.text}).catch(function(){});
   }
 };
-// Menu > Data's export text, as small as it gets: "LOS2:" + the data
-//  1. with shorter internal ids — the random tail of every id (prefix +
-//     13-digit creation time + random) becomes a short counter, the same
-//     everywhere it's used (the time stays: a habit's start date is read
-//     from it). Random text can't be compressed, so this alone is ~25%;
+// Menu > Data's export text: "LOS3:" + the data
+//  1. with shorter internal ids — every id (prefix + 13-digit creation time
+//     + random) becomes prefix + a short counter, the same everywhere it's
+//     used; only habits keep the time (a habit's start date is read from
+//     it). Random text can't be compressed, so this matters most;
 //  2. restructured — habit check-offs as one row of marks per habit (was
 //     one entry per habit per day), every list of same-shaped items (tasks,
 //     entries, done tasks…) as columns without repeated field names, whole
 //     numbers in a column (times) as differences;
-//  3. deflate-compressed;
-//  4. written with 16,384 CJK characters (U+4E00…), 14 bits each instead of
-//     base64's 6 — the same bytes in ~2.3x fewer characters.
-// ~36x fewer characters than the plain data on a half-year test set.
-// unpack() also reads the older "LOS1:" export (base64 deflate) and plain
-// JSON. Only in-app ids change (they're internal names); nothing else does.
+//  3. deflate-compressed, written as plain base64 letters.
+// Project photos are always left out ("leave the photos out for now"):
+// they're already-compressed pictures, a couple of them outweighed all the
+// rest; after an import, projects show their emoji instead.
+// unpack() also reads the older "LOS2:" (same, in CJK characters — slow to
+// draw on the iPhone), "LOS1:" (base64 deflate) and plain JSON exports.
+// Only in-app ids change (they're internal names); nothing else does.
 var DataCodec={
   COL:'\u0002c',DEL:'\u0002d',CHK:'\u0002k',CJK:0x4E00,
   pack:function(json){
     if(typeof CompressionStream==='undefined')return Promise.resolve(json);
-    var o=this._shortIds(JSON.parse(json));
+    return this._zip(JSON.stringify(this._prep(json)),'deflate').then(function(b){return 'LOS3:'+DataCodec._toB64(b);});
+  },
+  // the data as it goes into the export (before compressing)
+  _prep:function(json){
+    var o=this._noPhotos(this._shortIds(JSON.parse(json)));
+    // settings still at their default aren't needed: loading fills in any
+    // missing one from DEFAULT_SETTINGS (DB._migrate)
+    if(o.settings)for(var k in o.settings)if(k in DEFAULT_SETTINGS&&JSON.stringify(o.settings[k])===JSON.stringify(DEFAULT_SETTINGS[k]))delete o.settings[k];
     if(o.dailyChecks)o.dailyChecks=this._packChecks(o.dailyChecks);
-    return this._zip(JSON.stringify(this._enc(o)),'deflate').then(function(b){return 'LOS2:'+DataCodec._toCjk(b);});
+    return this._enc(o);
+  },
+  // What each part of the data adds to the export, in characters (each part
+  // compressed on its own, so the parts add up to a bit more than the total)
+  sizes:function(json){
+    var o=this._prep(json),self=this,groups=[
+      ['Habit history',['dailyChecks']],['Done tasks',['archived']],['Trash',['trash']],
+      ['Tasks',['extraTasks','dailyOnce','doneKeys','todaySet']],['Trackers',['trackerEntries']],['Habits',['dailyItems','dailyCats']]
+    ],used={};
+    groups.forEach(function(g){g[1].forEach(function(k){used[k]=1;});});
+    var rest={};for(var k in o)if(!used[k])rest[k]=o[k];
+    groups.push(['Projects & settings',null]);
+    return Promise.all(groups.map(function(g){
+      var part={};if(g[1])g[1].forEach(function(k){if(o[k]!==undefined)part[k]=o[k];});else part=rest;
+      return self._zip(JSON.stringify(part),'deflate').then(function(b){return [g[0],Math.ceil(b.length/3)*4];});
+    }));
   },
   unpack:function(text){
     text=text||'';
-    var i2=text.indexOf('LOS2:'),i1=text.indexOf('LOS1:');
-    if(i2!==-1)return this._unzip(this._fromCjk(text.slice(i2+5)),'deflate').then(function(s){
+    var i3=text.indexOf('LOS3:'),i2=text.indexOf('LOS2:'),i1=text.indexOf('LOS1:');
+    function restore(s){
       var o=DataCodec._dec(JSON.parse(s));
       if(o.dailyChecks&&o.dailyChecks[DataCodec.CHK])o.dailyChecks=DataCodec._unpackChecks(o.dailyChecks);
       return JSON.stringify(o);
-    });
-    if(i1!==-1){
-      var bin=atob(text.slice(i1+5).replace(/\s+/g,'')),b=new Uint8Array(bin.length);
-      for(var i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);
-      return this._unzip(b,'deflate');
     }
+    if(i3!==-1)return this._unzip(this._fromB64(text.slice(i3+5)),'deflate').then(restore);
+    if(i2!==-1)return this._unzip(this._fromCjk(text.slice(i2+5)),'deflate').then(restore);
+    if(i1!==-1)return this._unzip(this._fromB64(text.slice(i1+5)),'deflate');
     return Promise.resolve(text.trim()); // plain JSON
+  },
+  // project photos (data:image/…, also in the Trash) are left out
+  _noPhotos:function(v){
+    if(Array.isArray(v))return v.map(this._noPhotos,this);
+    if(v&&typeof v==='object'){
+      var r={};
+      for(var k in v){var x=v[k];if(typeof x==='string'&&x.indexOf('data:image/')===0)continue;r[k]=this._noPhotos(x);}
+      return r;
+    }
+    return v;
+  },
+  _toB64:function(b){var bin='';for(var i=0;i<b.length;i+=0x8000)bin+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(bin);},
+  // spaces/line breaks a notes or chat app added are dropped
+  _fromB64:function(t){
+    var bin=atob(t.replace(/[^A-Za-z0-9+\/=]/g,'')),b=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);
+    return b;
   },
   _zip:function(str,f){return new Response(new Blob([str]).stream().pipeThrough(new CompressionStream(f))).arrayBuffer().then(function(a){return new Uint8Array(a);});},
   _unzip:function(bytes,f){return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream(f))).text();},
-  // bytes -> CJK text: 2 characters of length, then 14 bits per character
-  _toCjk:function(b){
-    var C=this.CJK,n=b.length,out=[C+((n>>>14)&0x3FFF),C+(n&0x3FFF)],acc=0,bits=0,s='',i;
-    for(i=0;i<n;i++){acc=(acc<<8)|b[i];bits+=8;if(bits>=14){bits-=14;out.push(C+((acc>>>bits)&0x3FFF));acc&=(1<<bits)-1;}}
-    if(bits>0)out.push(C+((acc<<(14-bits))&0x3FFF));
-    for(i=0;i<out.length;i+=0x2000)s+=String.fromCharCode.apply(null,out.slice(i,i+0x2000));
-    return s;
-  },
-  // anything else a notes/chat app may have added (spaces, line breaks) is skipped
+  // reads the 3.97–3.99 "LOS2:" exports: 2 characters of length, then 14
+  // bits per CJK character (U+4E00…); anything off that alphabet is skipped
   _fromCjk:function(s){
     var c=[],i,v;
     for(i=0;i<s.length;i++){v=s.charCodeAt(i)-this.CJK;if(v>=0&&v<16384)c.push(v);}
@@ -6105,9 +6148,12 @@ var DataCodec={
     for(i=2;i<c.length&&j<n;i++){acc=(acc<<14)|c[i];bits+=14;while(bits>=8&&j<n){bits-=8;b[j++]=(acc>>>bits)&0xFF;}acc&=(1<<bits)-1;}
     return b;
   },
+  // A habit's id keeps its 13-digit creation time (habitCreatedDs reads a
+  // habit's start from it); every other id becomes prefix + counter —
+  // never the shape of a new id (prefix + 13 digits + random), so no clash.
   _shortIds:function(o){
     var re=/^(cat|tr|di|once|proj|t)(\d{13})[a-z0-9]+$/,map={},n=0;
-    function id(s){var m=re.exec(s);if(!m)return s;if(!map[s])map[s]=m[1]+m[2]+(n++).toString(36);return map[s];}
+    function id(s){var m=re.exec(s);if(!m)return s;if(!map[s])map[s]=m[1]+(m[1]==='di'?m[2]:'')+(n++).toString(36);return map[s];}
     function walk(v){
       if(typeof v==='string')return id(v);
       if(Array.isArray(v))return v.map(walk);
@@ -7302,7 +7348,9 @@ window.addEventListener('scroll',function(){_lastScrollAt=Date.now();},{passive:
     // starts at/Tasks shown) hit the exact same bug: it too sits inside
     // a TAPPABLE .opt-row with no onclick, so the row swallowed every
     // tap meant for it and the dropdown never opened at all.
-    if(e.target.closest('.switch,.dsel-real,input')){target=null;return;}
+    // .native-tap (Export's Copy/Share): the browser's own click is the
+    // surest "the user tapped" for the clipboard and the share sheet on iOS
+    if(e.target.closest('.switch,.dsel-real,input,.native-tap')){target=null;return;}
     target=e.target.closest(TAPPABLE);
     if(!target)return;
     // Rows that grey open on the browser's own click, exactly like Today's

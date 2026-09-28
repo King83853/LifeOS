@@ -511,8 +511,25 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   one-field inputs (new/rename category, rename habit, tracker values) —
   a centred box with a field needs its own keyboard handling. Longer windows
   stay sheets.
-- Export / Import (Menu > Data; 3.96 "10x less text", 3.97 "as small as
-  possible"): `DataCodec.pack` writes "LOS2:" + CJK text. Pipeline (see the
+- Export / Import — CURRENT (4.0): `DataCodec.pack` writes "LOS3:" + plain
+  base64 of the deflated `_prep(json)`: `_shortIds` (every id → prefix +
+  counter; only habits ('di') keep their 13-digit time), `_noPhotos` (ALL
+  data:image strings dropped, Trash too — "leave the photos out for now";
+  projects fall back to their emoji), settings equal to DEFAULT_SETTINGS
+  dropped (DB._migrate refills them), `_packChecks`, `_enc`. The Export
+  window shows the length and a per-part breakdown (`DataCodec.sizes`) —
+  that's how to see what takes the room on the user's real data. Measured:
+  light user (3 projects, 12 tasks, 5 habits × 30 days, 30 entries, 20
+  done) 10,117 → 1,249 chars; heavy half year 125,120 → 3,545 (one 160px
+  JPEG photo alone was 7,911). What's left is real content, mostly the
+  words of tasks and done tasks; "a few hundred" would mean leaving history
+  out (done tasks, habit history, tracker entries, Trash) — offered, not
+  built. 3.97–3.99 used CJK characters (LOS2): 2.3x fewer characters but
+  10k CJK glyphs made the window lag on the iPhone and the user wanted
+  "normal signs" — `_fromCjk` stays only to read those old exports. Copy/
+  Share buttons are `.native-tap` (TAPPABLE bails out → the browser's own
+  click, the surest user activation for clipboard/share on iOS).
+  History of the format, 3.96–3.99: `DataCodec.pack` wrote "LOS2:" + CJK text. Pipeline (see the
   comment on DataCodec): shorten ids (`_shortIds`: prefix + 13-digit time
   kept, random tail → a counter, mapped identically in every key/value —
   random text is incompressible, ~25%), `_packChecks` (dailyChecks → day

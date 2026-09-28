@@ -567,6 +567,17 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   fixed row heights, and check with getBoundingClientRect: in this 2x
   preview every box top should be a multiple of .5 and its offset in the
   row a whole number.
+  Before chasing a "this line is thicker/darker than that one" report from
+  a screenshot, check the screenshot's SCALE first: rows are 48px + a
+  divider floored to 1 device px = 145 device px apart on the 3x iPhone.
+  3.86 report ("the 2 middle stripes are a nuthair thicker or darker"): the
+  images came through with rows 132 px apart (~91%, scaled somewhere
+  between the phone and here), so every 1-px divider was resampled at a
+  different sub-pixel phase — measured with PIL: each line held the same
+  total grey (39–43) but split 223/247 on some and 238/229 on others.
+  Layout in the app was identical for every row (same element, height,
+  border, no layers). Nothing was changed; if it's reported on the LIVE
+  screen, ask which screen and whether Display Zoom is on.
   Count badges: none left. The Trash count in Settings (`.ab`/`#ab2`), the
   War Room count on Overview (`.wrb`) and Tasks' per-priority counts
   (`.sl-count`) were unified in 3.17/3.18, then all removed (3.21, 3.29) as

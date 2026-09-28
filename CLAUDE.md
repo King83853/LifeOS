@@ -433,6 +433,18 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   everywhere, incl. %23-encoded SVGs). Surfaces, greys and tints (#f3f4f6,
   dark cards, --pg, the green/red tints) were left alone. New code: use
   var(--ink) (or #000/#fff), never an off-black/off-white.
+  3.82 regression from that replace ("full black doesn't work"): it also
+  turned the Black PROJECT colour (`COLORS['c-black']`, was '#1a1917') into
+  the 3-digit '#000'. Project colours get alpha APPENDED as hex
+  (`tintStyle`: col+'20' / '2e' / 'd9', the photo preview, the project
+  header) and parsed by slices (`solidTintStyle`, `paleFillColor`), so
+  '#000'+'20' = '#00020' was invalid CSS: Black projects lost their badge
+  and tile background (the minimal tile got rgb(NaN…)) for 18 versions.
+  Now '#000000'. Every value in COLORS must stay 6-digit hex, and a global
+  colour replace must skip COLORS. Also since 3.82 `themeCol(col)` makes
+  Black the ink colour — white in dark mode (black text on a dark card was
+  unreadable, before 3.64 too); tintStyle/solidTintStyle and the two inline
+  places in SheetEditor call it. The colour picker's swatch stays black.
   Card spacing on pages (3.49, "the same extra amount with and without a
   title"): 20px between two cards, 22px from a card down to a section title
   (title to its own card stays 8px) — the old 14 / 16 + 6. It's set on the

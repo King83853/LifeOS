@@ -3,7 +3,7 @@
 // round-trip and works fully offline. New code only reaches the device
 // when the user taps "Check for updates" in Settings (see A.checkForUpdate
 // in index.html).
-var CACHE_NAME = 'lifeos-cache-v358';
+var CACHE_NAME = 'lifeos-cache-v359';
 var SCOPE_URL = self.registration.scope;
 var SHELL_URL = SCOPE_URL + 'index.html';
 var ASSETS = [
@@ -51,8 +51,30 @@ self.addEventListener('activate', function (e) {
             .map(function (k) { return caches.delete(k); })
       );
     }).then(function () { return self.clients.claim(); })
+      .then(reloadStuckPages)
   );
 });
+
+// A page stuck on a release whose code never started (Beta 4.0: a typo in
+// its update notes stopped the whole script) can't update itself. Every
+// working page (4.1+) answers this worker's ping; a page that doesn't
+// answer within 2 seconds is reloaded, which brings in this new version.
+// (Pages from before 4.1 don't answer either, so they reload into it too.)
+function reloadStuckPages() {
+  return self.clients.matchAll({ type: 'window' }).then(function (list) {
+    return Promise.all(list.map(function (c) {
+      return new Promise(function (done) {
+        var ch = new MessageChannel();
+        var t = setTimeout(function () {
+          try { if (c.navigate) c.navigate(c.url).catch(function () {}); } catch (err) {}
+          done();
+        }, 2000);
+        ch.port1.onmessage = function () { clearTimeout(t); done(); };
+        try { c.postMessage({ type: 'lifeos-ping' }, [ch.port2]); } catch (err) { clearTimeout(t); done(); }
+      });
+    }));
+  });
+}
 
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;

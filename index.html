@@ -1418,12 +1418,23 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 
 <script>
 'use strict';
+// This script started, so it parsed: the safety net at the end of the page
+// stays quiet, and the service worker's "are you alive?" ping (sw.js,
+// reloadStuckPages) gets an answer — a page that can't answer is reloaded.
+window.APP_OK=true;
+try{sessionStorage.removeItem('lifeos-heal');}catch(e){}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.addEventListener('message',function(e){
+    if(e.data&&e.data.type==='lifeos-ping'&&e.ports&&e.ports[0])e.ports[0].postMessage('alive');
+  });
+  if(navigator.serviceWorker.startMessages)navigator.serviceWorker.startMessages();
+}
 
 // Bump APP_VERSION on every user-visible change (alongside CACHE_NAME in
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.0';
+var APP_VERSION='Beta 4.1';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2477,7 +2488,10 @@ var CHANGELOG=[
     'Fixed: Export could leave nothing on the clipboard on iPhone. Export now opens a window with the data and two buttons — Copy (copies text that is already ready) and Share (the phone\'s share sheet, e.g. straight to Telegram); the text itself can also be selected'
   ]},
   {v:'Beta 4.0',notes:[
-    'Export: plain letters instead of Chinese characters (those were slow to show on the iPhone and made the window lag); project photos are left out (they were most of the length — projects show their emoji after an import); ids are even shorter and settings left at their default aren't included; the window shows the length and what takes the room. Copy and Share use the phone\'s own tap, the most reliable way to be allowed to copy. Older exports still import'
+    'Export: plain letters instead of Chinese characters (those were slow to show on the iPhone and made the window lag); project photos are left out (they were most of the length — projects show their emoji after an import); ids are even shorter and settings left at their default aren\'t included; the window shows the length and what takes the room. Copy and Share use the phone\'s own tap, the most reliable way to be allowed to copy. Older exports still import'
+  ]},
+  {v:'Beta 4.1',notes:[
+    'Fixed: Beta 4.0 did not open at all (a typo in its own update notes stopped the whole app from starting)'
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2552,7 +2566,8 @@ var USER_LOG={
   'Beta 3.97':'design',
   'Beta 3.98':'bug',
   'Beta 3.99':'bug',
-  'Beta 4.0':'both'
+  'Beta 4.0':'both',
+  'Beta 4.1':'bug'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -7941,6 +7956,25 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(function(){});
   });
 }
+</script>
+<script>
+// Safety net, deliberately a separate tiny script: if the app's script above
+// didn't start at all (a broken release — nothing else runs then: no update
+// check, no tab bar), fetch the newest release and reload, at most 6 times
+// per launch. Saved data (localStorage) is never touched here.
+(function(){
+  if(window.APP_OK)return;
+  var n=0;try{n=+(sessionStorage.getItem('lifeos-heal')||0);sessionStorage.setItem('lifeos-heal',n+1);}catch(e){}
+  var msg=n<6?'Updating to a working version\u2026':'Life OS couldn\u2019t start. Your data is safe \u2014 please try again later.';
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:#f3f4f6;color:#000;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font:500 15px -apple-system,system-ui,sans-serif';
+  d.textContent=msg;document.body.appendChild(d);
+  if(n>=6)return;
+  function go(){location.reload();}
+  try{
+    navigator.serviceWorker.getRegistration().then(function(r){return r&&r.update();}).catch(function(){}).then(function(){setTimeout(go,4000);});
+  }catch(e){setTimeout(go,4000);}
+})();
 </script>
 </body>
 </html>

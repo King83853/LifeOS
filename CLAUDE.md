@@ -1060,6 +1060,18 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   always stays in its project. It hides
   its Priority row (and the then-empty card) when the project is a List, in both add
   and edit mode — List projects don't sort by priority.
+  4.13 layout (asked for: "the title also in a white widget, the prio on
+  the same level, small, on the right"): `.ts-head` = the name input as a
+  white 48px widget (17/700) + `#task-sheet-rows.ts-pri`, a small white
+  card holding only the priority dropdown (no "Priority" label; hidden
+  for Lists, then the name is full width). Notes box min-height 26vh (was
+  34vh). While typing in a notes box, the keyboard code's `reveal()` keeps
+  the CARET's line (`_caretBottom(ta)`: a hidden mirror div with the same
+  box + text up to selectionEnd) 16px above the keyboard; before it only
+  kept the box's first 88px in view (KbFit.end), so typing ran under the
+  keyboard once the box grew. The autosize's style change reaches `sync`
+  through the sheet's MutationObserver, so every typed line re-checks.
+  Verified with visualViewport.height overridden to 54% of the screen.
   3.9 — that change broke "+" on every project created before project
   types existed: those have NO `type` saved (everything else treats that
   as a to-do list), and TabPlus required `type==='todo'||'list'`, so they

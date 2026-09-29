@@ -725,7 +725,13 @@ html:not(#x) .card-list .sw.t .ti{border-bottom:none}
 .trk-entry:last-child{border-bottom:none}
 /* priority picker: four equal pills in a row (dimmed until chosen) */
 html:not(#x) .card-list .ti{padding:8px 10px}
-html:not(#x) .ts-notes{height:auto;min-height:34vh}
+html:not(#x) .ts-notes{height:auto;min-height:26vh}
+/* Task window: the name in its own white widget, the priority a small
+   widget on the same line, right (hidden for List projects). */
+html:not(#x) .ts-head{display:flex;gap:10px;align-items:stretch;margin-bottom:14px}
+html:not(#x) .ts-head .ts-title{flex:1;min-width:0;height:48px;box-sizing:border-box;margin:0;padding:0 14px;background:var(--card);border-radius:14px;font-size:17px;font-weight:700}
+html:not(#x) .ts-head .ts-pri{flex:none;margin:0}
+html:not(#x) .ts-head .ts-pri .opt-row{box-sizing:border-box;height:48px;min-height:48px;padding:0 10px 0 14px;border-bottom:none}
 .cal-none{font-size:13px;font-weight:500;color:#bbb;padding:12px 14px 14px}
 .wdays{scrollbar-width:none}.wdays::-webkit-scrollbar{display:none}
 input,textarea,select{font-family:inherit}
@@ -1389,8 +1395,10 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 
 <div class="sheet-overlay" id="task-sheet-overlay" onclick="if(event.target===this)TaskSheet.close()">
   <div class="sheet">
-    <input class="ts-title" id="task-sheet-name" placeholder="Task name">
-    <div class="opt-group" id="task-sheet-rows"></div>
+    <div class="ts-head">
+      <input class="ts-title" id="task-sheet-name" placeholder="Task name">
+      <div class="opt-group ts-pri" id="task-sheet-rows"></div>
+    </div>
     <textarea id="task-sheet-desc" class="sheet-inp ts-notes" placeholder="Notes" oninput="TaskSheet.autosize()"></textarea>
     <div class="sheet-btns">
       <button class="sheet-save" onclick="TaskSheet.save()">Save</button>
@@ -1447,7 +1455,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.12';
+var APP_VERSION='Beta 4.13';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2540,6 +2548,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.12',notes:[
     "The small square buttons (+, back, the Tasks view button, edit, the Edit layout arrows) no longer turn grey when pressed — they press in and spring back. The grey stays only on rows and bars. Dropdowns opened from a pressed button still sit exactly under it"
+  ]},
+  {v:'Beta 4.13',notes:[
+    "Task window: the name sits in its own white widget with the priority as a small widget on the same line, right (List projects: the name takes the whole line). The notes box starts a little smaller (26% of the screen height, was 34%)",
+    "Fixed: typing in a task's notes until the box grew past the keyboard kept going below it — the window now scrolls along so the line you're typing stays just above the keyboard"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2626,7 +2638,8 @@ var USER_LOG={
   'Beta 4.9':["Statistics widgets are reordered in the menu"],
   'Beta 4.10':'bug',
   'Beta 4.11':["Reorder the sections in Today"],
-  'Beta 4.12':'design'
+  'Beta 4.12':'design',
+  'Beta 4.13':'both'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -7146,8 +7159,7 @@ var TaskSheet={
     // List projects don't sort by priority, so there's nothing to pick there.
     var p=DB.data.projects[this.pid],isList=p&&p.type==='list';
     var rows=document.getElementById('task-sheet-rows');
-    rows.innerHTML=isList?'':'<div class="opt-row"><div class="opt-text"><div class="opt-title">Priority</div></div>'
-      +customSelect(pri,this.pri,'TaskSheet.setPri(this.value)')+'</div>';
+    rows.innerHTML=isList?'':'<div class="opt-row">'+customSelect(pri,this.pri,'TaskSheet.setPri(this.value)')+'</div>';
     rows.style.display=isList?'none':'';
   },
   setPri:function(v){this.pri=v;this.renderRows();},
@@ -7365,6 +7377,20 @@ var IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='
 // left to iOS (the field already had focus), which slid the view up and
 // down. On iOS the user's tap focuses it (see the tap takeover below).
 function _autoFocus(el){if(el&&!IS_IOS)el.focus({preventScroll:true});}
+// Where the caret's line ends (viewport y) in a textarea: a hidden copy with
+// the same box and the text up to the caret, measured.
+function _caretBottom(ta){
+  var cs=getComputedStyle(ta),m=document.createElement('div');
+  ['fontFamily','fontSize','fontWeight','fontStyle','letterSpacing','lineHeight','textTransform','wordSpacing','textIndent','tabSize',
+   'paddingTop','paddingRight','paddingBottom','paddingLeft','borderTopWidth','borderRightWidth','borderBottomWidth','borderLeftWidth'].forEach(function(p){m.style[p]=cs[p];});
+  m.style.cssText+=';position:absolute;visibility:hidden;left:-9999px;top:0;box-sizing:border-box;border-style:solid;border-color:transparent;white-space:pre-wrap;overflow-wrap:break-word;width:'+ta.offsetWidth+'px';
+  m.textContent=ta.value.slice(0,ta.selectionEnd);
+  var s=document.createElement('span');s.textContent='\u200b';m.appendChild(s);
+  document.body.appendChild(m);
+  var lh=parseFloat(cs.lineHeight)||s.offsetHeight,y=s.offsetTop+(lh+s.offsetHeight)/2;
+  m.remove();
+  return ta.getBoundingClientRect().top+(parseFloat(cs.borderTopWidth)||0)+y-ta.scrollTop;
+}
 var KbFit={
   GAP:16,baseH:0,sync:null,
   textField:function(el){
@@ -7453,8 +7479,11 @@ if(window.visualViewport){
       if(!sheet.style.paddingBottom)sheet._pb=parseFloat(getComputedStyle(sheet).paddingBottom)||0;
       sheet.style.paddingBottom=px>0?(sheet._pb+px)+'px':'';
     }
+    // Keeps the field above the keyboard: while typing in a notes box, the
+    // line with the caret (the box grows as you type); otherwise its top.
     function reveal(sheet,field,line){
-      var over=KbFit.end(field)-(line-KbFit.GAP);
+      var y=field.tagName==='TEXTAREA'&&field===document.activeElement?_caretBottom(field):KbFit.end(field);
+      var over=y-(line-KbFit.GAP);
       if(over>0)sheet.scrollTop+=over;
     }
     function reset(){

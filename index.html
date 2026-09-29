@@ -39,7 +39,6 @@ html[data-theme="light"] body{background:#f3f4f6;color:#000}
    be so the full-strength part still reaches as far as before. */
 .statusbar-blur{position:fixed;top:-14px;left:0;right:0;height:calc(env(safe-area-inset-top) + 34px);background:rgba(243,244,246,.35);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 44px),rgba(0,0,0,.9) calc(100% - 37px),rgba(0,0,0,.72) calc(100% - 29px),rgba(0,0,0,.5) calc(100% - 22px),rgba(0,0,0,.28) calc(100% - 14px),rgba(0,0,0,.1) calc(100% - 7px),transparent 100%);mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 44px),rgba(0,0,0,.9) calc(100% - 37px),rgba(0,0,0,.72) calc(100% - 29px),rgba(0,0,0,.5) calc(100% - 22px),rgba(0,0,0,.28) calc(100% - 14px),rgba(0,0,0,.1) calc(100% - 7px),transparent 100%);z-index:140;pointer-events:none;opacity:0;transition:opacity .25s ease}
 .statusbar-blur.on{opacity:1}
-body.sliding .statusbar-blur{display:none}
 .data-notice{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 8px);z-index:700;background:var(--card,#fff);color:var(--ink,#000);border-radius:14px;padding:12px 14px;font-size:13px;font-weight:500;line-height:1.45;box-shadow:0 6px 24px rgba(0,0,0,.16);cursor:pointer}
 @media(prefers-color-scheme:dark){.statusbar-blur{background:rgba(26,25,23,.35)}}
 html[data-theme="dark"] .statusbar-blur{background:rgba(26,25,23,.35)}
@@ -1440,7 +1439,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.9';
+var APP_VERSION='Beta 4.10';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2523,6 +2522,9 @@ var CHANGELOG=[
   {v:'Beta 4.9',notes:[
     "Statistics widgets are no longer moved by holding them on the Statistics page; instead Menu > Statistics has an Edit layout page (like Overview's) with up/down buttons for each widget",
     "Overview: project emojis are bigger in their squares (32px in the 58px square, 33px in the minimal layout's 60px — were 27/28px)"
+  ]},
+  {v:'Beta 4.10',notes:[
+    "Fixed: going back to a page you had scrolled down (swiping back or the back button), the blur under the status bar only appeared after the slide had finished — it now shows from the start of the slide. It's no longer hidden while pages slide at all"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2606,7 +2608,8 @@ var USER_LOG={
   'Beta 4.6':["Calendar tasks are added in Overview now"],
   'Beta 4.7':'design',
   'Beta 4.8':["Choose which view Tasks opens on"],
-  'Beta 4.9':["Statistics widgets are reordered in the menu"]
+  'Beta 4.9':["Statistics widgets are reordered in the menu"],
+  'Beta 4.10':'bug'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -4667,6 +4670,10 @@ function _saveScroll(p){if(p)_scrollPos[p.id]=p.scrollTop||0;}
 // The active page's scroll position (each page scrolls in its own frame).
 function _pageScrollY(){var p=document.querySelector('.page.active');return p?p.scrollTop:0;}
 function _syncBlur(){var b=document.querySelector('.statusbar-blur');if(b)b.classList.toggle('on',_pageScrollY()>4);}
+// During a slide both pages are on screen: the blur shows if either has
+// content under the status bar (going back to a scrolled page, it's there
+// from the first frame instead of appearing after the slide).
+function _blurDuring(a,b){var bl=document.querySelector('.statusbar-blur');if(bl)bl.classList.toggle('on',!!((a&&a.scrollTop>4)||(b&&b.scrollTop>4)));}
 
 // A page taking part in a slide: shown, opaque, moved sideways.
 function _fixPage(p,x){
@@ -4713,27 +4720,20 @@ function _renderPage(id){
   if(id==='habit-detail')HabitDetail.render();
 }
 
-// While a page slides: (1) a second navigation is ignored — two slides at
+// While a page slides, a second navigation is ignored — two slides at
 // once each drive the pages from their own loop and fight every frame; the
 // guard expires on its own so it can never block navigation for good.
-// (2) the status-bar blur is hidden (body.sliding): a backdrop-filter over
-// content that moves every frame is heavy on iOS, and a long hold on a
-// Settings row that drifts a few px scrolls the page just enough to switch
-// it on right as the slide starts — reported as a stuttery slide after a
-// long hold in Settings, smooth on (unscrollable) Today.
 // Opening and going back to a page: one duration for both (ms).
 var SLIDE_MS=320;
 var _navBusyUntil=0;
 function _slideStart(){
   if(Date.now()<_navBusyUntil)return false;
   _navBusyUntil=Date.now()+700;
-  document.body.classList.add('sliding');
   return true;
 }
 function _slideEnd(){
   _navBusyUntil=0;
-  _syncBlur(); // settle before it's shown again: no fade-in flash
-  document.body.classList.remove('sliding');
+  _syncBlur();
 }
 function navForward(id){
   var cur=document.querySelector('.page.active');
@@ -4807,6 +4807,7 @@ function navBack(targetId){
   _fixPage(ov,-100);
   _renderPage(targetId);
   ov.scrollTop=savedY; // back where you left it
+  _blurDuring(cur,ov);
   _slideUnit(cur,ov,0,100,SLIDE_MS,function(){
     cur.classList.remove('active');_unfix(cur);
     ov.classList.add('active');_unfix(ov);
@@ -4848,6 +4849,7 @@ function navBack(targetId){
       _fixPage(cur,0);
       _fixPage(ov,-100);
       ov.scrollTop=savedY;
+      _blurDuring(cur,ov);
     }
     e.preventDefault();
     curDx=Math.max(0,dx); // used for release threshold only
@@ -4885,6 +4887,7 @@ function navBack(targetId){
       _slideUnit(cur,ov,pct,0,120,function(){
         document.body.style.overflow='';
         _unfix(ov);_unfix(cur);
+        _syncBlur();
       });
     }
   },{passive:true});

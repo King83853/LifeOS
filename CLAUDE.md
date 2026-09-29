@@ -1155,6 +1155,19 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   again (no fade flash). Which of the two caused the reported stutter
   can't be told from the preview; both are fixed. The interactive
   swipe-back runs its own `_slideUnit` and isn't guarded.
+  4.10 REVERSED part (2), with phone screenshots: swiping back into a
+  scrolled Overview showed the cards sharp under the clock and the blur
+  only popped in after the swipe ("unclean and looks cheap… it should
+  always be there"). `body.sliding` and its display:none are gone;
+  `_blurDuring(a,b)` turns the blur on at the START of navBack and of the
+  swipe-back when either page has content under the status bar
+  (scrollTop>4 — the target's restored scroll counts); every end (done,
+  or a cancelled swipe snapping back) runs `_syncBlur()`. navForward needs
+  nothing: the leaving page's state already holds, the new page starts at
+  the top. Not "always on" at rest on purpose: over a flat page the dark
+  tint rgba(26,25,23,.35) + saturate(180%) on #1f2937 would draw a visible
+  band. If the 3.6 stutter comes back, the blur during slides is the
+  suspect — but the user chose the blur being there.
 
 - Page-open/close slide (`navForward`/`navBack`, via `_slideUnit`) was
   160ms forward / 180ms back — reported as feeling too quick, wanted

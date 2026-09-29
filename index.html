@@ -217,7 +217,6 @@ html[data-theme="dark"] .dpill.today .dname,.dpill.today .dnum{color:#86efac}htm
 html[data-theme="light"] .dpill.today .dname,.dpill.today .dnum{color:#15803d}html[data-theme="light"] .dpill.sel .dname,.dpill.sel .dnum{color:#000}
 .dpanel{display:none}.dpanel.on{display:block}
 .calsec{background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;padding:12px 14px;margin-bottom:10px}
-.hd-goal-line{stroke:rgba(127,127,127,.5);stroke-width:1;stroke-dasharray:3 3}
 .hd-bar-empty{fill:#e5e3dd}
 @media(prefers-color-scheme:dark){.hd-bar-empty{fill:#333230}}
 html[data-theme="dark"] .hd-bar-empty{fill:#333230}
@@ -1434,7 +1433,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.1';
+var APP_VERSION='Beta 4.2';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2492,6 +2491,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.1',notes:[
     'Fixed: Beta 4.0 did not open at all (a typo in its own update notes stopped the whole app from starting)'
+  ]},
+  {v:'Beta 4.2',notes:[
+    "Bar charts (Statistics and every habit's page): each column is a grey bar as tall as the habits you had that day, with the done part in green (skipped in light green) inside it; days without habits (before any existed, or none scheduled) show a low grey stripe. The dashed line at the top is gone, and the number on the axis is the tallest bar's"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2567,7 +2569,8 @@ var USER_LOG={
   'Beta 3.98':'bug',
   'Beta 3.99':'bug',
   'Beta 4.0':'both',
-  'Beta 4.1':'bug'
+  'Beta 4.1':'bug',
+  'Beta 4.2':'design'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -5159,21 +5162,29 @@ ZChart.prototype.render=function(){
   var host=this.host,src=this.src,id=host.id;
   if(src.single&&src.empty){host.innerHTML='<div class="empty" style="padding:20px 0">No schedule set for this habit.</div>';return;}
   var g=this.gran,n=this.count,o=this.offset,w=300,h=110,pb=18,pt=6,innerH=h-pt-pb;
-  var mi=src.maxIdx(g),i0=Math.max(0,Math.floor(o)),i1=Math.min(mi,Math.ceil(o+n));
+  // every visible column, also the ones older than the first habit (they
+  // get the low grey stripe); scrolling still stops at the oldest data
+  var i0=Math.max(0,Math.floor(o)),i1=Math.ceil(o+n);
   var ps=[],maxVal=1,tallest=0;
-  for(var i=i0;i<=i1;i++){var p=src.period(g,i);ps.push(p);maxVal=Math.max(maxVal,p.completed,p.scheduled);tallest=Math.max(tallest,p.completed);}
+  for(var i=i0;i<=i1;i++){var p=src.period(g,i);ps.push(p);maxVal=Math.max(maxVal,p.completed,p.scheduled);tallest=Math.max(tallest,p.completed,p.scheduled);}
   var padL=String(Math.max(1,tallest)).length*4.5+9;this._padL=padL;
   var step=(w-padL)/n,gap=Math.min(6,step*0.3),bw=Math.max(1,step-gap);
-  var bars='',labels='',goal='',open=false,every=Math.max(1,Math.ceil(24/step));
-  for(var j=i1;j>=i0;j--){ // oldest first, so the goal line runs left to right
-    var q=ps[j-i0],x=w-(j+1-o)*step+gap/2;
-    var barH=q.completed>0?Math.max(6,Math.round(q.completed/maxVal*innerH)):3,y=h-pb-barH,rx=Math.min(4,bw/2);
-    var empty=!q.completed&&!q.scheduled; // before the habit existed: nothing drawn
+  // Every column: a grey bar as tall as the habits it had (a low grey stripe
+  // when it had none — before any habit existed, or nothing scheduled), and
+  // the done part in green (skipped in light green) growing up inside it.
+  var bars='',labels='',every=Math.max(1,Math.ceil(24/step));
+  function hOf(v){return Math.max(6,Math.round(v/maxVal*innerH));}
+  for(var j=i1;j>=i0;j--){
+    var q=ps[j-i0],x=w-(j+1-o)*step+gap/2,rx=Math.min(4,bw/2);
+    var empty=!q.completed&&!q.scheduled;
+    var greyH=empty?3:hOf(Math.max(q.scheduled,q.completed));
+    bars+='<rect x="'+x.toFixed(1)+'" y="'+(h-pb-greyH)+'" width="'+bw.toFixed(1)+'" height="'+greyH+'" rx="'+rx.toFixed(1)+'" class="hd-bar-empty"'+(empty?'':' data-i="'+j+'"')+'></rect>';
+    var barH=hOf(q.completed),y=h-pb-barH;
     var sk=Math.min(q.skipped||0,q.completed);
     var shape='x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+barH+'"';
-    if(empty){
-      // nothing to draw
-    } else if(q.completed>0&&sk>0&&sk<q.completed){
+    if(!q.completed){
+      // nothing done: just the grey
+    } else if(sk>0&&sk<q.completed){
       // Skipped days sit on top of the bar in light green: both colors are
       // square blocks clipped to ONE rounded bar, so the seam is flat.
       var skH=Math.max(3,Math.round(barH*sk/q.completed)),cid=id+'-c'+j;
@@ -5182,25 +5193,19 @@ ZChart.prototype.render=function(){
         +'<rect '+shape+' fill="#30d158" data-i="'+j+'"></rect>'
         +'<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+skH+'" fill="'+SKIP_COLOR+'" data-i="'+j+'"></rect></g>';
     } else {
-      bars+='<rect '+shape+' rx="'+rx.toFixed(1)+'"'
-        +(q.completed>0?' fill="'+(sk===q.completed?SKIP_COLOR:'#30d158')+'"':' class="hd-bar-empty"')+' data-i="'+j+'"></rect>';
+      bars+='<rect '+shape+' rx="'+rx.toFixed(1)+'" fill="'+(sk===q.completed?SKIP_COLOR:'#30d158')+'" data-i="'+j+'"></rect>';
     }
-    // dashed 100% line: what could have been done in this column
-    if(!empty&&q.scheduled>0){
-      var gy=(h-pb-(q.scheduled/maxVal)*innerH).toFixed(1),gx0=(x-gap/2).toFixed(1),gx1=(x+bw+gap/2).toFixed(1);
-      goal+=(open?'L'+gx0+' '+gy:'M'+gx0+' '+gy)+'L'+gx1+' '+gy;open=true;
-    } else open=false;
     if(j%every===0&&q.label)labels+='<text class="hd-bar-label" x="'+(x+bw/2).toFixed(1)+'" y="'+(h-4)+'" font-size="7.5" text-anchor="middle">'+esc(q.label)+'</text>';
   }
   var ax=(padL-4).toFixed(1),axis='<line class="hd-axis" x1="'+ax+'" y1="'+pt+'" x2="'+ax+'" y2="'+(h-pb)+'"/>';
-  if(tallest>0){ // ONE number on the axis: the tallest bar's, at its height
-    var ty=h-pb-Math.max(6,Math.round(tallest/maxVal*innerH));
+  if(tallest>0){ // ONE number on the axis: the tallest bar's (grey or green), at its height
+    var ty=h-pb-hOf(tallest);
     axis+='<line class="hd-axis" x1="'+(padL-6.5).toFixed(1)+'" y1="'+ty+'" x2="'+ax+'" y2="'+ty+'"/>'
       +'<text class="hd-bar-label" x="'+(padL-8).toFixed(1)+'" y="'+(ty+2.7)+'" font-size="7.5" text-anchor="end">'+tallest+'</text>';
   }
   host.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:120px;display:block">'
     +'<defs><clipPath id="'+id+'-plot"><rect x="'+(padL-2).toFixed(1)+'" y="0" width="'+(w-padL+2).toFixed(1)+'" height="'+h+'"></rect></clipPath></defs>'
-    +axis+'<g clip-path="url(#'+id+'-plot)">'+(goal?'<path class="hd-goal-line" fill="none" d="'+goal+'"/>':'')+bars+labels+'</g></svg>';
+    +axis+'<g clip-path="url(#'+id+'-plot)">'+bars+labels+'</g></svg>';
   if(this.scale)this.scale.textContent=t({day:'Days',week:'Weeks',month:'Months'}[g]);
 };
 ZChart.prototype._stopAnim=function(){if(this._anim){cancelAnimationFrame(this._anim);this._anim=0;}};

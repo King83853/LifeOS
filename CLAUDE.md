@@ -230,7 +230,17 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   Bar charts (`ZChart`, shared by Statistics and habit pages — tracker pages
   had one too until 3.89) have
   a slim left axis with ONE number — the tallest bar's value, at its
-  height (by request: "don't put all the numbers").
+  height (by request: "don't put all the numbers"); since 4.2 that's the
+  tallest bar of either colour.
+  4.2 bar look: every column is a GREY bar as tall as the habits scheduled
+  in it (`hd-bar-empty` class, has data-i so a tap shows the readout), the
+  done part in green (skipped light green) grows up inside it from the
+  bottom; a column with no habits (before any existed, or none scheduled)
+  is a low 3px grey stripe (no data-i). The dashed "100%" line on top
+  (1.84–4.1, `.hd-goal-line`) is gone — the grey bar replaced it. render
+  now draws EVERY visible column (i1 = ceil(offset+count), no longer
+  clamped to maxIdx), so days older than the first habit get the stripe
+  too; scrolling still stops at the oldest data (_maxOff).
   3.72 — the charts zoom and scroll ("like TradingView"), replacing the
   Day/Week/Month buttons (and renderBarChart/habitPeriods/aggHabitPeriods):
   pinch = zoom over a span of time `D` (calendar days); columns are days up

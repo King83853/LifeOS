@@ -1433,7 +1433,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.3';
+var APP_VERSION='Beta 4.4';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2497,6 +2497,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.3',notes:[
     'The app is now called Today (was Life OS) and lives at todaytracker.github.io/Today. Your data, the export format and everything inside stay the same'
+  ]},
+  {v:'Beta 4.4',notes:[
+    'Import: text pasted along with the export (a line a chat or notes app added before or after it) no longer makes it unreadable. Import now saves the data and restarts the app with it (a redraw right after saving could fail and wrongly say the data was unreadable, although it had been saved). If it really can\'t be read, the message says which step failed, why, and how much arrived. Also fixed: on the very first launch (a new home-screen icon) the automatic update check could wrongly reset and reload the app while it was still installing itself'
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2574,7 +2577,8 @@ var USER_LOG={
   'Beta 4.0':'both',
   'Beta 4.1':'bug',
   'Beta 4.2':'design',
-  'Beta 4.3':["New name: Today"]
+  'Beta 4.3':["New name: Today"],
+  'Beta 4.4':'bug'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -3198,6 +3202,8 @@ var I18N=(function(){
     [/^Tracking: (.*)$/,'Verfolge: $1'],
     [/^Move all (habits and categories|habits|entries|tasks) of "(.*)" to the Trash\?$/,function(m,w,n){return 'Alle '+({'habits and categories':'Gewohnheiten und Kategorien','habits':'Gewohnheiten','entries':'Einträge','tasks':'Aufgaben'})[w]+' von „'+n+'“ in den Papierkorb legen?';}],
     [/^Current streak: (\d+)$/,'Aktuelle Serie: $1'],
+    [/^That isn't data from this app — copy the whole export and try again\. Pasted: (\d+) characters, starting with "(.*)"$/,'Das sind keine Daten aus dieser App — kopiere den ganzen Export und versuche es nochmal. Eingefügt: $1 Zeichen, beginnend mit „$2“'],
+    [/^This export couldn't be read — (\d+) characters arrived; Export shows how many it has\. Step: (.*)$/,'Dieser Export konnte nicht gelesen werden — $1 Zeichen sind angekommen; beim Export steht, wie viele es sind. Schritt: $2'],
     [/^Longest streak: (\d+)$/,'Längste Serie: $1'],
     [/^Goal: (.*)$/,'Ziel: $1'],
     [/^What's new in (.*)$/,'Neuigkeiten in $1'],
@@ -4248,14 +4254,25 @@ var A={
   },
   // Export: a window with the compressed data (ExportSheet)
   exportData:function(){ExportSheet.open();},
-  // Import takes the compressed export or an old plain one.
+  // Import takes the compressed export or an old plain one. It saves the
+  // data and restarts the app on it — redrawing in place used to run right
+  // after saving, and a redraw error then showed "isn't data from this app"
+  // although the data was already saved. A failure says which step failed
+  // and what arrived, so a screenshot tells what went wrong.
   importData:function(){
     InputSheet.show('Paste exported data','Paste here',function(pasted){
+      var step='read';
       Promise.resolve().then(function(){return DataCodec.unpack(pasted);}).then(function(json){
-        JSON.parse(json);
-        localStorage.setItem('lifeos',json.trim());
-        DB.load();buildProjPages();renderWar();renderGrids();
-      }).catch(function(){Alert.info("That isn't data from this app — copy the whole export and try again.");});
+        step='check';JSON.parse(json);
+        step='save';localStorage.setItem('lifeos',json.trim());
+        DB.load(); // from here on the app holds the imported data (nothing can save the old over it)
+        step='restart';location.reload();
+      }).catch(function(err){
+        var text=pasted||'',tag=/LOS[123]:/.exec(text);
+        var start=text.trim().slice(0,12).replace(/\s+/g,' ');
+        if(!tag&&text.trim().charAt(0)!=='{')Alert.info("That isn't data from this app — copy the whole export and try again. Pasted: "+text.length+' characters, starting with "'+start+'"');
+        else Alert.info("This export couldn't be read — "+((tag?text.slice(tag.index+5).replace(/[^A-Za-z0-9+\/=]/g,'').length+5:text.length))+' characters arrived; Export shows how many it has. Step: '+step+', '+((err&&err.message)||String(err)));
+      });
     });
   },
   // Is the sw.js on the server the one this device already runs? Every
@@ -4406,7 +4423,12 @@ var A={
         // version".
         setTimeout(function(){
           if(settled||found)return;
-          A._latestInstalled().then(function(ok){
+          // A first launch (fresh install / new home-screen icon) is still
+          // installing its worker and cache: "no cache for the newest
+          // version" means nothing then — hard-updating would unregister
+          // that install and reload, and on a slow connection loop.
+          var firstInstall=!navigator.serviceWorker.controller||reg.installing||reg.waiting;
+          (firstInstall?Promise.resolve(true):A._latestInstalled()).then(function(ok){
             if(settled||found)return;
             if(ok){done("You're already on the latest version.");}
             else{
@@ -6155,14 +6177,27 @@ var DataCodec={
     return v;
   },
   _toB64:function(b){var bin='';for(var i=0;i<b.length;i+=0x8000)bin+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(bin);},
-  // spaces/line breaks a notes or chat app added are dropped
+  // Spaces, line breaks and dashes a notes or chat app added are dropped;
+  // the base64 ends at its "=" padding (or at a whole group of 4), so
+  // words pasted after the export don't make it unreadable.
   _fromB64:function(t){
-    var bin=atob(t.replace(/[^A-Za-z0-9+\/=]/g,'')),b=new Uint8Array(bin.length);
+    var c=/^[A-Za-z0-9+\/]*={0,2}/.exec(t.replace(/[^A-Za-z0-9+\/=]/g,''))[0];
+    if(c.charAt(c.length-1)!=='=')c=c.slice(0,c.length-c.length%4);
+    var bin=atob(c),b=new Uint8Array(bin.length);
     for(var i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);
     return b;
   },
   _zip:function(str,f){return new Response(new Blob([str]).stream().pipeThrough(new CompressionStream(f))).arrayBuffer().then(function(a){return new Uint8Array(a);});},
-  _unzip:function(bytes,f){return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream(f))).text();},
+  // Reads the decompressed text piece by piece: if something follows the
+  // end of the compressed data (text a notes/chat app added after the
+  // export), the stream errors only AFTER handing over everything — keep
+  // that. A cut-off export yields half a text, which fails to parse later.
+  _unzip:function(bytes,f){
+    var ds=new DecompressionStream(f),w=ds.writable.getWriter(),r=ds.readable.getReader(),dec=new TextDecoder(),out='';
+    w.write(bytes).catch(function(){});w.close().catch(function(){});
+    function pump(){return r.read().then(function(x){if(x.done)return;out+=dec.decode(x.value,{stream:true});return pump();});}
+    return pump().then(function(){return out+dec.decode();},function(err){out+=dec.decode();if(out)return out;throw err;});
+  },
   // reads the 3.97–3.99 "LOS2:" exports: 2 characters of length, then 14
   // bits per CJK character (U+4E00…); anything off that alphabet is skipped
   _fromCjk:function(s){
@@ -6190,7 +6225,10 @@ var DataCodec={
   // marks per habit ('.' none, '1' done, '0' unticked, 's' skipped); any
   // other value goes to x as [date, id, value]
   _packChecks:function(dc){
-    var dates=Object.keys(dc).sort(),ids=[],seen={},x=[];
+    // only real YYYY-MM-DD days are packed; any other key (an old bug could
+    // have stored 'NaN-NaN-NaN') is kept as it is in w
+    var dates=Object.keys(dc).filter(function(k){return /^\d{4}-\d{2}-\d{2}$/.test(k)&&dc[k]&&typeof dc[k]==='object';}).sort(),ids=[],seen={},x=[],w={};
+    Object.keys(dc).forEach(function(k){if(dates.indexOf(k)===-1)w[k]=dc[k];});
     dates.forEach(function(ds){for(var id in dc[ds])if(!seen[id]){seen[id]=1;ids.push(id);}});
     function day(ds){return Date.UTC(+ds.slice(0,4),+ds.slice(5,7)-1,+ds.slice(8,10))/864e5;}
     var r={};r[this.CHK]=1;
@@ -6201,7 +6239,7 @@ var DataCodec={
       if(v===true)return '1';if(v===false)return '0';if(v==='skip')return 's';
       x.push([ds,id,v]);return '.';
     }).join('');});
-    r.x=x;return r;
+    r.x=x;r.w=w;return r;
   },
   _unpackChecks:function(p){
     var dc={},d=0;
@@ -6212,6 +6250,7 @@ var DataCodec={
       for(var j=0;j<dates.length;j++){var c=row.charAt(j);if(c==='1')dc[dates[j]][id]=true;else if(c==='0')dc[dates[j]][id]=false;else if(c==='s')dc[dates[j]][id]='skip';}
     });
     p.x.forEach(function(e){(dc[e[0]]=dc[e[0]]||{})[e[1]]=e[2];});
+    if(p.w)for(var k in p.w)dc[k]=p.w[k];
     return dc;
   },
   // lists of 3+ items with the same fields -> {COL:fields, v:columns}; a

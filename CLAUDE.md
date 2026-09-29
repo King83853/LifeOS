@@ -592,6 +592,29 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   (manifest/sw use relative paths), so the same data moves to a new
   address via Export → Import inside the NEW home-screen icon (each icon
   has its own storage).
+- Import (4.4, after "That isn't data from this app" on a direct copy from
+  the old icon into the new one — cause not visible from here, so both
+  suspects fixed and the message made diagnostic): (1) importData used to
+  save to localStorage and THEN redraw in place; a redraw error landed in
+  the same catch and said the data was unreadable although it was saved.
+  Now: unpack → JSON.parse → setItem → DB.load → location.reload(); the
+  catch says which STEP failed (read/check/save), the error message, how
+  many export characters arrived (compare with Export's count), or — no
+  LOS tag — how many characters were pasted and how they start. (2) Text
+  around the export no longer breaks it: `_fromB64` ends the base64 at its
+  '=' padding / a whole 4-char group, `_unzip` reads the stream in pieces
+  and keeps everything decompressed before a trailing-junk error. Cut-off
+  exports still fail (half a JSON), with that message. `_packChecks` keeps
+  non-YYYY-MM-DD keys raw in `w` (an old 'NaN-NaN-NaN' key used to be
+  merged into the previous day — null gap = 0).
+  Also 4.4: checkForUpdate never hard-updates while the page isn't
+  controlled yet or a worker is installing/waiting — on a FIRST launch
+  (new icon = empty storage) the 1.2s auto-check found no cache for the
+  newest version, called _hardUpdate (unregister + delete caches +
+  reload) and on a slow connection could loop. Found because the preview
+  kept navigating after my SW/cache cleanup. Preview note: unregister()
+  then register() in the same tab resurrects the OLD registration (no
+  install, no cache) — not what a real first launch does.
 - A window's Save must never run twice (3.95, a friend on Android got TWO
   projects from one creation): SheetEditor.save kept `newCatId` and no
   `pid` after saving, and the sheet stays tappable while it slides away

@@ -1433,7 +1433,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.6';
+var APP_VERSION='Beta 4.7';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2506,6 +2506,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.6',notes:[
     "Calendar tasks no longer belong to Habits projects: they are added with the + on Overview (Category / Project / Calendar), and show in Today and in Tasks > Calendar. Habits pages no longer list them or offer them in their +, and a Habits card on Overview only counts its own habits"
+  ]},
+  {v:'Beta 4.7',notes:[
+    "Menu: the Tasks icon has the same grey as the other grey icons (it was a lighter grey); General, Data and Trash now use exactly one grey too"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2586,7 +2589,8 @@ var USER_LOG={
   'Beta 4.3':["New name: Today"],
   'Beta 4.4':'bug',
   'Beta 4.5':'bug',
-  'Beta 4.6':["Calendar tasks are added in Overview now"]
+  'Beta 4.6':["Calendar tasks are added in Overview now"],
+  'Beta 4.7':'design'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -4004,11 +4008,11 @@ function renderSettings(){
   // Today / Overview / Statistics / Data each open their own page
   var tabIco=function(t){var e=document.querySelector('.tab-item[data-tab="'+t+'"] svg');return e?e.outerHTML:'';};
   var dataIco='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>';
-  var dataRow='<div class="opt-row" onclick="Nav.go(\'data\')"><div class="opt-ico" style="background:#71717a">'+dataIco+'</div><div class="opt-text"><div class="opt-title">Data</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>';
+  var dataRow='<div class="opt-row" onclick="Nav.go(\'data\')"><div class="opt-ico" style="background:#6b7280">'+dataIco+'</div><div class="opt-text"><div class="opt-title">Data</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>';
   setHTML('settings-reset','<div class="opt-group"><div class="opt-row btn-row" onclick="A.resetSettings()"><div class="opt-text"><div class="opt-title">Reset settings</div></div></div></div>');
   setHTML('settings-nav','<div class="opt-group">'+[
     ['settoday','Today','#38bdf8',tabIco('today')],['setoverview','Overview','#3b82f6',tabIco('overview')],
-    ['settasks','Tasks','#8e8e93',tabIco('lockedin')],['setstats','Statistics','#22c55e',tabIco('stats')],['setblocker','Blocker','#ef4444',tabIco('blocker')]
+    ['settasks','Tasks','#6b7280',tabIco('lockedin')],['setstats','Statistics','#22c55e',tabIco('stats')],['setblocker','Blocker','#ef4444',tabIco('blocker')]
   ].map(function(r){
     return '<div class="opt-row" onclick="Nav.go(\''+r[0]+'\')"><div class="opt-ico" style="background:'+r[2]+'">'+r[3]+'</div>'
       +'<div class="opt-text"><div class="opt-title">'+r[1]+'</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>';
@@ -4035,7 +4039,7 @@ function renderSettings(){
     +appearanceRow
     +dataRow
     +'<div class="opt-row" onclick="Nav.go(\'archive\')">'
-    +'<div class="opt-ico" style="background:#71717a">'+trashSvg(20,'currentColor')+'</div>'
+    +'<div class="opt-ico" style="background:#6b7280">'+trashSvg(20,'currentColor')+'</div>'
     +'<div class="opt-text"><div class="opt-title">Trash</div></div>'
     +chev.replace('margin-left:-2px','margin-left:auto')
     +'</div>'

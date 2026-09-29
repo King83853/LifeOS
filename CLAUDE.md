@@ -2022,6 +2022,40 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   actually defined — a page that "looks right" (renders its static shell)
   is not proof the script executed; only a defined global proves it did.
 
+- BETA 4.0 SHIPPED BROKEN (the app didn't start at all; "the whole app is
+  not loading and the menu bar is not responsive" — the user has a lot of
+  data on it). Cause: a LAST-MINUTE reword of a CHANGELOG line added
+  "aren't" inside a single-quoted JS string; the preview had been checked
+  BEFORE that edit and not reloaded after it. Same class as the 2.85 bug
+  below. Data was safe (a script that never runs writes nothing). Guards
+  now, all of them required:
+  1. `.git/hooks/pre-commit` (local, not in the repo — recreate it from
+     this note if the clone is new): extracts every <script> block of the
+     STAGED index.html plus sw.js and parses them with Safari's own engine,
+     `/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/
+     Helpers/jsc -e "new Function(readFile(f))"`; any failure blocks the
+     commit. Tested: it refuses the broken 4.0. Never bypass it (--no-verify).
+  2. After the LAST edit of a change, fresh-load the preview and check
+     `typeof APP_VERSION` / `window.APP_OK` — not after an earlier edit.
+  3. Apostrophes in JS strings: write `\'` (Python: `\\'` in a normal
+     string) or use double-quoted JS strings. grep new CHANGELOG/USER_LOG
+     lines for a bare ' before committing.
+  Self-healing added in 4.1 (tested end to end in a throwaway folder: a
+  page stuck on the broken 4.0 reloaded itself into 4.1 ~2s after the
+  worker update, with nothing touched):
+  - sw.js `reloadStuckPages()` on activate: pings every open page; working
+    pages (4.1+) answer (`lifeos-ping` responder right after 'use strict'
+    in index.html), a page that doesn't answer in 2s gets
+    `client.navigate()` = reloaded into the new version. iOS checks sw.js
+    on every app launch, so a broken release is healed by the next fix
+    without the user doing anything (worst case: close and reopen).
+  - A second, tiny `<script>` at the end of the page: if `window.APP_OK`
+    (set first thing in the main script) isn't set, the main script didn't
+    start → shows "Updating to a working version…", runs reg.update() and
+    reloads, max 6 times per launch (sessionStorage 'lifeos-heal', cleared
+    by a working start), then "couldn't start, your data is safe". Keep it
+    tiny and plain ES5; it must never touch localStorage.
+
 ## Definition of "done" for a change
 0. If index.html (or any other cached asset) changed, bump `CACHE_NAME` in
    sw.js — EVERY time, even for changes that have nothing to do with the
@@ -2035,6 +2069,9 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
     AND a `USER_LOG` entry for the same version (see "Two update logs"):
     'bug' / 'design' / 'both' for fixes, or plain-language lines when it's
     a real new feature.
+0c. The pre-commit hook must pass (Safari-engine parse of every script).
+    Fresh-load the preview AFTER THE LAST EDIT and confirm
+    `typeof APP_VERSION === 'string'` before committing.
 1. No console errors on load or on interaction with the changed feature
 2. Existing features still work (see smoke-test.js — run it after every change)
 3. Screenshot review of the changed UI state looks correct (no layout

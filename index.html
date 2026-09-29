@@ -1433,7 +1433,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.5';
+var APP_VERSION='Beta 4.6';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2503,6 +2503,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.5',notes:[
     'Fixed: Import said an export "isn\'t data from this app" when its "LOS3:" label arrived in lowercase ("los3:") — it now finds the label in any letter case, and recognises an export even if the label got lost'
+  ]},
+  {v:'Beta 4.6',notes:[
+    "Calendar tasks no longer belong to Habits projects: they are added with the + on Overview (Category / Project / Calendar), and show in Today and in Tasks > Calendar. Habits pages no longer list them or offer them in their +, and a Habits card on Overview only counts its own habits"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2582,7 +2585,8 @@ var USER_LOG={
   'Beta 4.2':'design',
   'Beta 4.3':["New name: Today"],
   'Beta 4.4':'bug',
-  'Beta 4.5':'bug'
+  'Beta 4.5':'bug',
+  'Beta 4.6':["Calendar tasks are added in Overview now"]
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -3349,9 +3353,8 @@ function renderGrids(){
       // on either.
       if(isHabitsProject(pid)){
         // "X categories" told you nothing useful at a glance — show what's
-        // actually left to do today instead, same scope as the Today tab's
-        // Habits section (scheduled-today items not yet checked, plus any
-        // due one-time tasks).
+        // actually left to do today instead: this project's habits scheduled
+        // today and not yet done (Calendar tasks belong to no project).
         var dsToday=pDate(0);
         var remaining=0;
         d.dailyItems.forEach(function(it){
@@ -3359,7 +3362,6 @@ function renderGrids(){
           var done=!!habitDayVal(it,dsToday);
           if(!done)remaining++;
         });
-        d.dailyOnce.forEach(function(o){if(o.date<=dsToday)remaining++;});
         cntLbl=remaining?(remaining+(remaining===1?' task':' tasks')):'All done';
       } else if(p.type==='tracker'){
         var trkEntries=((d.trackerEntries||{})[pid]||[]).slice().sort(function(a,b){return a.ts-b.ts;});
@@ -5592,7 +5594,7 @@ var HabitDetail={
 // habits were given the first one, habitsProjectId, in DB._migrate). The
 // Daily page (#p-habits) shows one of them at a time — Habits.pid, set by
 // Nav.go when a Habits project is opened. Calendar tasks belong to none and
-// show on every one. Habit categories aren't shown (3.76): a day's habits
+// don't show there (only in Today and Tasks > Calendar). Habit categories aren't shown (3.76): a day's habits
 // sit in ONE card titled with their project's name, on Daily and on Today
 // (one card per Habits project there).
 var Habits={pid:null};
@@ -5623,20 +5625,6 @@ function buildPanels(){
     var d=new Date(T);d.setDate(T.getDate()+pi);
     var wi=wIdx(d); // real weekday for this date — recurring items are scheduled by weekday, not by offset
     var h='';
-    // Overdue one-time tasks consolidate under today's pill (shown once,
-    // not on their original date's pill) so they can't get stranded on a
-    // past day you may never revisit. A day strictly in the past never
-    // shows one-time items itself — anything due there has already rolled
-    // into today.
-    var onceToday;
-    if(pi===0)onceToday=DB.data.dailyOnce.filter(function(o){return o.date<=todayStr;});
-    else if(ds>todayStr)onceToday=DB.data.dailyOnce.filter(function(o){return o.date===ds;});
-    else onceToday=[];
-    if(onceToday.length){
-      h+='<div class="caltitle">Calendar</div><div class="calsec">';
-      onceToday.forEach(function(o){h+=onceRow(o);});
-      h+='</div>';
-    }
     // A habit shows from the day it started counting: the day it was added,
     // or the day its statistics were reset — not before.
     var items=DB.data.dailyItems.filter(function(it){return habitPid(it)===hpid&&it.days.indexOf(wi)!==-1&&ds>=habitCreatedDs(it);});
@@ -6971,8 +6959,8 @@ var OnceAddSheet={
     if(!text||!date)return;
     DB.addOnce(text,date);
     _overlayClose('once-add-sheet-overlay');
-    buildPanels();restoreChecks(Nav.sd);
     if(Nav.cur==='today')renderToday();
+    if(Nav.cur==='lockedin')renderLockedIn();
   },
   close:function(){_overlayClose('once-add-sheet-overlay');}
 };
@@ -7183,7 +7171,6 @@ var TabPlus={
     var cur=Nav.cur;
     if(cur==='habits'){
       AddChoice.show('Add task',[
-        {icon:'',label:'Calendar',fn:function(){OnceAddSheet.open();}},
         {icon:'',label:'Repeating task',fn:function(){A.startRepeatingTask();}},
         {icon:'',label:'Track a project',fn:function(){A.startTrackerHabit();}}
       ]);
@@ -7193,14 +7180,15 @@ var TabPlus={
     if(p&&p.type==='tracker'){TrackerAddSheet.open(cur);return;}
     if(p&&p.type!=='daily'){TaskSheet.openNew(cur);return;}
     if(btn){
-      DSel.menu(btn,[{value:'category',label:'Category'},{value:'project',label:'Project'}],null,function(v){
-        if(v==='category')A.newCategory();else A.newProject();
+      DSel.menu(btn,[{value:'category',label:'Category'},{value:'project',label:'Project'},{value:'calendar',label:'Calendar'}],null,function(v){
+        if(v==='category')A.newCategory();else if(v==='calendar')OnceAddSheet.open();else A.newProject();
       });
       return;
     }
     AddChoice.show('Add',[
       {icon:'',label:'Category',fn:function(){A.newCategory();}},
-      {icon:'',label:'Project',fn:function(){A.newProject();}}
+      {icon:'',label:'Project',fn:function(){A.newProject();}},
+      {icon:'',label:'Calendar',fn:function(){OnceAddSheet.open();}}
     ]);
   }
 };

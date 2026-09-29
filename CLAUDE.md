@@ -74,7 +74,13 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   Habits project sets `Habits.pid` and opens it; `curHabitsPid()` is what it
   shows (title, title-button editor, buildPanels' filter, where new habits
   and tracker links go). Calendar tasks (dailyOnce) belong to no project
-  and show on every Habits page and count on every Habits card. Today has
+  and, since 4.6 ("detach calendar tasks from habit projects, that makes no
+  sense"), are NOT on Habits pages at all: not in the day panels, not in
+  the Habits "+" (Repeating task / Track a project only), not in a Habits
+  card's count on Overview. They're added from Overview's "+" (Category /
+  Project / Calendar -> OnceAddSheet) and show only in Today (overdue ones
+  roll into today) and Tasks > Calendar. Before 4.6 they showed on every
+  Habits page and counted on every Habits card. Today has
   one card per Habits project, titled with its name. `habitsProjectId`
   stays as the FIRST/main one: creating another Habits project no longer
   takes it over (it did — every habit was global, so a second one showed

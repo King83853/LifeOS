@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-visual">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Life OS">
+<meta name="apple-mobile-web-app-title" content="Today">
 <meta name="theme-color" content="#f3f4f6">
-<title>Life OS</title>
+<title>Today</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="manifest" href="manifest.json">
@@ -1433,7 +1433,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.2';
+var APP_VERSION='Beta 4.3';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2494,6 +2494,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.2',notes:[
     "Bar charts (Statistics and every habit's page): each column is a grey bar as tall as the habits you had that day, with the done part in green (skipped in light green) inside it; days without habits (before any existed, or none scheduled) show a low grey stripe. The dashed line at the top is gone, and the number on the axis is the tallest bar's"
+  ]},
+  {v:'Beta 4.3',notes:[
+    'The app is now called Today (was Life OS) and lives at todaytracker.github.io/Today. Your data, the export format and everything inside stay the same'
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2570,7 +2573,8 @@ var USER_LOG={
   'Beta 3.99':'bug',
   'Beta 4.0':'both',
   'Beta 4.1':'bug',
-  'Beta 4.2':'design'
+  'Beta 4.2':'design',
+  'Beta 4.3':["New name: Today"]
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -3122,7 +3126,7 @@ var I18N=(function(){
     'Version history':'Versionsverlauf','Advanced update info':'Erweiterte Update-Infos','Bug fixes':'Fehlerbehebungen','Design fixes':'Design-Korrekturen','Design and bug fixes':'Design-Korrekturen und Fehlerbehebungen',"What's new":'Neuigkeiten','Got it':'Verstanden','General':'Allgemein','Data':'Daten',
     // headers
     '📆 Daily':'📆 Täglich','📅 One-time':'📅 Einmalig','One-time tasks':'Einmalige Aufgaben','One-time':'Einmalig',
-    'Consistency score':'Konsistenz-Wert','Time range':'Zeitraum','All time':'Gesamte Zeit','3 months':'3 Monate','1 month':'1 Monat','1 week':'1 Woche','Best score':'Bester Wert','Widgets':'Widgets','Chart':'Diagramm','Your data as text. Keep it somewhere safe — Import in Menu → Data brings it back.':'Deine Daten als Text. Bewahre ihn sicher auf — Import in Menü → Daten holt sie zurück.','Copy':'Kopieren','characters':'Zeichen','Habit history':'Gewohnheits-Verlauf','Done tasks':'Erledigte Aufgaben','Projects & settings':'Projekte & Einstellungen','Copied':'Kopiert','Share':'Teilen','Preparing…':'Wird vorbereitet…','Tap and hold the text to copy it':'Halte den Text gedrückt, um ihn zu kopieren',"That isn't Life OS data — copy the whole export and try again.":'Das sind keine Life-OS-Daten — kopiere den ganzen Export und versuche es nochmal.','Bar chart':'Balkendiagramm','Perfect streak':'Perfekte Serie','days in a row with every habit done':'Tage in Folge mit allen Gewohnheiten erledigt','All widgets are turned off':'Alle Widgets sind ausgeschaltet','Worst score':'Schlechtester Wert','Consistency':'Konsistenz',
+    'Consistency score':'Konsistenz-Wert','Time range':'Zeitraum','All time':'Gesamte Zeit','3 months':'3 Monate','1 month':'1 Monat','1 week':'1 Woche','Best score':'Bester Wert','Widgets':'Widgets','Chart':'Diagramm','Your data as text. Keep it somewhere safe — Import in Menu → Data brings it back.':'Deine Daten als Text. Bewahre ihn sicher auf — Import in Menü → Daten holt sie zurück.','Copy':'Kopieren','characters':'Zeichen','Habit history':'Gewohnheits-Verlauf','Done tasks':'Erledigte Aufgaben','Projects & settings':'Projekte & Einstellungen','Copied':'Kopiert','Share':'Teilen','Preparing…':'Wird vorbereitet…','Tap and hold the text to copy it':'Halte den Text gedrückt, um ihn zu kopieren',"That isn't data from this app — copy the whole export and try again.":'Das sind keine Daten aus dieser App — kopiere den ganzen Export und versuche es nochmal.','Bar chart':'Balkendiagramm','Perfect streak':'Perfekte Serie','days in a row with every habit done':'Tage in Folge mit allen Gewohnheiten erledigt','All widgets are turned off':'Alle Widgets sind ausgeschaltet','Worst score':'Schlechtester Wert','Consistency':'Konsistenz',
     '⚠️ War Room':'⚠️ War Room','War Room':'War Room','📈 Tracker':'📈 Tracker','📋 List':'📋 Liste','✅ To-do':'✅ To-do',
     'Nothing else matters until the War Room is clear.':'Nichts anderes zählt, bis der War Room leer ist.',
     'Nothing to do today.':'Heute nichts zu tun.','Nothing scheduled for today.':'Für heute ist nichts geplant.','Nothing here.':'Hier ist nichts.',
@@ -4251,7 +4255,7 @@ var A={
         JSON.parse(json);
         localStorage.setItem('lifeos',json.trim());
         DB.load();buildProjPages();renderWar();renderGrids();
-      }).catch(function(){Alert.info("That isn't Life OS data — copy the whole export and try again.");});
+      }).catch(function(){Alert.info("That isn't data from this app — copy the whole export and try again.");});
     });
   },
   // Is the sw.js on the server the one this device already runs? Every
@@ -7970,7 +7974,7 @@ if('serviceWorker' in navigator){
 (function(){
   if(window.APP_OK)return;
   var n=0;try{n=+(sessionStorage.getItem('lifeos-heal')||0);sessionStorage.setItem('lifeos-heal',n+1);}catch(e){}
-  var msg=n<6?'Updating to a working version\u2026':'Life OS couldn\u2019t start. Your data is safe \u2014 please try again later.';
+  var msg=n<6?'Updating to a working version\u2026':'The app couldn\u2019t start. Your data is safe \u2014 please try again later.';
   var d=document.createElement('div');
   d.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:#f3f4f6;color:#000;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font:500 15px -apple-system,system-ui,sans-serif';
   d.textContent=msg;document.body.appendChild(d);

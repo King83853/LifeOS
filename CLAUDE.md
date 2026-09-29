@@ -1,8 +1,10 @@
-# Life OS — Project Memory
+# Today (formerly Life OS) — Project Memory
 
 ## What this is
 A personal productivity mobile web app consolidating habit tracking, goals,
-vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
+vision board, and app blocker. Deployed at todaytracker.github.io/Today
+(GitHub user TodayTracker, repo Today — renamed in 4.3 from
+king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
 
 ## Stack (keep this accurate — update when it changes)
 - Single-file HTML/JS/CSS app (no build step, no bundler)
@@ -18,6 +20,18 @@ vision board, and app blocker. Deployed at king83853.github.io/LifeOS.
   decisions already made below.
 
 ## Decisions made (don't redo these debates)
+- NAME (4.3): the app is called "Today" on screen (manifest name/short_name,
+  <title>, apple-mobile-web-app-title — the home-screen label is fixed when
+  an icon is ADDED, so rename before people add it). Internal names keep
+  "lifeos" ON PURPOSE: the localStorage key 'lifeos' (changing it = every
+  user's data looks gone), 'lifeos-*' side keys, the 'lifeos-cache-v…'
+  CACHE_NAME prefix, the export tags LOS1/2/3. Texts that named the app
+  were reworded to "this app"/"The app". Moving users to the new address =
+  Export in the OLD icon → Add to Home Screen from the new link → Import in
+  the NEW icon (each icon has its own storage). The old icon keeps opening
+  from its cache after the old address 404s: its update check fails
+  quietly (reg.update() rejects → catch → silent) and never reaches
+  _hardUpdate, so nothing destructive happens — checked for 4.3.
 - `Nav.sd` (Daily tab's selected-day state) is an absolute day OFFSET from
   today (0 = today, negative = past, positive = future) — NOT a weekday
   index 0-6. It used to be a weekday index back when the day strip only

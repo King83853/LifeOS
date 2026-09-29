@@ -1,9 +1,10 @@
-// Life OS offline app-shell cache.
+// Today (formerly Life OS) offline app-shell cache. Internal names keep
+// "lifeos" (cache name, the localStorage key in index.html) on purpose.
 // Cache-first: once installed, the app loads instantly with no network
 // round-trip and works fully offline. New code only reaches the device
 // when the user taps "Check for updates" in Settings (see A.checkForUpdate
 // in index.html).
-var CACHE_NAME = 'lifeos-cache-v360';
+var CACHE_NAME = 'lifeos-cache-v361';
 var SCOPE_URL = self.registration.scope;
 var SHELL_URL = SCOPE_URL + 'index.html';
 var ASSETS = [

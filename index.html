@@ -1433,7 +1433,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.7';
+var APP_VERSION='Beta 4.8';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2509,6 +2509,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.7',notes:[
     "Menu: the Tasks icon has the same grey as the other grey icons (it was a lighter grey); General, Data and Trash now use exactly one grey too"
+  ]},
+  {v:'Beta 4.8',notes:[
+    "Menu > Tasks: new \"Open on\" dropdown — choose whether the Tasks tab opens on Tasks, List or Calendar (default and after Reset settings: Tasks). The view picked with the button on the Tasks tab still stays until the app is closed"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2590,7 +2593,8 @@ var USER_LOG={
   'Beta 4.4':'bug',
   'Beta 4.5':'bug',
   'Beta 4.6':["Calendar tasks are added in Overview now"],
-  'Beta 4.7':'design'
+  'Beta 4.7':'design',
+  'Beta 4.8':["Choose which view Tasks opens on"]
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -2656,7 +2660,7 @@ var DEFAULT_SETTINGS={
   startTab:'today',hiddenTabs:['blocker'],holdToComplete:true,autoUpdate:true,language:'en',theme:'system',
   dayStartHour:3,todayHabitsDisappear:true,skipHabits:false,
   todayTaskCount:3,todayRefill:false,skipTasks:true,skipResetDaily:true,showWarRoom:true,
-  statsRange:'3m',sound:true,overviewMinimal:false,advancedUpdates:false,statsHidden:[],statsOrder:['score','chart','best','worst','perfect']
+  statsRange:'3m',sound:true,tasksView:'tasks',overviewMinimal:false,advancedUpdates:false,statsHidden:[],statsOrder:['score','chart','best','worst','perfect']
 };
 // A plain notice card at the top of the screen for the rare data problems
 // in DB.load / DB.save — tap it to dismiss.
@@ -3150,7 +3154,7 @@ var I18N=(function(){
     'Add':'Hinzufügen','Add task':'Aufgabe hinzufügen','Add habit':'Gewohnheit hinzufügen','Habit name':'Name der Gewohnheit','Edit habit':'Gewohnheit bearbeiten','Delete habit':'Gewohnheit löschen','Description (optional)':'Beschreibung (optional)','Add category':'Kategorie hinzufügen','Add project':'Projekt hinzufügen','Cancel':'Abbrechen','Close':'Schließen','Delete':'Löschen','Save':'Speichern','Restore':'Wiederherstellen',
     'Export':'Exportieren','Import':'Importieren','Skip':'Überspringen','Empty':'Leer','Empty trash':'Papierkorb leeren','OK':'OK','Enter':'Eingeben',
     '+ Add category':'+ Kategorie hinzufügen','+ Add project':'+ Projekt hinzufügen','Clear all':'Alle löschen',
-    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Blocker':'Blocker','Coming soon':'Demnächst verfügbar','Notifications':'Mitteilungen','Minimal layout':'Minimales Layout','Sound':'Ton','Sounds':'Töne','App and website blocker: limits, warnings, screen time and app usage.':'App- und Website-Blocker: Limits, Warnungen, Bildschirmzeit und App-Nutzung.','Show War Room':'War Room anzeigen','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
+    'Reset skipped tasks':'Übersprungene Aufgaben zurücksetzen','Reset all statistics':'Alle Statistiken zurücksetzen','Reset all statistics? The history of every habit and the completed-tasks numbers start over.':'Alle Statistiken zurücksetzen? Der Verlauf jeder Gewohnheit und die Zahlen der erledigten Aufgaben beginnen von vorn.','Reset a project':'Projekt zurücksetzen','Choose…':'Wählen…','Open app on':'App öffnen mit','Open on':'Öffnen mit','Blocker':'Blocker','Coming soon':'Demnächst verfügbar','Notifications':'Mitteilungen','Minimal layout':'Minimales Layout','Sound':'Ton','Sounds':'Töne','App and website blocker: limits, warnings, screen time and app usage.':'App- und Website-Blocker: Limits, Warnungen, Bildschirmzeit und App-Nutzung.','Show War Room':'War Room anzeigen','Reset settings':'Einstellungen zurücksetzen','Reset all settings to the defaults? Your data stays.':'Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Daten bleiben erhalten.','Skip tasks':'Aufgaben überspringen','Skip habits':'Gewohnheiten überspringen','Edit habit':'Gewohnheit bearbeiten','App':'App','Appearance':'Darstellung','Update automatically':'Automatisch aktualisieren','Menu':'Menü','Choose which tabs show in the bottom menu. Settings always stays.':'Wähle, welche Tabs im unteren Menü erscheinen. Einstellungen bleibt immer.','Version':'Version','Check for updates':'Nach Updates suchen','Track a project':'Projekt verfolgen','Track in Daily':'In Täglich verfolgen','Manage categories':'Kategorien verwalten',
     '📁 Category':'📁 Kategorie','➕ Project':'➕ Projekt','One-time task':'Einmalige Aufgabe','Repeating task':'Wiederkehrende Aufgabe','Rename habit':'Gewohnheit umbenennen','Rename category':'Kategorie umbenennen',
     'Move to project':'In Projekt verschieben','Pick category':'Kategorie wählen','Pick tracker':'Tracker wählen','Choose category':'Kategorie wählen','Choose color':'Farbe wählen',
     // form labels
@@ -3656,6 +3660,8 @@ function renderArchive(){
 
 var LockedIn={
   view:'tasks',
+  // the view the Tasks tab opens on (Menu > Tasks > Open on)
+  startView:function(){var v=DB.data.settings.tasksView;return ['tasks','list','calendar'].indexOf(v)>-1?v:'tasks';},
   setView:function(v){
     this.view=v;
     renderLockedIn();
@@ -4082,6 +4088,11 @@ function renderSettings(){
     +'</div></div>'
     +'<div class="opt-group"><div class="opt-row btn-row" onclick="A.resetAllStats()"><div class="opt-text"><div class="opt-title">Reset all statistics</div></div></div></div>';
 
+  document.getElementById('settings-tasks').innerHTML='<div class="opt-group"><div class="opt-row" style="cursor:default">'
+    +'<div class="opt-text"><div class="opt-title">Open on</div></div>'
+    +customSelect([{value:'tasks',label:'Tasks'},{value:'list',label:'List'},{value:'calendar',label:'Calendar'}],LockedIn.startView(),'A.setTasksView(this.value)')
+    +'</div></div>';
+
   var refill=DB.data.settings.todayRefill;
   var vanish=DB.data.settings.todayHabitsDisappear;
   document.getElementById('settings-today').innerHTML=
@@ -4502,10 +4513,17 @@ var A={
       var keep=DB.data.settings.lastSeenVersion;
       DB.data.settings=Object.assign({},JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),{lastSeenVersion:keep,blockerSeeded:true});
       DB.data.todaySet=null;DB.save();
-      recomputeT();Nav.sd=0;
+      recomputeT();Nav.sd=0;LockedIn.view=LockedIn.startView();
       applyHoldMode();applyTheme();I18N.set(DB.data.settings.language);TabBar.applyTabs();
       A._refreshAll();renderSettings();renderAppPage();renderAppearance();renderGeneral();
     },'Reset');
+  },
+  // Menu > Tasks > Open on: which view the Tasks tab shows first
+  setTasksView:function(v){
+    DB.data.settings.tasksView=v;DB.save();
+    LockedIn.view=LockedIn.startView();
+    if(Nav.cur==='lockedin')renderLockedIn();
+    renderSettings();
   },
   setShowWarRoom:function(val){DB.data.settings.showWarRoom=val;DB.save();renderWar();},
   setOverviewMinimal:function(val){DB.data.settings.overviewMinimal=val;DB.save();renderGrids();},
@@ -7959,6 +7977,7 @@ renderWar();
 renderGrids();
 renderToday();
 TabBar.updateActive();
+LockedIn.view=LockedIn.startView();
 // open on the tab chosen in Settings > Open app on
 TabBar.applyTabs();
 (function(){var st=TabBar.startTab();if(st&&st!=='today'&&document.getElementById('p-'+st))TabBar.go(st);})();

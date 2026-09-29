@@ -232,8 +232,15 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   their space for one build). DragReorder's placeholder now copies the
   item's vertical margins, and in 'list' mode only the finger's up/down
   position decides a swap (the middle-60% check sideways made a hold near a
-  row's left edge never swap — Daily habits too). ZChart ignores touchmove
-  while DragReorder.active, so dragging the chart widget doesn't pan it.
+  row's left edge never swap — Daily habits too).
+  4.9: holding a widget on #p-stats NO LONGER moves it (by request —
+  "instead add a separate page in settings like we have for overview"):
+  the DragReorder on #p-stats, its `.stat-w.dragging` CSS and ZChart's
+  DragReorder.active check are gone. Order is changed on Menu > Statistics
+  > Edit layout (`#p-statslayout`, `renderStatsLayout`, up/down `.el-btn`s
+  like Overview's Edit layout, `A.moveStatWidget(k,dir)` swaps in
+  `Stats.order()` and saves statsOrder). The flow-root `.stat-w` layout
+  stays (pixel-identical, harmless).
   3.88: 5th widget "Perfect streak" (`perfect`, last by default): current
   run of days on which EVERY habit scheduled that day, across all Habits
   projects, was done (`perfectStreaks()`; skip = done; a day with nothing
@@ -1039,7 +1046,9 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   `settings.overviewMinimal`, default off — "so I still have access to the
   old version"): renderGrids toggles `#p-overview.ov-min`; CSS drops the
   card background and the count line (`.acnt`), four columns, 60px icons,
-  name under the icon — like a phone home screen. Tiles use
+  name under the icon — like a phone home screen. (Project emoji size, 4.9,
+  "a bit bigger compared to the square": 32px in the normal 58px `.aico`,
+  33px in the minimal 60px one — were 27/28px.) Tiles use
   `solidTintStyle()` (the tint blended opaque over the card colour) there,
   because the see-through tintStyle looked muddy on the grey page. Press
   dims the icon instead of greying a card; a dragged project gets its

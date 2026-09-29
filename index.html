@@ -114,7 +114,7 @@ html[data-theme="light"] .acard{background:#fff;border-color:#e8e5e0}
 /* Left behind in the flow at the dragged item's spot (see DragReorder) —
    plain empty space, nothing to paint. */
 .drag-placeholder{background:transparent}
-.aico{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:27px;background:#f3f4f6;color:#374151;overflow:hidden}
+.aico{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:32px;background:#f3f4f6;color:#374151;overflow:hidden}
 @media(prefers-color-scheme:dark){.aico{background:#1f2937;color:#9ca3af}}
 html[data-theme="dark"] .aico{background:#1f2937;color:#9ca3af}
 html[data-theme="light"] .aico{background:#f3f4f6;color:#374151}
@@ -858,8 +858,6 @@ html:not(#x) #p-stats .stat-w.off{display:none}
 html:not(#x) #p-stats .stat-w.after-card{margin-top:-2px}
 html:not(#x) #p-stats .stat-w>.sl{margin-top:0}
 html:not(#x) #p-stats .stat-w :is(.calsec,.opt-group){margin-top:0;margin-bottom:0}
-#p-stats .stat-w.dragging{box-shadow:none!important;transform:scale(1.03)!important}
-#p-stats .stat-w.dragging :is(.calsec,.opt-group){box-shadow:0 10px 24px rgba(0,0,0,.22)}
 /* Overview, minimal layout (Menu > Overview > Minimal layout): like a
    phone's home screen — just the icon and the name under it, no card and no
    count, four per row. A press dims the icon (not a grey card); a dragged
@@ -875,7 +873,7 @@ html:not(#x) #p-stats .stat-w :is(.calsec,.opt-group){margin-top:0;margin-bottom
 html:not(#x) #p-overview.ov-min .acard{background:transparent;padding:0;gap:6px;border-radius:0;border:0}
 html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 #p-overview.ov-min .acnt{display:none}
-#p-overview.ov-min .aico{width:60px;height:60px;border-radius:15px;font-size:28px;transition:filter .4s ease .15s;position:relative}
+#p-overview.ov-min .aico{width:60px;height:60px;border-radius:15px;font-size:33px;transition:filter .4s ease .15s;position:relative}
 #p-overview.ov-min .aico::after{content:'';position:absolute;inset:0;border:1px solid var(--ring,var(--ink));border-radius:inherit;pointer-events:none}
 #p-overview.ov-min .acard:active .aico{filter:brightness(.82);transition:filter .2s ease}
 #p-overview.ov-min .albl{font-size:12px;line-height:15px;font-weight:500}
@@ -1160,6 +1158,15 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 
 </div>
 
+<div class="page" id="p-statslayout">
+  <div class="hh">
+    <div class="hh-bar"><button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button></div>
+    <div class="hh-title">Edit layout</div>
+    <div class="hh-sub">Reorder the Statistics widgets</div>
+  </div>
+  <div id="stl-content" style="margin-top:14px"></div>
+</div>
+
 <div class="page" id="p-editlayout">
   <div class="hh">
     <div class="hh-bar"><button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button></div>
@@ -1433,7 +1440,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.8';
+var APP_VERSION='Beta 4.9';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2512,6 +2519,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.8',notes:[
     "Menu > Tasks: new \"Open on\" dropdown — choose whether the Tasks tab opens on Tasks, List or Calendar (default and after Reset settings: Tasks). The view picked with the button on the Tasks tab still stays until the app is closed"
+  ]},
+  {v:'Beta 4.9',notes:[
+    "Statistics widgets are no longer moved by holding them on the Statistics page; instead Menu > Statistics has an Edit layout page (like Overview's) with up/down buttons for each widget",
+    "Overview: project emojis are bigger in their squares (32px in the 58px square, 33px in the minimal layout's 60px — were 27/28px)"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2594,7 +2605,8 @@ var USER_LOG={
   'Beta 4.5':'bug',
   'Beta 4.6':["Calendar tasks are added in Overview now"],
   'Beta 4.7':'design',
-  'Beta 4.8':["Choose which view Tasks opens on"]
+  'Beta 4.8':["Choose which view Tasks opens on"],
+  'Beta 4.9':["Statistics widgets are reordered in the menu"]
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -3142,7 +3154,7 @@ var I18N=(function(){
   var DE={
     // tab bar + page titles
     'Today':'Heute','Overview':'Übersicht','Tasks':'Aufgaben','Stats':'Statistik','Settings':'Einstellungen','Statistics':'Statistik',
-    'Daily':'Täglich','Habits':'Gewohnheiten','Trash':'Papierkorb','Edit layout':'Layout bearbeiten','Reorder or remove':'Neu ordnen oder entfernen',
+    'Daily':'Täglich','Habits':'Gewohnheiten','Trash':'Papierkorb','Edit layout':'Layout bearbeiten','Reorder or remove':'Neu ordnen oder entfernen','Reorder the Statistics widgets':'Statistik-Widgets neu ordnen',
     'Version history':'Versionsverlauf','Advanced update info':'Erweiterte Update-Infos','Bug fixes':'Fehlerbehebungen','Design fixes':'Design-Korrekturen','Design and bug fixes':'Design-Korrekturen und Fehlerbehebungen',"What's new":'Neuigkeiten','Got it':'Verstanden','General':'Allgemein','Data':'Daten',
     // headers
     '📆 Daily':'📆 Täglich','📅 One-time':'📅 Einmalig','One-time tasks':'Einmalige Aufgaben','One-time':'Einmalig',
@@ -3781,6 +3793,20 @@ function renderEditLayout(){
   document.getElementById('el-content').innerHTML=h;
 }
 
+// Menu > Statistics > Edit layout: the widgets in their order, moved with
+// up/down buttons like Overview's Edit layout
+function renderStatsLayout(){
+  var o=Stats.order();
+  var arrow=function(pts){return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="'+pts+'"/></svg>';};
+  document.getElementById('stl-content').innerHTML='<div class="el-card">'+o.map(function(k,i){
+    var w=STAT_WIDGETS.find(function(x){return x[0]===k;});
+    return '<div class="el-row"><div class="el-name">'+w[1]+'</div><div class="el-btns">'
+      +'<button class="el-btn"'+(i===0?' disabled style="opacity:.3"':'')+' onclick="A.moveStatWidget(\''+k+'\',-1)">'+arrow('18 15 12 9 6 15')+'</button>'
+      +'<button class="el-btn"'+(i===o.length-1?' disabled style="opacity:.3"':'')+' onclick="A.moveStatWidget(\''+k+'\',1)">'+arrow('6 9 12 15 18 9')+'</button>'
+      +'</div></div>';
+  }).join('')+'</div>';
+}
+
 // Custom line-icons for Settings rows, swapped in for plain-text emoji so
 // they render consistently (weight, size, color) across every platform
 // instead of relying on each OS's own emoji font. Kept as small inline
@@ -4081,6 +4107,8 @@ function renderSettings(){
         +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(Stats.shown(w[0])?'checked':'')+' onchange="A.setStatWidget(\''+w[0]+'\',this.checked)"><span class="switch-slider"></span></label>'
         +'</div>';
     }).join('')+'</div>'
+    +'<div class="opt-group"><div class="opt-row" onclick="Nav.go(\'statslayout\')">'
+    +'<div class="opt-text"><div class="opt-title">Edit layout</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div></div>'
     +'<div class="sl">Consistency score</div>'
     +'<div class="opt-group"><div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Time range</div></div>'
@@ -4529,6 +4557,13 @@ var A={
   setOverviewMinimal:function(val){DB.data.settings.overviewMinimal=val;DB.save();renderGrids();},
   // Menu > Statistics > Widgets: show or hide one Statistics widget (the
   // switch isn't redrawn, only the Statistics page)
+  moveStatWidget:function(k,dir){
+    var o=Stats.order(),i=o.indexOf(k),j=i+dir;
+    if(i===-1||j<0||j>=o.length)return;
+    o[i]=o[j];o[j]=k;
+    DB.data.settings.statsOrder=o;DB.save();
+    renderStatsLayout();renderSettings();
+  },
   setStatWidget:function(w,on){
     var h=(DB.data.settings.statsHidden||[]).filter(function(x){return x!==w;});
     if(!on)h.push(w);
@@ -4667,9 +4702,10 @@ function _renderPage(id){
   if(id==='lockedin')renderLockedIn();
   if(id==='stats')Stats.render();
   if(id==='editlayout')renderEditLayout();
+  if(id==='statslayout')renderStatsLayout();
   if(id==='appearance')renderAppearance();
   if(id==='app')renderAppPage();
-  if(['settoday','setoverview','setstats'].indexOf(id)!==-1)renderSettings();
+  if(['settoday','setoverview','settasks','setstats'].indexOf(id)!==-1)renderSettings();
   if(id==='general')renderGeneral();
   if(id==='settings')renderSettings();
   if(id==='habits')renderHabits();
@@ -4735,7 +4771,7 @@ function navSwitch(id){
 // back button (navBack with no arg) and the swipe-back gesture get the
 // right target without each call site needing to know about it.
 // Pages opened from the Settings list (back returns there; the Settings tab stays lit)
-var SETTINGS_SUBPAGES=['guide','guide-hidden','editlayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats','setblocker'];
+var SETTINGS_SUBPAGES=['guide','guide-hidden','editlayout','statslayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats','setblocker'];
 // Where back goes: the page this one was opened from (Nav.stack), skipping
 // any that no longer exist (e.g. a deleted project). The fixed rules below
 // only apply when there's no history (e.g. right after the app reopened).
@@ -4747,6 +4783,7 @@ function _backTarget(){
   // (their opt-rows there), never from Overview — back should return
   // where they were actually opened from.
   if(cur&&cur.id==='p-guide-hidden')return 'guide'; // a Guide page, opened from the Guide list
+  if(cur&&cur.id==='p-statslayout')return 'setstats';
   if(cur&&SETTINGS_SUBPAGES.indexOf(cur.id.slice(2))!==-1)return 'settings';
   // A tracker project opened by tapping its row in Daily (see ciTracker())
   // should return to Habits, not the usual Overview default — _projFromDaily
@@ -5302,7 +5339,6 @@ ZChart.prototype._wire=function(){
     else if(mode!==3&&mode!==4){mode=1;sx=e.touches[0].clientX;sy=e.touches[0].clientY;o0=self.offset;moves=[];}
   },{passive:true});
   h.addEventListener('touchmove',function(e){
-    if(DragReorder.active){mode=0;return;} // the widget itself is being moved (Statistics)
     if(mode===3){if(e.touches.length<2)return;e.preventDefault();self.zoomTo(D0*d0/dist(e.touches));draw();return;}
     if(mode===4){e.preventDefault();return;}
     if(mode===1){
@@ -5514,15 +5550,6 @@ var Stats={
       any=any||on;
     });
     none.style.display=any?'none':'';
-    // hold a widget to move it, like projects on Overview (wired once: the
-    // page element stays)
-    if(!pg.dataset.dragWired){
-      pg.dataset.dragWired='1';
-      DragReorder.init(pg,'.stat-w','.stat-w','list',function(c){
-        DB.data.settings.statsOrder=[].map.call(c.querySelectorAll('.stat-w'),function(el){return el.getAttribute('data-w');});
-        DB.save();self.applyWidgets();renderSettings();
-      });
-    }
   },
   render:function(){
     this.applyWidgets();

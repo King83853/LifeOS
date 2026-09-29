@@ -615,6 +615,20 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   kept navigating after my SW/cache cleanup. Preview note: unregister()
   then register() in the same tab resurrects the OLD registration (no
   install, no cache) — not what a real first launch does.
+- 4.5, the real import failure (found only via 4.4's diagnostic message,
+  which showed the pasted start): the export arrived as "los3:eF61…" — the
+  LABEL lowercased somewhere between the old app's Copy and the new app's
+  paste (body intact; cause on the phone unknown), and unpack looked for
+  exactly "LOS3:". `DataCodec.findTag` now matches /los([123])\s*:/i, and
+  a text with no label at all is still decoded when it starts like zlib
+  base64 ("eA"/"eF"/"eJ"/"eN"). Also learned: the iPhone's
+  CompressionStream writes zlib header 78 5E ("eF…"), Chrome 78 9C
+  ("eJ…") — both decode everywhere; test iPhone-style data by
+  re-compressing with Python `zlib.compress(raw, 2)`. Verified with the
+  REAL 4.2 export code (extracted from git) in every variant. Lesson: when
+  a user-side failure can't be reproduced, ship a message that SHOWS the
+  input (length + first characters) — one screenshot ended three rounds of
+  guessing.
 - A window's Save must never run twice (3.95, a friend on Android got TWO
   projects from one creation): SheetEditor.save kept `newCatId` and no
   `pid` after saving, and the sheet stays tappable while it slides away

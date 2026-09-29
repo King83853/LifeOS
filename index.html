@@ -69,7 +69,6 @@ html[data-theme="light"] .fab{background:#000;color:#fff}
 @media(prefers-color-scheme:dark){.hdr-add{border-color:#fff;background:#1f2937;color:#fff}}
 html[data-theme="dark"] .hdr-add{border-color:#fff;background:#1f2937;color:#fff}
 html[data-theme="light"] .hdr-add{border-color:#000;background:#f3f4f6;color:#000}
-.hdr-add:active{opacity:.7}
 
 .hdr-r{display:flex;align-items:center;gap:8px}
 .tlbl{font-size:12px;color:#aaa}
@@ -77,7 +76,6 @@ html[data-theme="light"] .hdr-add{border-color:#000;background:#f3f4f6;color:#00
 @media(prefers-color-scheme:dark){.menu-btn{border-color:#fff;background:#1f2937}}
 html[data-theme="dark"] .menu-btn{border-color:#fff;background:#1f2937}
 html[data-theme="light"] .menu-btn{border-color:#000;background:#f3f4f6}
-.menu-btn:active{opacity:.7}
 
 .menu-overlay{display:none;position:fixed;inset:0;z-index:200}
 .menu-panel{position:fixed;top:0;left:0;bottom:0;width:78%;max-width:300px;background:#f3f4f6;z-index:201;padding:0 16px 20px;box-shadow:4px 0 24px rgba(0,0,0,0.15)}
@@ -127,7 +125,6 @@ html[data-theme="light"] .albl{color:#000}
 @media(prefers-color-scheme:dark){.back{border-color:#fff;background:#1e1c1a;color:#fff}}
 html[data-theme="dark"] .back{border-color:#fff;background:#1e1c1a;color:#fff}
 html[data-theme="light"] .back{border-color:#000;background:#fff;color:#000}
-.back:active{opacity:.7}
 /* min-height keeps the title's vertical position identical whether or
    not a page has a 44px header button (Overview's "+", a project's
    "..." edit button, etc.) — without this, a page with no button gets
@@ -174,7 +171,6 @@ html[data-theme="light"] .addinp:focus{border-color:#000}
 @media(prefers-color-scheme:dark){.addbtn{border-color:#fff;background:#1e1c1a;color:#fff}}
 html[data-theme="dark"] .addbtn{border-color:#fff;background:#1e1c1a;color:#fff}
 html[data-theme="light"] .addbtn{border-color:#000;background:#fff;color:#000}
-.addbtn:active{opacity:.7}
 .empty{text-align:center;padding:36px 16px;color:#ccc;font-size:14px;line-height:1.6}
 
 .archbox{background:#fff;border:1.5px solid #e8e5e0;border-radius:16px;overflow:hidden}
@@ -327,7 +323,6 @@ html[data-theme="light"] .el-icon{background:#f3f4f6}
 @media(prefers-color-scheme:dark){.el-btn{border-color:#444;background:#1e1c1a}}
 html[data-theme="dark"] .el-btn{border-color:#444;background:#1e1c1a}
 html[data-theme="light"] .el-btn{border-color:#d1cec9;background:#fff}
-.el-btn:active{opacity:.7}
 .el-btn.danger,html[data-theme="light"] .el-btn.danger,html[data-theme="dark"] .el-btn.danger{border-color:#dc2626;background:#dc2626}
 
 .opt-row{display:flex;align-items:center;gap:12px;padding:14px;background:#fff;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px;cursor:pointer}
@@ -518,7 +513,6 @@ html[data-theme="light"] .sheet-save{background:#fff;border-color:#000;color:#00
 @media(prefers-color-scheme:dark){.edit-proj-btn{background:#1e1c1a;border-color:#fff;color:#fff}}
 html[data-theme="dark"] .edit-proj-btn{background:#1e1c1a;border-color:#fff;color:#fff}
 html[data-theme="light"] .edit-proj-btn{background:#fff;border-color:#000;color:#000}
-.edit-proj-btn:active{opacity:.7}
 .cat-choice{display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid #e8e5e0;border-radius:14px;margin-bottom:8px;cursor:pointer;font-size:15px;font-weight:600}
 @media(prefers-color-scheme:dark){.cat-choice{border-color:#2a2927}}
 html[data-theme="dark"] .cat-choice{border-color:#2a2927}
@@ -564,7 +558,6 @@ html:not(#x) .acard,html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .calsec,html
 .hh{margin-bottom:16px}
 .hh-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .hh-btn{width:40px;height:40px;border-radius:12px;border:none;padding:0;background:var(--card);color:#000;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .12s ease}
-.hh-btn:active{opacity:.7}
 .hh-title{display:block;font-size:26px;font-weight:800;line-height:1.15;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 .hh-title-btn{display:block;max-width:100%;background:none;border:none;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
 /* A pushed page title with a date on the right (Daily), laid out like Today's header. */
@@ -643,8 +636,7 @@ html:not(#x) .opt-group .opt-row:last-child{border-bottom:none}
 html[data-theme="dark"]{--ink:#fff;--blue:#0a84ff;--blue-tint:rgba(10,132,255,.22);--red:#ff453a}
 html[data-theme="light"]{--ink:#000;--blue:#007aff;--blue-tint:rgba(0,122,255,.12);--red:#ff3b30}
 /* soft square buttons (header +, back, edit, menu, add) */
-html:not(#x) .hdr-add,html:not(#x) .menu-btn,html:not(#x) .back,html:not(#x) .edit-proj-btn,html:not(#x) .addbtn{width:40px;height:40px;min-height:40px;border:none;border-radius:12px;background:var(--card);color:var(--ink);transition:background .12s ease}
-html:not(#x) .hdr-add:active,html:not(#x) .menu-btn:active,html:not(#x) .back:active,html:not(#x) .edit-proj-btn:active,html:not(#x) .addbtn:active,html:not(#x) .hh-btn:active,html:not(#x) .el-btn:active{background:var(--press);opacity:1}
+html:not(#x) .hdr-add,html:not(#x) .menu-btn,html:not(#x) .back,html:not(#x) .edit-proj-btn,html:not(#x) .addbtn{width:40px;height:40px;min-height:40px;border:none;border-radius:12px;background:var(--card);color:var(--ink)}
 html:not(#x) .addbtn{width:46px;height:46px;min-height:46px;border-radius:14px}
 html:not(#x) .dhdr{min-height:40px}
 .dtitle{font-size:20px;font-weight:800}
@@ -781,8 +773,14 @@ html:not(#x) .calsec{border:none}
    release it stays .15s, then fades out over .4s. A transition uses the
    timing of the state it's going TO, so the fade-in lives on the pressed
    state and the linger + fade-out on the resting one. */
-html:not(#x) .opt-row,html:not(#x) .hdr-add,html:not(#x) .menu-btn,html:not(#x) .back,html:not(#x) .edit-proj-btn,html:not(#x) .addbtn,html:not(#x) .hh-btn,html:not(#x) .el-btn,html:not(#x) .sheet-save,html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .cali,html:not(#x) .cat-choice,html:not(#x) .color-field,html:not(#x) .acard{transition:background .4s ease .15s}
-html:not(#x) .hdr-add:active,html:not(#x) .menu-btn:active,html:not(#x) .back:active,html:not(#x) .edit-proj-btn:active,html:not(#x) .addbtn:active,html:not(#x) .hh-btn:active,html:not(#x) .el-btn:active,html:not(#x) .sheet-save:active,html:not(#x) .cat-choice:active,html:not(#x) .color-field:active,html:not(#x) .acard:active,html:not(#x) .pressed-row{transition:background .2s ease}
+html:not(#x) .opt-row,html:not(#x) .sheet-save,html:not(#x) .ti,html:not(#x) .wri,html:not(#x) .cali,html:not(#x) .cat-choice,html:not(#x) .color-field,html:not(#x) .acard{transition:background .4s ease .15s}
+html:not(#x) .sheet-save:active,html:not(#x) .cat-choice:active,html:not(#x) .color-field:active,html:not(#x) .acard:active,html:not(#x) .pressed-row{transition:background .2s ease}
+/* Small square buttons (header +, back, Tasks' view button, edit, the
+   Edit layout arrows) never grey — the grey is for rows/bars. They press
+   in and spring back with a slight overshoot. `.sq-press` comes from
+   touchstart and is held a moment (see SQ_BTNS), so a quick tap shows it. */
+html:not(#x) :is(.hdr-add,.menu-btn,.back,.edit-proj-btn,.addbtn,.hh-btn,.el-btn){transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+html:not(#x) :is(.hdr-add,.menu-btn,.back,.edit-proj-btn,.addbtn,.hh-btn,.el-btn):is(:active,.sq-press){transform:scale(.86);opacity:1;transition:transform .12s ease-out}
 /* New tracker entry window: the tracker's unit sits inside the value field
    on the right. */
 .trk-add-row{position:relative}
@@ -1449,7 +1447,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.11';
+var APP_VERSION='Beta 4.12';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2539,6 +2537,9 @@ var CHANGELOG=[
   {v:'Beta 4.11',notes:[
     "Menu > Statistics > Edit layout only lists the widgets that are turned on; moving one skips over the hidden ones",
     "Menu > Today > Edit layout (new, at the top): reorder Today's sections — Tasks, Calendar, Habits (default in that order). Calendar tasks now sit in their own section of Today. Ticking off the last habit or calendar task of a card now removes its title too (it stayed behind, and the last habit left a \"Nothing scheduled for today.\" line)"
+  ]},
+  {v:'Beta 4.12',notes:[
+    "The small square buttons (+, back, the Tasks view button, edit, the Edit layout arrows) no longer turn grey when pressed — they press in and spring back. The grey stays only on rows and bars. Dropdowns opened from a pressed button still sit exactly under it"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2624,7 +2625,8 @@ var USER_LOG={
   'Beta 4.8':["Choose which view Tasks opens on"],
   'Beta 4.9':["Statistics widgets are reordered in the menu"],
   'Beta 4.10':'bug',
-  'Beta 4.11':["Reorder the sections in Today"]
+  'Beta 4.11':["Reorder the sections in Today"],
+  'Beta 4.12':'design'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -3935,7 +3937,10 @@ var DSel=(function(){
     });
     document.body.appendChild(menu);
     owner=ownerEl;ownerEl.classList.add('open');
-    var r=anchor.getBoundingClientRect();
+    // the button's resting box: a pressed-in button is scaled down
+    var br=anchor.getBoundingClientRect(),cx=(br.left+br.right)/2,cy=(br.top+br.bottom)/2;
+    var aw=anchor.offsetWidth||br.width,ah=anchor.offsetHeight||br.height;
+    var r={left:cx-aw/2,right:cx+aw/2,top:cy-ah/2,bottom:cy+ah/2};
     var mh=menu.offsetHeight,mw=menu.offsetWidth,vh=window.innerHeight;
     var top=r.bottom+gap,below=vh-top-8;
     if(mh>below){
@@ -5997,6 +6002,30 @@ var PRESS_DELAY=110,PRESS_TAP_MS=200;
 // if none) — a row held that long can't be swiped to skip any more (see
 // Skip) — and a way for a starting skip swipe to stop a pending grey.
 var _pressHeld=null,_pressCancel=function(){};
+// Small square buttons press in (CSS "Small square buttons"): `.sq-press`
+// from touchstart, kept at least SQ_PRESS_MIN ms so a quick tap still
+// shows it; moving the finger away (>10px) lets go.
+var SQ_BTNS='.hdr-add,.menu-btn,.back,.edit-proj-btn,.addbtn,.hh-btn,.el-btn',SQ_PRESS_MIN=110;
+(function(){
+  var el=null,t0=0,sx=0,sy=0,tm=null;
+  function release(){
+    if(!el)return;var b=el;el=null;
+    tm=setTimeout(function(){b.classList.remove('sq-press');},Math.max(0,SQ_PRESS_MIN-(Date.now()-t0)));
+  }
+  document.addEventListener('touchstart',function(e){
+    var b=e.target.closest&&e.target.closest(SQ_BTNS);
+    if(!b||b.disabled)return;
+    clearTimeout(tm);
+    document.querySelectorAll('.sq-press').forEach(function(x){if(x!==b)x.classList.remove('sq-press');});
+    el=b;t0=Date.now();sx=e.touches[0].clientX;sy=e.touches[0].clientY;
+    b.classList.add('sq-press');
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    if(el&&(Math.abs(e.touches[0].clientX-sx)>10||Math.abs(e.touches[0].clientY-sy)>10))release();
+  },{passive:true});
+  document.addEventListener('touchend',release,{passive:true});
+  document.addEventListener('touchcancel',release,{passive:true});
+})();
 var PRESS_ROWS='.cali:not([data-once]),.ti:not([data-once]),.wri,.opt-row:not(:has(.switch)):not(:has(.dsel-wrap))';
 (function(){
   var row=null,timer=null,sx=0,sy=0;

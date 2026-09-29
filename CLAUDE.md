@@ -741,6 +741,19 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   buttons are soft 40px squares (`.hh-btn`, and `.hdr-add/.menu-btn/.back/
   .edit-proj-btn` are restyled to match); pushed pages (project pages, Edit
   layout, Daily, habit detail, Settings sub-pages) all use the `.hh` header.
+  PRESS of those small square buttons (4.12, `SQ_BTNS`: .hdr-add .menu-btn
+  .back .edit-proj-btn .addbtn .hh-btn .el-btn): NO grey — "the grey color
+  change is only for the bar buttons". They scale to .86 (.12s) and spring
+  back with overshoot (.35s cubic-bezier(.34,1.56,.64,1)) — option A of a
+  tappable demo; the user didn't pick, then asked again angrily after I
+  shipped other things first, so I picked A. When a request needs the
+  user's pick and they move on without one, pick a sensible option and
+  ship it rather than leave it waiting. `.sq-press` is added on touchstart
+  and held ≥ SQ_PRESS_MIN (110ms) so quick taps show it; `:active` covers
+  the mouse. The old opacity:.7 :active rules were deleted. DSel.show now
+  measures its anchor's RESTING box (centre of the rect ± offsetWidth/
+  Height/2), since a pressed button is scaled when its dropdown opens.
+  Don't add these buttons back to the "Press grey timing" lists.
   Sheets have a grey (`--pg`) background with white inputs/rows; their buttons
   (`.sheet-save`, `.danger` for red) are white rows with blue text like
   Settings' buttons, choice lists (`#cat-choices`, `#add-choice-list`,

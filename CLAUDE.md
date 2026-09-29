@@ -240,7 +240,10 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   > Edit layout (`#p-statslayout`, `renderStatsLayout`, up/down `.el-btn`s
   like Overview's Edit layout, `A.moveStatWidget(k,dir)` swaps in
   `Stats.order()` and saves statsOrder). The flow-root `.stat-w` layout
-  stays (pixel-identical, harmless).
+  stays (pixel-identical, harmless). 4.11: the page lists only widgets
+  that are turned on ("All widgets are turned off" when none); a move
+  swaps with the next VISIBLE widget, hidden ones keep their slot in
+  statsOrder.
   3.88: 5th widget "Perfect streak" (`perfect`, last by default): current
   run of days on which EVERY habit scheduled that day, across all Habits
   projects, was done (`perfectStreaks()`; skip = done; a day with nothing
@@ -328,6 +331,22 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   move. No conflict with the edge swipe-back: it starts at x<=35, which is
   inside the tick zone, where a skip swipe never starts.
 
+- Today's ORDER (4.11, "an edit tab to edit the order of today: tasks,
+  calendar, habits"): #p-today holds three `.today-sec[data-s]` blocks —
+  tasks (the Tasks title + #today-priorities), calendar (`#today-cal`, own
+  container since 4.11; it used to be the top of #today-daily) and habits
+  (`#today-daily`, one card per Habits project, kept together as ONE
+  section). `applyTodayOrder()` (end of renderToday, and on a move) puts
+  them in `todayOrder()` order (settings.todayOrder, default tasks/
+  calendar/habits) before #today-none, only touching the DOM when it
+  differs. Menu > Today > Edit layout (`#p-todaylayout`,
+  `renderTodayLayout`, `A.moveTodaySection`) — the up/down list is the
+  shared `orderCard(list,fn)`, also used by Statistics' Edit layout. When
+  a ticked habit (vanish mode) or calendar task leaves Today,
+  `_dropEmptyCard(sec)` removes an emptied card WITH its title and re-runs
+  syncTodaySections (before, the title stayed, and the last habit left a
+  "Nothing scheduled for today." line). Anything new that reads Today's
+  calendar rows must look in #today-cal, not #today-daily.
 - Today's section headers (🎯 Tasks / 📆 Habits) are hidden when their
   section is empty (`syncTodaySections`), with one "Nothing to do today."
   line if both are. "Category with no tasks" in the user's wording meant

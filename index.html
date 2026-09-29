@@ -626,7 +626,7 @@ html:not(#x) .wri:last-child{border-bottom:none}
    here shows as a strip of the card's own white next to a pressed row's
    grey (it did at the bottom until 2.77 and at the top until 2.89). The
    rows carry their own 14px edge padding. */
-#today-daily .calsec,[id^="dp-"] .calsec{border:none;padding:0;overflow:hidden}
+#today-daily .calsec,#today-cal .calsec,[id^="dp-"] .calsec{border:none;padding:0;overflow:hidden}
 html:not(#x) .archbox{border:none}
 /* project badge in task rows: a touch slimmer than the default 30px */
 .ti .bdg{height:27px;min-height:27px;display:inline-flex;align-items:center;padding-top:0;padding-bottom:0}
@@ -1088,9 +1088,10 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
     </div>
     <span class="tlbl" id="tlbl"></span>
   </div>
-  <div class="shdr" id="today-tasks-hdr">Tasks</div>
-  <div id="today-priorities" class="card-list"></div>
-  <div id="today-daily"></div>
+  <div class="today-sec" data-s="tasks"><div class="shdr" id="today-tasks-hdr">Tasks</div>
+  <div id="today-priorities" class="card-list"></div></div>
+  <div class="today-sec" data-s="calendar" id="today-cal"></div>
+  <div class="today-sec" data-s="habits" id="today-daily"></div>
   <div class="empty" id="today-none" style="display:none">Nothing to do today.</div>
 </div>
 
@@ -1155,6 +1156,15 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
 
   <div class="opt-group" id="stats-none" style="display:none"><div class="cal-none">All widgets are turned off</div></div>
 
+</div>
+
+<div class="page" id="p-todaylayout">
+  <div class="hh">
+    <div class="hh-bar"><button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button></div>
+    <div class="hh-title">Edit layout</div>
+    <div class="hh-sub">Reorder the sections in Today</div>
+  </div>
+  <div id="tdl-content" style="margin-top:14px"></div>
 </div>
 
 <div class="page" id="p-statslayout">
@@ -1439,7 +1449,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.10';
+var APP_VERSION='Beta 4.11';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2525,6 +2535,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.10',notes:[
     "Fixed: going back to a page you had scrolled down (swiping back or the back button), the blur under the status bar only appeared after the slide had finished — it now shows from the start of the slide. It's no longer hidden while pages slide at all"
+  ]},
+  {v:'Beta 4.11',notes:[
+    "Menu > Statistics > Edit layout only lists the widgets that are turned on; moving one skips over the hidden ones",
+    "Menu > Today > Edit layout (new, at the top): reorder Today's sections — Tasks, Calendar, Habits (default in that order). Calendar tasks now sit in their own section of Today. Ticking off the last habit or calendar task of a card now removes its title too (it stayed behind, and the last habit left a \"Nothing scheduled for today.\" line)"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2609,7 +2623,8 @@ var USER_LOG={
   'Beta 4.7':'design',
   'Beta 4.8':["Choose which view Tasks opens on"],
   'Beta 4.9':["Statistics widgets are reordered in the menu"],
-  'Beta 4.10':'bug'
+  'Beta 4.10':'bug',
+  'Beta 4.11':["Reorder the sections in Today"]
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -2675,7 +2690,7 @@ var DEFAULT_SETTINGS={
   startTab:'today',hiddenTabs:['blocker'],holdToComplete:true,autoUpdate:true,language:'en',theme:'system',
   dayStartHour:3,todayHabitsDisappear:true,skipHabits:false,
   todayTaskCount:3,todayRefill:false,skipTasks:true,skipResetDaily:true,showWarRoom:true,
-  statsRange:'3m',sound:true,tasksView:'tasks',overviewMinimal:false,advancedUpdates:false,statsHidden:[],statsOrder:['score','chart','best','worst','perfect']
+  statsRange:'3m',sound:true,tasksView:'tasks',todayOrder:['tasks','calendar','habits'],overviewMinimal:false,advancedUpdates:false,statsHidden:[],statsOrder:['score','chart','best','worst','perfect']
 };
 // A plain notice card at the top of the screen for the rare data problems
 // in DB.load / DB.save — tap it to dismiss.
@@ -3157,7 +3172,7 @@ var I18N=(function(){
   var DE={
     // tab bar + page titles
     'Today':'Heute','Overview':'Übersicht','Tasks':'Aufgaben','Stats':'Statistik','Settings':'Einstellungen','Statistics':'Statistik',
-    'Daily':'Täglich','Habits':'Gewohnheiten','Trash':'Papierkorb','Edit layout':'Layout bearbeiten','Reorder or remove':'Neu ordnen oder entfernen','Reorder the Statistics widgets':'Statistik-Widgets neu ordnen',
+    'Daily':'Täglich','Habits':'Gewohnheiten','Trash':'Papierkorb','Edit layout':'Layout bearbeiten','Reorder or remove':'Neu ordnen oder entfernen','Reorder the Statistics widgets':'Statistik-Widgets neu ordnen','Reorder the sections in Today':'Abschnitte in Heute neu ordnen',
     'Version history':'Versionsverlauf','Advanced update info':'Erweiterte Update-Infos','Bug fixes':'Fehlerbehebungen','Design fixes':'Design-Korrekturen','Design and bug fixes':'Design-Korrekturen und Fehlerbehebungen',"What's new":'Neuigkeiten','Got it':'Verstanden','General':'Allgemein','Data':'Daten',
     // headers
     '📆 Daily':'📆 Täglich','📅 One-time':'📅 Einmalig','One-time tasks':'Einmalige Aufgaben','One-time':'Einmalig',
@@ -3796,18 +3811,27 @@ function renderEditLayout(){
   document.getElementById('el-content').innerHTML=h;
 }
 
-// Menu > Statistics > Edit layout: the widgets in their order, moved with
-// up/down buttons like Overview's Edit layout
-function renderStatsLayout(){
-  var o=Stats.order();
+// A reorder list like Overview's Edit layout: one card, a row per item
+// (`list` = [[key,name]…] in order) with up/down buttons calling fn(key,±1).
+function orderCard(list,fn){
   var arrow=function(pts){return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="'+pts+'"/></svg>';};
-  document.getElementById('stl-content').innerHTML='<div class="el-card">'+o.map(function(k,i){
-    var w=STAT_WIDGETS.find(function(x){return x[0]===k;});
-    return '<div class="el-row"><div class="el-name">'+w[1]+'</div><div class="el-btns">'
-      +'<button class="el-btn"'+(i===0?' disabled style="opacity:.3"':'')+' onclick="A.moveStatWidget(\''+k+'\',-1)">'+arrow('18 15 12 9 6 15')+'</button>'
-      +'<button class="el-btn"'+(i===o.length-1?' disabled style="opacity:.3"':'')+' onclick="A.moveStatWidget(\''+k+'\',1)">'+arrow('6 9 12 15 18 9')+'</button>'
+  return '<div class="el-card">'+list.map(function(x,i){
+    return '<div class="el-row"><div class="el-name">'+x[1]+'</div><div class="el-btns">'
+      +'<button class="el-btn"'+(i===0?' disabled style="opacity:.3"':'')+' onclick="'+fn+'(\''+x[0]+'\',-1)">'+arrow('18 15 12 9 6 15')+'</button>'
+      +'<button class="el-btn"'+(i===list.length-1?' disabled style="opacity:.3"':'')+' onclick="'+fn+'(\''+x[0]+'\',1)">'+arrow('6 9 12 15 18 9')+'</button>'
       +'</div></div>';
   }).join('')+'</div>';
+}
+// Menu > Statistics > Edit layout: only the widgets that are turned on
+function renderStatsLayout(){
+  var o=Stats.order().filter(function(k){return Stats.shown(k);});
+  document.getElementById('stl-content').innerHTML=o.length
+    ?orderCard(o.map(function(k){return STAT_WIDGETS.find(function(x){return x[0]===k;});}),'A.moveStatWidget')
+    :'<div class="opt-group"><div class="cal-none">All widgets are turned off</div></div>';
+}
+// Menu > Today > Edit layout: Tasks, Calendar, Habits
+function renderTodayLayout(){
+  document.getElementById('tdl-content').innerHTML=orderCard(todayOrder().map(function(k){return TODAY_SECTIONS.find(function(x){return x[0]===k;});}),'A.moveTodaySection');
 }
 
 // Custom line-icons for Settings rows, swapped in for plain-text emoji so
@@ -4127,7 +4151,9 @@ function renderSettings(){
   var refill=DB.data.settings.todayRefill;
   var vanish=DB.data.settings.todayHabitsDisappear;
   document.getElementById('settings-today').innerHTML=
-    '<div class="sl" style="margin-top:0">Habits</div>'
+    '<div class="opt-group"><div class="opt-row" onclick="Nav.go(\'todaylayout\')">'
+    +'<div class="opt-text"><div class="opt-title">Edit layout</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div></div>'
+    +'<div class="sl">Habits</div>'
     +'<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Day starts at</div></div>'
@@ -4560,10 +4586,20 @@ var A={
   setOverviewMinimal:function(val){DB.data.settings.overviewMinimal=val;DB.save();renderGrids();},
   // Menu > Statistics > Widgets: show or hide one Statistics widget (the
   // switch isn't redrawn, only the Statistics page)
-  moveStatWidget:function(k,dir){
-    var o=Stats.order(),i=o.indexOf(k),j=i+dir;
+  moveTodaySection:function(k,dir){
+    var o=todayOrder(),i=o.indexOf(k),j=i+dir;
     if(i===-1||j<0||j>=o.length)return;
     o[i]=o[j];o[j]=k;
+    DB.data.settings.todayOrder=o;DB.save();
+    renderTodayLayout();applyTodayOrder();
+  },
+  // swaps with the next widget that's turned on (hidden ones keep their place)
+  moveStatWidget:function(k,dir){
+    var o=Stats.order(),vis=o.filter(function(x){return Stats.shown(x);});
+    var vi=vis.indexOf(k),other=vis[vi+dir];
+    if(vi===-1||!other)return;
+    var i=o.indexOf(k),j=o.indexOf(other);
+    o[i]=other;o[j]=k;
     DB.data.settings.statsOrder=o;DB.save();
     renderStatsLayout();renderSettings();
   },
@@ -4616,9 +4652,7 @@ var A={
         item.style.opacity='0';
         setTimeout(function(){
           var sw=item.closest('.sw');(sw||item).remove();
-          if(sec&&!sec.querySelector('.cali'))sec.remove();
-          var host=document.getElementById('today-daily');
-          if(host&&!host.querySelector('.cali'))host.innerHTML='<div class="empty">Nothing scheduled for today.</div>';
+          _dropEmptyCard(sec);
         },300);
       }
     }
@@ -4635,7 +4669,7 @@ var A={
     var item=cb.closest('.cali');
     DB.completeOnce(id);
     item.style.opacity='0';
-    setTimeout(function(){item.remove();buildPanels();restoreChecks(Nav.sd);},300);
+    setTimeout(function(){var sec=item.closest('.calsec');item.remove();_dropEmptyCard(sec);},300);
   },
   completeOnce:function(cb,id){
     var item=cb.closest('.ti');
@@ -4710,6 +4744,7 @@ function _renderPage(id){
   if(id==='stats')Stats.render();
   if(id==='editlayout')renderEditLayout();
   if(id==='statslayout')renderStatsLayout();
+  if(id==='todaylayout')renderTodayLayout();
   if(id==='appearance')renderAppearance();
   if(id==='app')renderAppPage();
   if(['settoday','setoverview','settasks','setstats'].indexOf(id)!==-1)renderSettings();
@@ -4771,7 +4806,7 @@ function navSwitch(id){
 // back button (navBack with no arg) and the swipe-back gesture get the
 // right target without each call site needing to know about it.
 // Pages opened from the Settings list (back returns there; the Settings tab stays lit)
-var SETTINGS_SUBPAGES=['guide','guide-hidden','editlayout','statslayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats','setblocker'];
+var SETTINGS_SUBPAGES=['guide','guide-hidden','editlayout','statslayout','todaylayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats','setblocker'];
 // Where back goes: the page this one was opened from (Nav.stack), skipping
 // any that no longer exist (e.g. a deleted project). The fixed rules below
 // only apply when there's no history (e.g. right after the app reopened).
@@ -4784,6 +4819,7 @@ function _backTarget(){
   // where they were actually opened from.
   if(cur&&cur.id==='p-guide-hidden')return 'guide'; // a Guide page, opened from the Guide list
   if(cur&&cur.id==='p-statslayout')return 'setstats';
+  if(cur&&cur.id==='p-todaylayout')return 'settoday';
   if(cur&&SETTINGS_SUBPAGES.indexOf(cur.id.slice(2))!==-1)return 'settings';
   // A tracker project opened by tapping its row in Daily (see ciTracker())
   // should return to Habits, not the usual Overview default — _projFromDaily
@@ -5769,9 +5805,24 @@ function restoreChecks(pi){
 }
 // A section with nothing in it (no tasks / no habits) isn't shown at all —
 // neither its header nor a placeholder. If both are empty, one line says so.
+// Today's sections (Tasks, Calendar, Habits) in the order chosen in
+// Menu > Today > Edit layout (settings.todayOrder).
+var TODAY_SECTIONS=[['tasks','Tasks'],['calendar','Calendar'],['habits','Habits']];
+function todayOrder(){
+  var keys=TODAY_SECTIONS.map(function(x){return x[0];});
+  var o=(DB.data.settings.todayOrder||[]).filter(function(k,i,a){return keys.indexOf(k)!==-1&&a.indexOf(k)===i;});
+  return o.concat(keys.filter(function(k){return o.indexOf(k)===-1;}));
+}
+function applyTodayOrder(){
+  var pg=document.getElementById('p-today'),none=document.getElementById('today-none');
+  var now=[].map.call(pg.querySelectorAll(':scope>.today-sec'),function(el){return el.getAttribute('data-s');}).join();
+  var o=todayOrder();
+  if(now===o.join())return;
+  o.forEach(function(k){pg.insertBefore(pg.querySelector(':scope>.today-sec[data-s="'+k+'"]'),none);});
+}
 function syncTodaySections(){
   var hasT=!!document.querySelector('#today-priorities .sw');
-  var hasH=!!document.getElementById('today-daily').innerHTML;
+  var hasH=!!(document.getElementById('today-daily').innerHTML||document.getElementById('today-cal').innerHTML);
   document.getElementById('today-tasks-hdr').style.display=hasT?'':'none';
   document.getElementById('today-priorities').style.display=hasT?'':'none';
   document.getElementById('today-none').style.display=(hasT||hasH)?'none':'';
@@ -5846,6 +5897,15 @@ function todayRefillSwap(el){
   added.forEach(function(n){n.style.transition='max-height '+DUR+'ms ease-in-out';n.style.maxHeight=h+'px';});
   setTimeout(renderToday,DUR+30);
 }
+// Today: after a row left a card, an empty card goes with its title;
+// otherwise its first/last rows are marked again.
+function _dropEmptyCard(sec){
+  if(sec&&!sec.querySelector('.cali')){
+    var t=sec.previousElementSibling;if(t&&t.classList.contains('caltitle'))t.remove();
+    sec.remove();
+  } else if(sec)markEdgeRows(sec,'.cali');
+  syncTodaySections();
+}
 function renderToday(){
   var top3=todayTopTasks();
   var c1=document.getElementById('today-priorities');
@@ -5853,13 +5913,10 @@ function renderToday(){
 
   var ds=pDate(0);
   var h='';
-  // Overdue one-time tasks consolidate under today, same as the Daily page.
+  // Calendar tasks due today or overdue
   var onceToday=DB.data.dailyOnce.filter(function(o){return o.date<=ds;});
-  if(onceToday.length){
-    h+='<div class="caltitle">Calendar</div><div class="calsec">';
-    onceToday.forEach(function(o){h+=onceRow(o);});
-    h+='</div>';
-  }
+  document.getElementById('today-cal').innerHTML=onceToday.length
+    ?'<div class="caltitle">Calendar</div><div class="calsec">'+onceToday.map(onceRow).join('')+'</div>':'';
   var vanish=DB.data.settings.todayHabitsDisappear;
   var all=DB.data.dailyItems.filter(function(it){
     if(it.days.indexOf(TI)===-1)return false;
@@ -5878,6 +5935,7 @@ function renderToday(){
     h+='</div>';
   });
   document.getElementById('today-daily').innerHTML=h;
+  applyTodayOrder();
   syncTodaySections();
   // Same edge-row marking Daily's panels use (see markEdgeRows) — needed
   // here too: with "Skip habits" on, each row is wrapped in its own
@@ -5887,7 +5945,7 @@ function renderToday(){
   // reported as the pressed-grey rounding at the bottom of every row,
   // not just the last one. querySelectorAll searches the whole subtree
   // regardless of that extra wrapping, so this stays correct either way.
-  document.querySelectorAll('#today-daily .calsec').forEach(function(calsec){markEdgeRows(calsec,'.cali');});
+  document.querySelectorAll('#today-daily .calsec,#today-cal .calsec').forEach(function(calsec){markEdgeRows(calsec,'.cali');});
 
   document.querySelectorAll('#today-daily input[type=checkbox][data-id]').forEach(function(cb){
     paintCheck(cb,dcv(ds,cb.getAttribute('data-id')));

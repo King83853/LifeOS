@@ -732,6 +732,9 @@ html:not(#x) .ts-head{display:flex;gap:10px;align-items:stretch;margin-bottom:14
 html:not(#x) .ts-head .ts-title{flex:1;min-width:0;height:48px;box-sizing:border-box;margin:0;padding:0 14px;background:var(--card);border-radius:14px;font-size:17px;font-weight:700}
 html:not(#x) .ts-head .ts-pri{flex:none;margin:0}
 html:not(#x) .ts-head .ts-pri .opt-row{box-sizing:border-box;height:48px;min-height:48px;padding:0 10px 0 14px;border-bottom:none}
+/* Overview: projects without a category sit right under the War Room —
+   card after card, so 20px apart like everywhere else (not 22). */
+html:not(#x) #war-box:not([style*="none"])+#overview-grid>.nocat-block:first-child>.agrid{margin-top:-2px}
 .cal-none{font-size:13px;font-weight:500;color:#bbb;padding:12px 14px 14px}
 .wdays{scrollbar-width:none}.wdays::-webkit-scrollbar{display:none}
 input,textarea,select{font-family:inherit}
@@ -1455,7 +1458,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.13';
+var APP_VERSION='Beta 4.14';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2552,6 +2555,9 @@ var CHANGELOG=[
   {v:'Beta 4.13',notes:[
     "Task window: the name sits in its own white widget with the priority as a small widget on the same line, right (List projects: the name takes the whole line). The notes box starts a little smaller (26% of the screen height, was 34%)",
     "Fixed: typing in a task's notes until the box grew past the keyboard kept going below it — the window now scrolls along so the line you're typing stays just above the keyboard"
+  ]},
+  {v:'Beta 4.14',notes:[
+    "Projects no longer need a category: a new project's Category is None by default (or pick one). Projects without a category show at the top of Overview, above all categories, without a title, and can be moved among themselves by holding them; Edit layout lists them first under \"No category\". Creating the first project no longer asks for a category first"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2639,7 +2645,8 @@ var USER_LOG={
   'Beta 4.10':'bug',
   'Beta 4.11':["Reorder the sections in Today"],
   'Beta 4.12':'design',
-  'Beta 4.13':'both'
+  'Beta 4.13':'both',
+  'Beta 4.14':["Projects don't need a category anymore"]
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -2726,6 +2733,11 @@ var DataNotice={
     this.show("Your latest changes couldn't be saved — your phone's storage refused them. Free up some space and export a backup in Menu > Data.");
   }
 };
+// Projects without a category: kept in projectOrder[NO_CAT], never in
+// categories/categoryOrder; Overview shows them first, with no title.
+var NO_CAT='_none';
+// projectOrder keys in Overview order
+function projectGroups(){return [NO_CAT].concat(DB.data.categoryOrder);}
 var DB={
   KEY:'lifeos',
   data:null,
@@ -2885,6 +2897,7 @@ var DB={
     if(i===-1)return '';
     var t=d.trash[i],x=t.data,self=this;
     function ensureCat(catId,cat){
+      if(catId===NO_CAT){if(!d.projectOrder[NO_CAT])d.projectOrder[NO_CAT]=[];return;}
       if(d.categories[catId])return;
       d.categories[catId]=cat||{name:'Restored',icon:'📁'};
       if(d.categoryOrder.indexOf(catId)===-1)d.categoryOrder.push(catId);
@@ -3187,7 +3200,7 @@ var I18N=(function(){
   var DE={
     // tab bar + page titles
     'Today':'Heute','Overview':'Übersicht','Tasks':'Aufgaben','Stats':'Statistik','Settings':'Einstellungen','Statistics':'Statistik',
-    'Daily':'Täglich','Habits':'Gewohnheiten','Trash':'Papierkorb','Edit layout':'Layout bearbeiten','Reorder or remove':'Neu ordnen oder entfernen','Reorder the Statistics widgets':'Statistik-Widgets neu ordnen','Reorder the sections in Today':'Abschnitte in Heute neu ordnen',
+    'Daily':'Täglich','Habits':'Gewohnheiten','Trash':'Papierkorb','Edit layout':'Layout bearbeiten','Reorder or remove':'Neu ordnen oder entfernen','Reorder the Statistics widgets':'Statistik-Widgets neu ordnen','Reorder the sections in Today':'Abschnitte in Heute neu ordnen','No category':'Keine Kategorie',
     'Version history':'Versionsverlauf','Advanced update info':'Erweiterte Update-Infos','Bug fixes':'Fehlerbehebungen','Design fixes':'Design-Korrekturen','Design and bug fixes':'Design-Korrekturen und Fehlerbehebungen',"What's new":'Neuigkeiten','Got it':'Verstanden','General':'Allgemein','Data':'Daten',
     // headers
     '📆 Daily':'📆 Täglich','📅 One-time':'📅 Einmalig','One-time tasks':'Einmalige Aufgaben','One-time':'Einmalig',
@@ -3383,56 +3396,56 @@ function renderWar(){
 function renderGrids(){
   var d=DB.data;
   var h='';
-  if(!d.categoryOrder.length){
-    document.getElementById('overview-grid').innerHTML='';
-    return;
-  }
+  // projects without a category first, in their own grid with no title
+  // (.nocat-block, not a .cat-block: categories can't be dragged above it)
+  var loose=d.projectOrder[NO_CAT]||[];
+  if(loose.some(function(pid){return d.projects[pid];}))h+='<div class="nocat-block" data-cat="'+NO_CAT+'"><div class="agrid">'+loose.map(projCard).join('')+'</div></div>';
   d.categoryOrder.forEach(function(catId){
     var cat=d.categories[catId];if(!cat)return;
     h+='<div class="cat-block" data-cat="'+catId+'"><div class="shdr">'+cat.name+'</div>';
     var projs=d.projectOrder[catId]||[];
     if(!projs.length){h+='</div>';return;}
-    h+='<div class="agrid">';
-    projs.forEach(function(pid){
-      var p=d.projects[pid];if(!p)return;
-      var n=taskCount(pid);
-      var col=COLORS[p.color||'c-grey']||'#6b7280';
-      var cntLbl;
-      // p.type==='daily' alone isn't reliable — Nav.go and everywhere
-      // else in the app treat habitsProjectId as the real source of
-      // truth for "is this the Daily project" (a project can apparently
-      // end up wired as the Daily project without type ever being set to
-      // 'daily', e.g. data created before that field existed), so match
-      // on either.
-      if(isHabitsProject(pid)){
-        // "X categories" told you nothing useful at a glance — show what's
-        // actually left to do today instead: this project's habits scheduled
-        // today and not yet done (Calendar tasks belong to no project).
-        var dsToday=pDate(0);
-        var remaining=0;
-        d.dailyItems.forEach(function(it){
-          if(habitPid(it)!==pid||it.days.indexOf(TI)===-1)return;
-          var done=!!habitDayVal(it,dsToday);
-          if(!done)remaining++;
-        });
-        cntLbl=remaining?(remaining+(remaining===1?' task':' tasks')):'All done';
-      } else if(p.type==='tracker'){
-        var trkEntries=((d.trackerEntries||{})[pid]||[]).slice().sort(function(a,b){return a.ts-b.ts;});
-        cntLbl=trkEntries.length?(trkEntries[trkEntries.length-1].val+(p.unit?' '+p.unit:'')):'No entries yet';
-      } else {
-        cntLbl=n?n+' tasks':'Empty';
-      }
-      h+='<div class="acard" data-pid="'+pid+'" onclick="_projFromDaily=null;_trackerOrigin=null;Nav.go(\''+pid+'\')">'
-        +'<div class="aico" style="'+(d.settings.overviewMinimal?solidTintStyle(col):tintStyle(col))+'">'+iconOrPhoto(p)+'</div>'
-        +'<div class="albl">'+p.name+'</div>'
-        +'<div class="acnt">'+cntLbl+'</div></div>';
-    });
-    h+='</div></div>';
+    h+='<div class="agrid">'+projs.map(projCard).join('')+'</div></div>';
   });
   document.getElementById('overview-grid').innerHTML=h;
   document.getElementById('p-overview').classList.toggle('ov-min',!!d.settings.overviewMinimal);
   fitMinimalGrid();
   wireOverviewDrag();
+}
+// One project's card on Overview ('' for a project that no longer exists).
+function projCard(pid){
+  var d=DB.data,p=d.projects[pid];if(!p)return '';
+  var n=taskCount(pid);
+  var col=COLORS[p.color||'c-grey']||'#6b7280';
+  var cntLbl;
+  // p.type==='daily' alone isn't reliable — Nav.go and everywhere
+  // else in the app treat habitsProjectId as the real source of
+  // truth for "is this the Daily project" (a project can apparently
+  // end up wired as the Daily project without type ever being set to
+  // 'daily', e.g. data created before that field existed), so match
+  // on either.
+  if(isHabitsProject(pid)){
+    // "X categories" told you nothing useful at a glance — show what's
+    // actually left to do today instead: this project's habits scheduled
+    // today and not yet done (Calendar tasks belong to no project).
+    var dsToday=pDate(0);
+    var remaining=0;
+    d.dailyItems.forEach(function(it){
+      if(habitPid(it)!==pid||it.days.indexOf(TI)===-1)return;
+      var done=!!habitDayVal(it,dsToday);
+      if(!done)remaining++;
+    });
+    cntLbl=remaining?(remaining+(remaining===1?' task':' tasks')):'All done';
+  } else if(p.type==='tracker'){
+    var trkEntries=((d.trackerEntries||{})[pid]||[]).slice().sort(function(a,b){return a.ts-b.ts;});
+    cntLbl=trkEntries.length?(trkEntries[trkEntries.length-1].val+(p.unit?' '+p.unit:'')):'No entries yet';
+  } else {
+    cntLbl=n?n+' tasks':'Empty';
+  }
+  return '<div class="acard" data-pid="'+pid+'" onclick="_projFromDaily=null;_trackerOrigin=null;Nav.go(\''+pid+'\')">'
+    +'<div class="aico" style="'+(d.settings.overviewMinimal?solidTintStyle(col):tintStyle(col))+'">'+iconOrPhoto(p)+'</div>'
+    +'<div class="albl">'+p.name+'</div>'
+    +'<div class="acnt">'+cntLbl+'</div></div>';
 }
 // Minimal Overview: four columns of a whole, even number of pixels (and a
 // whole-pixel left margin), so each 60px tile — and its hairline outline —
@@ -3472,7 +3485,7 @@ function wireOverviewDrag(){
     });
   }
   grid.querySelectorAll('.agrid').forEach(function(agrid){
-    var catId=agrid.closest('.cat-block').getAttribute('data-cat');
+    var catId=agrid.closest('[data-cat]').getAttribute('data-cat');
     DragReorder.init(agrid,'.acard','.acard','grid',function(container){
       var ids=[].slice.call(container.querySelectorAll('.acard')).map(function(el){return el.getAttribute('data-pid');});
       DB.reorderProjects(catId,ids);
@@ -3792,6 +3805,12 @@ function renderLockedInCalendar(){
 function renderEditLayout(){
   var d=DB.data;
   var h='';
+  var loose=d.projectOrder[NO_CAT]||[];
+  if(loose.some(function(pid){return d.projects[pid];})){
+    h+='<div class="el-grp">No category</div><div class="el-card">';
+    loose.forEach(function(pid,pi){h+=elProjRow(NO_CAT,pid,pi,loose.length);});
+    h+='</div>';
+  }
   d.categoryOrder.forEach(function(catId,ci){
     var cat=d.categories[catId];if(!cat)return;
     h+='<div class="el-grp">Category: '+cat.name+'</div>';
@@ -3803,27 +3822,22 @@ function renderEditLayout(){
     h+='<button class="el-btn danger" onclick="A.deleteCat(\''+catId+'\')">'+trashSvg(22,'#fff')+'</button>';
     h+='</div></div>';
     var projs=d.projectOrder[catId]||[];
-    projs.forEach(function(pid,pi){
-      if(pid==='habits'){
-        h+='<div class="el-row"><div class="el-icon">🏃</div><div class="el-name">Daily habits</div>';
-        h+='<div class="el-btns">';
-        h+='<button class="el-btn"'+(pi===0?' disabled style="opacity:.3"':'')+' onclick="A.moveProj(\''+catId+'\',\'habits\',-1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>';
-        h+='<button class="el-btn"'+(pi===projs.length-1?' disabled style="opacity:.3"':'')+' onclick="A.moveProj(\''+catId+'\',\'habits\',1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>';
-        h+='</div></div>';
-        return;
-      }
-      var p=d.projects[pid];if(!p)return;
-      h+='<div class="el-row"><div class="el-icon">'+iconOrPhoto(p)+'</div><div class="el-name">'+p.name+'</div>';
-      h+='<div class="el-btns">';
-      h+='<button class="el-btn"'+(pi===0?' disabled style="opacity:.3"':'')+' onclick="A.moveProj(\''+catId+'\',\''+pid+'\',-1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>';
-      h+='<button class="el-btn"'+(pi===projs.length-1?' disabled style="opacity:.3"':'')+' onclick="A.moveProj(\''+catId+'\',\''+pid+'\',1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>';
-      h+='<button class="el-btn danger" onclick="A.deleteProj(\''+catId+'\',\''+pid+'\')">'+trashSvg(22,'#fff')+'</button>';
-      h+='</div></div>';
-    });
+    projs.forEach(function(pid,pi){h+=elProjRow(catId,pid,pi,projs.length);});
     h+='</div>';
   });
-  if(!h)h='';
   document.getElementById('el-content').innerHTML=h;
+}
+// One project's row in Edit layout: up/down within its group, delete.
+// `pi`/`n` are its place in that group's projectOrder array.
+function elProjRow(catId,pid,pi,n){
+  var up='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>';
+  var down='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+  var btns=function(id){return '<button class="el-btn"'+(pi===0?' disabled style="opacity:.3"':'')+' onclick="A.moveProj(\''+catId+'\',\''+id+'\',-1)">'+up+'</button>'
+    +'<button class="el-btn"'+(pi===n-1?' disabled style="opacity:.3"':'')+' onclick="A.moveProj(\''+catId+'\',\''+id+'\',1)">'+down+'</button>';};
+  if(pid==='habits')return '<div class="el-row"><div class="el-icon">🏃</div><div class="el-name">Daily habits</div><div class="el-btns">'+btns('habits')+'</div></div>';
+  var p=DB.data.projects[pid];if(!p)return '';
+  return '<div class="el-row"><div class="el-icon">'+iconOrPhoto(p)+'</div><div class="el-name">'+p.name+'</div><div class="el-btns">'
+    +btns(pid)+'<button class="el-btn danger" onclick="A.deleteProj(\''+catId+'\',\''+pid+'\')">'+trashSvg(22,'#fff')+'</button></div></div>';
 }
 
 // A reorder list like Overview's Edit layout: one card, a row per item
@@ -4124,7 +4138,7 @@ function renderSettings(){
 
   // Overview section: Edit layout + reset one project into the Trash
   var projOpts=[{value:'',label:'Choose…'}];
-  DB.data.categoryOrder.forEach(function(cid){(DB.data.projectOrder[cid]||[]).forEach(function(pid){var p=DB.data.projects[pid];if(p)projOpts.push({value:pid,label:(p.icon||'')+' '+p.name});});});
+  projectGroups().forEach(function(cid){(DB.data.projectOrder[cid]||[]).forEach(function(pid){var p=DB.data.projects[pid];if(p)projOpts.push({value:pid,label:(p.icon||'')+' '+p.name});});});
   document.getElementById('settings-overview').innerHTML='<div class="opt-group">'
     +'<div class="opt-row" style="cursor:default">'
     +'<div class="opt-text"><div class="opt-title">Show War Room</div></div>'
@@ -4307,11 +4321,7 @@ var A={
       renderGrids();renderEditLayout();
     });
   },
-  newProject:function(){
-    var d=DB.data;
-    if(!d.categoryOrder.length){A.newCategory();return;}
-    SheetEditor.openNew(null,'');
-  },
+  newProject:function(){SheetEditor.openNew(null,'');},
   moveCat:function(id,dir){DB.moveCategory(id,dir);renderEditLayout();renderGrids();},
   deleteCat:function(id){
     var n=DB.data.categories[id]?DB.data.categories[id].name:id;
@@ -5707,7 +5717,7 @@ var Habits={pid:null};
 function isHabitsProject(pid){var p=DB.data.projects[pid];return !!p&&(p.type==='daily'||pid===DB.data.habitsProjectId);}
 function habitsProjects(){ // in Overview order
   var d=DB.data,out=[];
-  d.categoryOrder.forEach(function(c){(d.projectOrder[c]||[]).forEach(function(pid){if(isHabitsProject(pid)&&out.indexOf(pid)===-1)out.push(pid);});});
+  projectGroups().forEach(function(c){(d.projectOrder[c]||[]).forEach(function(pid){if(isHabitsProject(pid)&&out.indexOf(pid)===-1)out.push(pid);});});
   Object.keys(d.projects).forEach(function(pid){if(isHabitsProject(pid)&&out.indexOf(pid)===-1)out.push(pid);});
   return out;
 }
@@ -7861,13 +7871,16 @@ var SheetEditor={
   pid:null,
   selectedColor:'c-grey',
 
+  // Category of a new project: None (the default) or one of the categories
+  catOpts:function(){
+    var d=DB.data;
+    return [{value:NO_CAT,label:'None'}].concat(d.categoryOrder.map(function(cid){var cat=d.categories[cid];return cat&&{value:cid,label:cat.name};}).filter(Boolean));
+  },
   openNew:function(catId,name){
     this.pid=null;
-    this.newCatId=catId||DB.data.categoryOrder[0]||null;
+    this.newCatId=catId||NO_CAT;
     this.projectType='todo';
-    var d=DB.data;
-    var catOpts=d.categoryOrder.map(function(cid){var cat=d.categories[cid];return cat&&{value:cid,label:cat.name};}).filter(Boolean);
-    document.getElementById('new-proj-cat').innerHTML=customSelect(catOpts,this.newCatId,'SheetEditor.setCat(this.value)');
+    document.getElementById('new-proj-cat').innerHTML=customSelect(this.catOpts(),this.newCatId,'SheetEditor.setCat(this.value)');
     document.getElementById('new-proj-type').innerHTML=customSelect(TYPE_OPTS,this.projectType,'SheetEditor.setType(this.value)');
     document.getElementById('new-proj-rows').style.display='block';
     var sur=document.getElementById('sheet-unit-row');if(sur)sur.style.display='none';
@@ -7915,9 +7928,7 @@ var SheetEditor={
 
   setCat:function(v){
     this.newCatId=v;
-    var d=DB.data;
-    var catOpts=d.categoryOrder.map(function(cid){var cat=d.categories[cid];return cat&&{value:cid,label:cat.name};}).filter(Boolean);
-    document.getElementById('new-proj-cat').innerHTML=customSelect(catOpts,v,'SheetEditor.setCat(this.value)');
+    document.getElementById('new-proj-cat').innerHTML=customSelect(this.catOpts(),v,'SheetEditor.setCat(this.value)');
   },
   // Tracker chart options: the moving average only belongs to the line chart
   syncChartRows:function(){

@@ -90,6 +90,27 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   restored habit whose project is gone shows under the first one, and moves
   back if that project is restored. Anything new that lists or counts habits
   must filter by habitPid — don't treat dailyItems as one global list.
+- CATEGORIES ARE OPTIONAL (4.14, "strictly a visual feature… projects
+  don't need one; the ones without a category go on top"): a project with
+  no category lives in `projectOrder[NO_CAT]` (NO_CAT = '_none'), never in
+  `categories`/`categoryOrder`; `p.categoryId` is '_none'. Everything that
+  works per category key (addProject, deleteProject, moveProject,
+  reorderProjects, restore) just works with it; restoreTrash's ensureCat
+  only recreates the '_none' array (never a "Restored" category). Lists
+  in Overview order use `projectGroups()` = [NO_CAT, ...categoryOrder]
+  (habitsProjects, Menu > Overview > Reset a project). Overview draws them
+  first as `.nocat-block` (no title, NOT a `.cat-block`, so a dragged
+  category can't be dropped above it; its `.agrid` still reorders by
+  holding — wireOverviewDrag reads the key from `closest('[data-cat]')`);
+  `projCard(pid)` builds one card for both. Edit layout lists them first
+  under "No category" (`elProjRow`). New project: Category row defaults
+  to None (`SheetEditor.catOpts()`), and A.newProject no longer forces a
+  category first. Deleting a CATEGORY still sends its projects to the
+  Trash (unchanged — not asked). Editing a project still can't change
+  its category (the Category row is new-project only). Export keeps the
+  '_none' key as is (`_shortIds` doesn't touch it). Spacing: the loose
+  grid sits 20px under a visible War Room (`#war-box:not([style*=
+  "none"])+#overview-grid>.nocat-block:first-child>.agrid` -2px).
 - The Daily project is a real entry in `DB.data.projects` (with its own
   name/icon/color/desc, editable through the normal SheetEditor sheet)
   but it never lives at its own page id — `Nav.go` redirects

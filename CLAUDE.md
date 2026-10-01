@@ -1933,6 +1933,18 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   path, rounded triangle scaled .88 around 12,12 with the exclamation cut
   out (evenodd), so it works on any background. 4.17's hand-drawn chess
   knight was called ugly — don't bring it back.
+- DEVELOPER MODE (4.24, "a switch… where I can test stuff… but I don't
+  want everyone to see it… you need an access code"): Menu > General >
+  Developer > Developer mode (`settings.devMode`, default false, in
+  DEFAULT_SETTINGS). Turning it on opens InputSheet with `{secret:true}`
+  (dots via -webkit-text-security, number pad; normal calls reset both)
+  and compares the SHA-256 of the entry with `A._DEV_HASH` — the code
+  itself is NOT in the repo (public) or this file; the user has it. Only
+  a casual lock: anyone can set devMode in storage or brute-force 6
+  digits offline. While on, Menu shows a Developer row (`#settings-dev`)
+  → `#p-dev` (in SETTINGS_SUBPAGES): Welcome screens / Add to Home Screen
+  · iPhone / · Android via `Welcome.open({install:false|'ios'|'android'})`
+  (replays never touch settings.onboard). New test tools go on #p-dev.
 - Calendar import (4.16, Menu > Data > Import calendar, `IcsImport`):
   file input `#ics-file` (.ics, or Google's .zip — `_unzip` reads the
   zip's central directory, stored or deflate-raw via DecompressionStream).

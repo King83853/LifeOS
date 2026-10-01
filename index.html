@@ -1010,6 +1010,21 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
   <div id="general-menu"></div>
   <div class="sl">Notifications</div>
   <div class="opt-group"><div class="cal-none">Coming soon</div></div>
+  <div class="sl">Developer</div>
+  <div id="general-dev"></div>
+</div>
+
+<div class="page sp" id="p-dev">
+  <div class="hh">
+    <div class="hh-bar"><button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button></div>
+    <div class="hh-title">Developer</div>
+  </div>
+  <div class="opt-group" style="margin-top:8px">
+    <div class="opt-row" onclick="Welcome.open({install:false})"><div class="opt-text"><div class="opt-title">Welcome screens</div></div><span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+    <div class="opt-row" onclick="Welcome.open({install:'ios'})"><div class="opt-text"><div class="opt-title">Add to Home Screen · iPhone</div></div><span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+    <div class="opt-row" onclick="Welcome.open({install:'android'})"><div class="opt-text"><div class="opt-title">Add to Home Screen · Android</div></div><span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+  </div>
+  <div class="data-note">Only you see this page. Nothing here changes your data. Turn developer mode off in Menu → General.</div>
 </div>
 
 <div class="page sp" id="p-appearance">
@@ -1259,6 +1274,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
   <div id="settings-guide"></div>
   <div id="settings-main"></div>
   <div id="settings-nav"></div>
+  <div id="settings-dev"></div>
   <div id="settings-reset"></div>
 </div>
 
@@ -1533,7 +1549,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.23';
+var APP_VERSION='Beta 4.24';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2664,6 +2680,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.23',notes:[
     "Today: a habit you skip by swiping now leaves the same way a skipped task does — it slides out to the right and its row folds shut (when done habits disappear; otherwise it stays, shown as skipped)"
+  ]},
+  {v:'Beta 4.24',notes:[
+    "Menu > General > Developer mode: a switch that only turns on with an access code. While it's on, Menu has a Developer row with pages for testing — for now the welcome screens and the Add to Home Screen page (iPhone and Android) — that nobody else sees"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2761,7 +2780,8 @@ var USER_LOG={
   'Beta 4.20':'design',
   'Beta 4.21':'design',
   'Beta 4.22':["Drag projects into other categories"],
-  'Beta 4.23':'design'
+  'Beta 4.23':'design',
+  'Beta 4.24':'design'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -2830,7 +2850,7 @@ function phoneLang(){
   return l.indexOf('de')===0?'de':'en';
 }
 var DEFAULT_SETTINGS={
-  startTab:'today',hiddenTabs:['blocker'],holdToComplete:false,autoUpdate:true,language:'en',theme:'system',
+  startTab:'today',hiddenTabs:['blocker'],holdToComplete:false,devMode:false,autoUpdate:true,language:'en',theme:'system',
   dayStartHour:3,todayHabitsDisappear:true,skipHabits:false,
   todayTaskCount:3,todayRefill:false,skipTasks:true,skipResetDaily:true,showWarRoom:true,
   statsRange:'3m',sound:true,tasksView:'tasks',todayOrder:['tasks','calendar','habits'],overviewMinimal:false,advancedUpdates:false,statsHidden:[],statsOrder:['score','chart','best','worst','perfect']
@@ -3359,7 +3379,7 @@ var I18N=(function(){
     "Every task by priority, or as a calendar":"Alle Aufgaben nach Priorität oder als Kalender",
     "How consistent you are with your habits":"Wie beständig du deine Gewohnheiten pflegst",
     "Settings, the Guide and your data":"Einstellungen, Anleitung und deine Daten",
-    "Good to know":"Gut zu wissen","War Room tasks have a red tick box and always rank highest in Today and Tasks.":"War-Room-Aufgaben haben ein rotes Kästchen und stehen in Heute und Aufgaben immer ganz oben.","The War Room priority is meant for your most urgent tasks: nothing else matters until they're done.":"Die Priorität War Room ist für deine dringendsten Aufgaben: Nichts anderes zählt, bis sie erledigt sind.","To put a task in the War Room, open it and pick War Room among the other priorities.":"Um eine Aufgabe in den War Room zu legen, öffne sie und wähle War Room bei den Prioritäten.","Show them in their own card at the top of Overview with Show War Room in Menu → Overview.":"Zeige sie in einer eigenen Karte oben in der Übersicht: War Room anzeigen in Menü → Übersicht.","Two things before you start.":"Zwei Dinge vorab.",
+    "Good to know":"Gut zu wissen","Developer mode":"Entwicklermodus","Developer":"Entwickler","Access code":"Zugangscode","Code":"Code","Wrong code.":"Falscher Code.","Welcome screens":"Willkommensbildschirme","Add to Home Screen · iPhone":"Zum Home-Bildschirm · iPhone","Add to Home Screen · Android":"Zum Home-Bildschirm · Android","Only you see this page. Nothing here changes your data. Turn developer mode off in Menu → General.":"Nur du siehst diese Seite. Hier ändert sich nichts an deinen Daten. Schalte den Entwicklermodus in Menü → Allgemein aus.","War Room tasks have a red tick box and always rank highest in Today and Tasks.":"War-Room-Aufgaben haben ein rotes Kästchen und stehen in Heute und Aufgaben immer ganz oben.","The War Room priority is meant for your most urgent tasks: nothing else matters until they're done.":"Die Priorität War Room ist für deine dringendsten Aufgaben: Nichts anderes zählt, bis sie erledigt sind.","To put a task in the War Room, open it and pick War Room among the other priorities.":"Um eine Aufgabe in den War Room zu legen, öffne sie und wähle War Room bei den Prioritäten.","Show them in their own card at the top of Overview with Show War Room in Menu → Overview.":"Zeige sie in einer eigenen Karte oben in der Übersicht: War Room anzeigen in Menü → Übersicht.","Two things before you start.":"Zwei Dinge vorab.",
     "Your data stays on this phone":"Deine Daten bleiben auf diesem Handy",
     "No account and no cloud. Make a backup now and then: Menu → Data → Export.":"Kein Konto und keine Cloud. Mach ab und zu ein Backup: Menü → Daten → Exportieren.",
     "The Guide":"Die Anleitung",
@@ -4230,6 +4250,12 @@ function renderAppHistory(){
   document.getElementById('app-history').innerHTML='<div class="calsec" style="padding:14px 15.5px 2px">'+h.join('')+'</div>';
 }
 // General page: which tab to open on + hold to complete, then the footer menu
+// Menu > General > Developer mode: on only with the access code
+function renderGeneralDev(){
+  var el=document.getElementById('general-dev');if(!el)return;
+  el.innerHTML='<div class="opt-group"><div class="opt-row" style="cursor:default"><div class="opt-text"><div class="opt-title">Developer mode</div></div>'
+    +'<label class="switch" style="margin-left:auto"><input type="checkbox" '+(DB.data.settings.devMode?'checked':'')+' onchange="A.setDevMode(this.checked)"><span class="switch-slider"></span></label></div></div>';
+}
 function renderGeneralTop(){
   var el=document.getElementById('general-top');if(!el)return;
   var hidden=DB.data.settings.hiddenTabs||[],hold=DB.data.settings.holdToComplete;
@@ -4251,7 +4277,7 @@ function renderGeneralTop(){
     +'</div>'
     +'</div>';
 }
-function renderGeneral(){renderGeneralTop();MenuPage.render();}
+function renderGeneral(){renderGeneralTop();MenuPage.render();renderGeneralDev();}
 // Sets a container's HTML only when it actually changed. Opening Today/
 // Overview/Statistics from Settings re-runs renderSettings(), which used to
 // rebuild the Settings list itself too — replacing the row that was just
@@ -4279,6 +4305,8 @@ function renderSettings(){
   var tabIco=function(t){var e=document.querySelector('.tab-item[data-tab="'+t+'"] svg');return e?e.outerHTML:'';};
   var dataIco='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>';
   var dataRow='<div class="opt-row" onclick="Nav.go(\'data\')"><div class="opt-ico" style="background:#6b7280">'+dataIco+'</div><div class="opt-text"><div class="opt-title">Data</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div>';
+  // developer mode (Menu > General): one more row, to the Developer page
+  setHTML('settings-dev',DB.data.settings.devMode?'<div class="opt-group"><div class="opt-row" onclick="Nav.go(\'dev\')"><div class="opt-ico" style="background:#6b7280"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="8.5 7 3.5 12 8.5 17"/><polyline points="15.5 7 20.5 12 15.5 17"/><line x1="13.4" y1="5" x2="10.6" y2="19"/></svg></div><div class="opt-text"><div class="opt-title">Developer</div></div>'+chev.replace('margin-left:-2px','margin-left:auto')+'</div></div>':'');
   setHTML('settings-reset','<div class="opt-group"><div class="opt-row btn-row" onclick="A.resetSettings()"><div class="opt-text"><div class="opt-title">Reset settings</div></div></div></div>');
   setHTML('settings-nav','<div class="opt-group">'+[
     ['settoday','Today','#38bdf8',tabIco('today')],['setoverview','Overview','#3b82f6',tabIco('overview')],
@@ -4796,6 +4824,21 @@ var A={
     if(Nav.cur==='lockedin')renderLockedIn();
     renderSettings();
   },
+  // The access code is only kept as its SHA-256, not as text in the app.
+  _DEV_HASH:'9e491701f57853e4eabe30840a204d73bb2e90fda996751df6f8dcae4d175f2d',
+  setDevMode:function(on){
+    var self=this;
+    if(!on){DB.data.settings.devMode=false;DB.save();renderGeneralDev();renderSettings();return;}
+    renderGeneralDev(); // stays off until the code is right
+    InputSheet.show('Access code','Code',function(code){
+      var buf=new TextEncoder().encode(code.trim());
+      crypto.subtle.digest('SHA-256',buf).then(function(h){
+        var hex=[].map.call(new Uint8Array(h),function(b){return ('0'+b.toString(16)).slice(-2);}).join('');
+        if(hex!==self._DEV_HASH){setTimeout(function(){Alert.info('Wrong code.');},SHEET_ANIM_MS+30);return;}
+        DB.data.settings.devMode=true;DB.save();renderGeneralDev();renderSettings();
+      });
+    },{secret:true});
+  },
   setShowWarRoom:function(val){DB.data.settings.showWarRoom=val;DB.save();renderWar();},
   setOverviewMinimal:function(val){DB.data.settings.overviewMinimal=val;DB.save();renderGrids();},
   // Menu > Statistics > Widgets: show or hide one Statistics widget (the
@@ -5020,7 +5063,7 @@ function navSwitch(id){
 // back button (navBack with no arg) and the swipe-back gesture get the
 // right target without each call site needing to know about it.
 // Pages opened from the Settings list (back returns there; the Settings tab stays lit)
-var SETTINGS_SUBPAGES=['guide','guide-hidden','guide-war','editlayout','statslayout','todaylayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats','setblocker'];
+var SETTINGS_SUBPAGES=['dev','guide','guide-hidden','guide-war','editlayout','statslayout','todaylayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats','setblocker'];
 // Where back goes: the page this one was opened from (Nav.stack), skipping
 // any that no longer exist (e.g. a deleted project). The fixed rules below
 // only apply when there's no history (e.g. right after the app reopened).
@@ -7292,8 +7335,9 @@ var UpdateOverlay={
     if(this._on){this._on=false;_overlayCount=Math.max(0,_overlayCount-1);if(_overlayCount===0)_unlockBodyScroll();}
   }
 };
-// The welcome screens: on a new install's first open only (settings.onboard,
-// set only by DB._blank — existing data never has it). In a browser (not opened from the Home
+// The welcome screens: on a new install's first open (settings.onboard,
+// set only by DB._blank — existing data never has it), and from Menu >
+// Developer (developer mode) to look at them. In a browser (not opened from the Home
 // Screen) an "Add to Home Screen" page comes first. Full screen, above
 // everything; counts as an open overlay (scroll lock, no swipe-back).
 var Welcome={
@@ -7304,9 +7348,14 @@ var Welcome={
     return '<div class="wel-row'+(cls?' '+cls:'')+'"'+(click?' onclick="'+click+'"':'')+'><div class="opt-ico" style="background:'+bg+'">'+ico+'</div>'
       +'<div style="flex:1;min-width:0"><div class="wel-rt">'+title+'</div>'+(sub?'<div class="wel-rs">'+sub+'</div>':'')+'</div>'+(extra||'')+'</div>';
   },
-  open:function(){
+  // opts.install (Developer page): false = no install page, 'ios' /
+  // 'android' = that phone's install steps. Default: this phone's, only
+  // when opened in a browser.
+  open:function(opts){
+    opts=opts||{};
     var standalone=navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
-    this.pages=(standalone?[]:['install']).concat(['hello','know','start']);
+    this._inst='install' in opts?opts.install:(standalone?false:(IS_IOS?'ios':'android'));
+    this.pages=(this._inst?['install']:[]).concat(['hello','know','start']);
     this.page=0;this.render();
     var el=document.getElementById('welcome');
     el.classList.add('on');
@@ -7324,7 +7373,7 @@ var Welcome={
       var home=S('<path d="M4 11.5l8-7 8 7"/><path d="M6.5 10v9.5h11V10"/>');
       h=hero('#3b82f6',plus)+'<div class="wel-title">Add Today to your Home Screen</div>'
         +'<div class="wel-text">It works best as an app on your Home Screen: full screen and offline.</div>'
-        +'<div class="wel-card">'+(IS_IOS?R(share,'#3b82f6','Tap the Share button','At the bottom or top of Safari')+R(plus,'#3b82f6','Choose Add to Home Screen',''):R(dots,'#3b82f6','Tap the menu ⋮','Top right in Chrome')+R(plus,'#3b82f6','Choose Add to Home screen','Or Install app'))
+        +'<div class="wel-card">'+(this._inst==='ios'?R(share,'#3b82f6','Tap the Share button','At the bottom or top of Safari')+R(plus,'#3b82f6','Choose Add to Home Screen',''):R(dots,'#3b82f6','Tap the menu ⋮','Top right in Chrome')+R(plus,'#3b82f6','Choose Add to Home screen','Or Install app'))
         +R(home,'#3b82f6','Open Today from your Home Screen','')+'</div>'
         +'<div class="wel-text">What you add here in the browser stays here — the Home Screen app starts fresh.</div>';
     } else if(k==='hello'){
@@ -7421,11 +7470,15 @@ var WhatsNew={
 };
 var InputSheet={
   _cb:null,
-  show:function(title,placeholder,cb){
+  show:function(title,placeholder,cb,opts){
     this._cb=cb;
     document.getElementById('input-sheet-title').textContent=title;
     var f=document.getElementById('input-sheet-field');
     f.placeholder=placeholder||'';f.value='';
+    // {secret:true}: dots instead of the typed characters, number pad
+    var sec=!!(opts&&opts.secret);
+    f.style.webkitTextSecurity=sec?'disc':'';
+    if(sec)f.setAttribute('inputmode','numeric');else f.removeAttribute('inputmode');
     _overlayOpen('input-sheet-overlay');
     setTimeout(function(){_autoFocus(f);},300);
   },

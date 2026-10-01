@@ -1035,19 +1035,20 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
   <div class="opt-group" style="margin-top:8px">
     <div class="guide-item">
       <div class="guide-t">What it is</div>
-      <div class="guide-p">The War Room holds your most urgent tasks. It sits in red at the top of Overview: nothing else matters until it's clear.</div>
+      <div class="guide-p">The War Room priority is meant for your most urgent tasks: nothing else matters until they're done.</div>
+      <div class="guide-p">To put a task in the War Room, open it and pick War Room among the other priorities.</div>
     </div>
     <div class="guide-item">
-      <div class="guide-t">Put a task in it</div>
-      <div class="guide-p">Open a task and set its priority to War Room. New tasks can get it right away in their window.</div>
+      <div class="guide-t">Red square</div>
+      <div class="guide-p">War Room tasks have a red tick box.</div>
     </div>
     <div class="guide-item">
-      <div class="guide-t">Where you see them</div>
-      <div class="guide-p">War Room tasks come before every other priority in Today and Tasks, and have a red tick box so they stand out.</div>
+      <div class="guide-t">Always first</div>
+      <div class="guide-p">They always rank highest in Today and Tasks.</div>
     </div>
     <div class="guide-item">
-      <div class="guide-t">Turn it off</div>
-      <div class="guide-p">Don't need it? Switch off Show War Room in Menu → Overview.</div>
+      <div class="guide-t">In Overview</div>
+      <div class="guide-p">Show them in their own card at the top of Overview with Show War Room in Menu → Overview.</div>
     </div>
   </div>
 </div>
@@ -1539,7 +1540,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.17';
+var APP_VERSION='Beta 4.18';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2652,6 +2653,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.17',notes:[
     "Menu > Guide: the War Room row has a chess knight as its icon (flat white on red), and the Welcome tour row is gone — the welcome screens only show on a new install's first open"
+  ]},
+  {v:'Beta 4.18',notes:[
+    "Menu > Guide > War Room: shorter, simpler text — what it is and how a task gets in, then three one-liners (red tick box, always first in Today and Tasks, its own card in Overview)"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2743,7 +2747,8 @@ var USER_LOG={
   'Beta 4.14':["Projects don't need a category anymore"],
   'Beta 4.15':'design',
   'Beta 4.16':["Import events from your calendar","Welcome tour for new users","German phones start in German"],
-  'Beta 4.17':'design'
+  'Beta 4.17':'design',
+  'Beta 4.18':'design'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -3329,7 +3334,7 @@ var I18N=(function(){
     "Every task by priority, or as a calendar":"Alle Aufgaben nach Priorität oder als Kalender",
     "How consistent you are with your habits":"Wie beständig du deine Gewohnheiten pflegst",
     "Settings, the Guide and your data":"Einstellungen, Anleitung und deine Daten",
-    "Good to know":"Gut zu wissen","Two things before you start.":"Zwei Dinge vorab.",
+    "Good to know":"Gut zu wissen","The War Room priority is meant for your most urgent tasks: nothing else matters until they're done.":"Die Priorität War Room ist für deine dringendsten Aufgaben: Nichts anderes zählt, bis sie erledigt sind.","To put a task in the War Room, open it and pick War Room among the other priorities.":"Um eine Aufgabe in den War Room zu legen, öffne sie und wähle War Room bei den Prioritäten.","Red square":"Rotes Kästchen","War Room tasks have a red tick box.":"War-Room-Aufgaben haben ein rotes Kästchen.","Always first":"Immer zuerst","They always rank highest in Today and Tasks.":"Sie stehen in Heute und Aufgaben immer ganz oben.","In Overview":"In der Übersicht","Show them in their own card at the top of Overview with Show War Room in Menu → Overview.":"Zeige sie in einer eigenen Karte oben in der Übersicht: War Room anzeigen in Menü → Übersicht.","Two things before you start.":"Zwei Dinge vorab.",
     "Your data stays on this phone":"Deine Daten bleiben auf diesem Handy",
     "No account and no cloud. Make a backup now and then: Menu → Data → Export.":"Kein Konto und keine Cloud. Mach ab und zu ein Backup: Menü → Daten → Exportieren.",
     "The Guide":"Die Anleitung",

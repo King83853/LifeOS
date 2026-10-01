@@ -350,6 +350,13 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   DIRECT children of the container, so whatever wraps a row is what must
   move. No conflict with the edge swipe-back: it starts at x<=35, which is
   inside the tick zone, where a skip swipe never starts.
+  4.23 ("the same animation as skipped tasks"): on Today with "Habits
+  disappear when checked off" on, a skipped habit leaves through the same
+  `slideOut(w,done)` as a skipped task (slide right .2s, then max-height
+  fold .18s, then remove + `_dropEmptyCard` for an emptied card/title)
+  instead of springing back and vanishing on renderToday. When it stays
+  visible (that switch off, or a Habits project's panels) it still springs
+  back — the row remains, shown as skipped.
 
 - Today's ORDER (4.11, "an edit tab to edit the order of today: tasks,
   calendar, habits"): #p-today holds three `.today-sec[data-s]` blocks —

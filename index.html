@@ -1533,7 +1533,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.22';
+var APP_VERSION='Beta 4.23';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2661,6 +2661,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.22',notes:[
     "Overview: hold a project and drag it into another category — or to the top, for no category. While you drag, empty categories (and the no-category area at the top) open up as faint slots to drop into, and the page scrolls when you drag near its top or bottom edge"
+  ]},
+  {v:'Beta 4.23',notes:[
+    "Today: a habit you skip by swiping now leaves the same way a skipped task does — it slides out to the right and its row folds shut (when done habits disappear; otherwise it stays, shown as skipped)"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2757,7 +2760,8 @@ var USER_LOG={
   'Beta 4.19':'design',
   'Beta 4.20':'design',
   'Beta 4.21':'design',
-  'Beta 4.22':["Drag projects into other categories"]
+  'Beta 4.22':["Drag projects into other categories"],
+  'Beta 4.23':'design'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -6357,24 +6361,36 @@ var Skip=(function(){
   document.addEventListener('click',function(e){
     if(Date.now()-lastSwipe<350){e.stopPropagation();e.preventDefault();}
   },true);
+  // A skipped row that leaves the list slides out to the right, then folds shut.
+  function slideOut(w,done){
+    setX(w,w.offsetWidth+20,true);
+    setTimeout(function(){
+      w.style.maxHeight=w.offsetHeight+'px';void w.offsetHeight;
+      w.style.transition='max-height .18s ease-out,margin-bottom .18s ease-out';
+      w.style.maxHeight='0';w.style.marginBottom='0';
+    },200);
+    setTimeout(function(){w.remove();done();},400);
+  }
   function go(w){
     var ds=pDate(0);
     if(w.classList.contains('t')){
       var key=w.querySelector('.ti').getAttribute('data-key');
       DB.skipTask(key,ds); // saved now, not after the animation, so leaving Today mid-slide can't lose it
-      setX(w,w.offsetWidth+20,true);
-      if(DB.data.settings.todayRefill){setTimeout(function(){todayRefillSwap(w);},200);return;}
-      setTimeout(function(){
-        w.style.maxHeight=w.offsetHeight+'px';void w.offsetHeight;
-        w.style.transition='max-height .18s ease-out,margin-bottom .18s ease-out';
-        w.style.maxHeight='0';w.style.marginBottom='0';
-      },200);
-      setTimeout(function(){w.remove();syncTodaySections();},400);
+      if(DB.data.settings.todayRefill){setX(w,w.offsetWidth+20,true);setTimeout(function(){todayRefillSwap(w);},200);return;}
+      slideOut(w,syncTodaySections);
     } else {
       // the day the row belongs to (a Habits project shows any day)
       var row=w.querySelector('.cali[data-id]'),dayEl=row.hasAttribute('data-day')?row:row.querySelector('[data-day]');
       var id=row.getAttribute('data-id'),inDaily=!!w.closest('#dpanels');
       DB.skipDaily(id,pDate(dayEl?parseInt(dayEl.getAttribute('data-day'),10)||0:0));
+      // On Today a skipped habit counts as done: when done habits disappear
+      // it leaves like a skipped task; otherwise it stays (shown as skipped)
+      // and springs back.
+      if(!inDaily&&DB.data.settings.todayHabitsDisappear){
+        var sec=w.closest('.calsec');
+        slideOut(w,function(){_dropEmptyCard(sec);});
+        return;
+      }
       close(w,true);
       setTimeout(function(){
         if(inDaily){buildPanels();restoreChecks(Nav.sd);}

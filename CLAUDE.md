@@ -1142,6 +1142,10 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   tiles start on whole pixels (1fr columns were 78.25px → outline between
   pixels, soft/uneven); the minimal `.acard` has no border (the normal
   card's invisible 1.5px border offset the tile by half a pixel).
+- Overview project tiles in DARK mode (4.21, "a nuthair brighter"): the
+  colour at `TILE_DARK_A` 0x36 (21%) — `tintStyle(col,true)` for the
+  normal tile and `solidTintStyle` for the minimal one; project badges in
+  task rows keep `tintStyle(col)` at 0x2e (18%). Light mode unchanged.
 - Project cards on Overview (`.acard`) don't scale down on press (removed
   `.acard:active{transform:scale(.95)}`, 2.91) — only the grey press
   color remains. Dragging still scales up via `.dragging`.

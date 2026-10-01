@@ -1529,7 +1529,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.20';
+var APP_VERSION='Beta 4.21';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2651,6 +2651,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.20',notes:[
     "Menu > Guide > War Room: one card with four short lines, no titles"
+  ]},
+  {v:'Beta 4.21',notes:[
+    "Overview, dark theme: the projects' coloured squares are a touch brighter (the colour at 21% instead of 18%); badges in task rows are unchanged"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2745,7 +2748,8 @@ var USER_LOG={
   'Beta 4.17':'design',
   'Beta 4.18':'design',
   'Beta 4.19':'design',
-  'Beta 4.20':'design'
+  'Beta 4.20':'design',
+  'Beta 4.21':'design'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -3596,7 +3600,7 @@ function projCard(pid){
     cntLbl=n?n+' tasks':'Empty';
   }
   return '<div class="acard" data-pid="'+pid+'" onclick="_projFromDaily=null;_trackerOrigin=null;Nav.go(\''+pid+'\')">'
-    +'<div class="aico" style="'+(d.settings.overviewMinimal?solidTintStyle(col):tintStyle(col))+'">'+iconOrPhoto(p)+'</div>'
+    +'<div class="aico" style="'+(d.settings.overviewMinimal?solidTintStyle(col):tintStyle(col,true))+'">'+iconOrPhoto(p)+'</div>'
     +'<div class="albl">'+p.name+'</div>'
     +'<div class="acnt">'+cntLbl+'</div></div>';
 }
@@ -6954,15 +6958,17 @@ function paleFillColor(hex){
 function themeCol(col){return col==='#000000'&&isDarkNow()?'#ffffff':col;}
 function solidTintStyle(col){
   col=themeCol(col);
-  var dark=isDarkNow(),a=(dark?0x2e:0x20)/255,base=dark?[30,28,26]:[255,255,255];
+  var dark=isDarkNow(),a=(dark?TILE_DARK_A:0x20)/255,base=dark?[30,28,26]:[255,255,255];
   var c=[parseInt(col.slice(1,3),16),parseInt(col.slice(3,5),16),parseInt(col.slice(5,7),16)];
   return 'background:rgb('+c.map(function(v,i){return Math.round(a*v+(1-a)*base[i]);}).join(',')+');color:'+(dark?col+'d9':col)
     +';--ring:'+col; // the minimal tile's ring: the colour itself, not the pastel
 }
-function tintStyle(col){
+// Overview's project tiles in dark mode: the colour at 21% (badges: 18%)
+var TILE_DARK_A=0x36;
+function tintStyle(col,tile){
   col=themeCol(col);
   // dark mode: a soft tint of the color, not the full-strength color
-  return isDarkNow()?('background:'+col+'2e;color:'+col+'d9'):('background:'+col+'20;color:'+col);
+  return isDarkNow()?('background:'+col+(tile?TILE_DARK_A.toString(16):'2e')+';color:'+col+'d9'):('background:'+col+'20;color:'+col);
 }
 function playClick(){
   if(DB.data.settings.sound===false)return; // Menu > Sound off

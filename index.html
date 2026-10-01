@@ -1458,7 +1458,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.14';
+var APP_VERSION='Beta 4.15';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2558,6 +2558,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.14',notes:[
     "Projects no longer need a category: a new project's Category is None by default (or pick one). Projects without a category show at the top of Overview, above all categories, without a title, and can be moved among themselves by holding them; Edit layout lists them first under \"No category\". Creating the first project no longer asks for a category first"
+  ]},
+  {v:'Beta 4.15',notes:[
+    "Hold to complete is now off by default: a tap ticks things off. Only new installs and Reset settings get the new default; if you had it on, it stays on. Importing an export made before this version keeps it on too"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2646,7 +2649,8 @@ var USER_LOG={
   'Beta 4.11':["Reorder the sections in Today"],
   'Beta 4.12':'design',
   'Beta 4.13':'both',
-  'Beta 4.14':["Projects don't need a category anymore"]
+  'Beta 4.14':["Projects don't need a category anymore"],
+  'Beta 4.15':'design'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -2709,7 +2713,7 @@ var COLOR_NAMES={
 // Settings a fresh install starts with, and what "Reset settings" restores
 // (lastSeenVersion is bookkeeping and is never reset).
 var DEFAULT_SETTINGS={
-  startTab:'today',hiddenTabs:['blocker'],holdToComplete:true,autoUpdate:true,language:'en',theme:'system',
+  startTab:'today',hiddenTabs:['blocker'],holdToComplete:false,autoUpdate:true,language:'en',theme:'system',
   dayStartHour:3,todayHabitsDisappear:true,skipHabits:false,
   todayTaskCount:3,todayRefill:false,skipTasks:true,skipResetDaily:true,showWarRoom:true,
   statsRange:'3m',sound:true,tasksView:'tasks',todayOrder:['tasks','calendar','habits'],overviewMinimal:false,advancedUpdates:false,statsHidden:[],statsOrder:['score','chart','best','worst','perfect']
@@ -4369,7 +4373,14 @@ var A={
     InputSheet.show('Paste exported data','Paste here',function(pasted){
       var step='read';
       Promise.resolve().then(function(){return DataCodec.unpack(pasted);}).then(function(json){
-        step='check';JSON.parse(json);
+        step='check';var o=JSON.parse(json);
+        // Exports leave out settings equal to the defaults. Hold to complete
+        // was ON by default until 4.15, so an older export without it had it on.
+        var at=function(v){return CHANGELOG.findIndex(function(c){return c.v===v;});};
+        if(o&&o.settings&&!('holdToComplete' in o.settings)){
+          var from=at(o.settings.lastSeenVersion);
+          if(from!==-1&&from<at('Beta 4.15')){o.settings.holdToComplete=true;json=JSON.stringify(o);}
+        }
         step='save';localStorage.setItem('lifeos',json.trim());
         DB.load(); // from here on the app holds the imported data (nothing can save the old over it)
         step='restart';location.reload();

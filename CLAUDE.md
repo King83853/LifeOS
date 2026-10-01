@@ -1399,10 +1399,10 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   Wrap test code in an IIFE (no globals), restore patches in `finally`,
   and when a result looks impossible, check `fn.toString()` for a leftover
   wrapper first. Closing the tab and opening a new one (`tabs_close` +
-  `preview_start`) is the only reliable full reset. Also: `DB._blank()`
-  has "Hold to complete" ON (the fresh-install default), where a plain
-  tap on a habit deliberately doesn't tick — turn it off in a test before
-  concluding that ticking is broken.
+  `preview_start`) is the only reliable full reset. Also: in "Hold to
+  complete" mode a plain tap on a habit deliberately doesn't tick — check
+  that setting before concluding that ticking is broken (it's OFF on a
+  fresh install since 4.15, but old test data may have it on).
   `location.reload()` doesn't reload this preview's data: snapshot (a
   marker variable survives it), and a tab can't be put into the mobile
   preset before its first load — so code that decides "is this iOS" at
@@ -1878,6 +1878,13 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   `instant` too, for the same reason — the generic close always assumes
   it's starting the slide from scratch unless told otherwise.
 
+- Hold to complete is OFF by default since 4.15 (`DEFAULT_SETTINGS.
+  holdToComplete:false`; asked for after I flagged it as the worst
+  first-day trap: a new user's tap on a tick box did nothing). Existing
+  users keep their stored value. Exports drop settings equal to the
+  defaults, so an export made before 4.15 by someone with it ON has no
+  key — `A.importData` sets it back to true when the export's
+  lastSeenVersion is older than 'Beta 4.15' (CHANGELOG order).
 - Hold to complete shows NO progress while holding (3.79, by request): the
   grey bar that filled under the row (`::before` driven by `.holding`/
   `.snap`) and those classes are gone; the hold still completes after

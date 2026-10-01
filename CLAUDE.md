@@ -100,8 +100,7 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   in Overview order use `projectGroups()` = [NO_CAT, ...categoryOrder]
   (habitsProjects, Menu > Overview > Reset a project). Overview draws them
   first as `.nocat-block` (no title, NOT a `.cat-block`, so a dragged
-  category can't be dropped above it; its `.agrid` still reorders by
-  holding — wireOverviewDrag reads the key from `closest('[data-cat]')`);
+  category can't be dropped above it);
   `projCard(pid)` builds one card for both. Edit layout lists them first
   under "No category" (`elProjRow`). New project: Category row defaults
   to None (`SheetEditor.catOpts()`), and A.newProject no longer forces a
@@ -1272,6 +1271,26 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   hold a Delete button, so removing its only delete path would leave it
   stuck in Daily permanently.
 
+- Overview projects drag ACROSS categories (4.22, "drag them anywhere you
+  want into other categories"): ONE DragReorder on #overview-grid (wired
+  once) with opts `{cross:true, zoneSel:'[data-cat]>.agrid', flipSel:
+  '.acard,.shdr', bodyClass:'proj-drag'}` replaces the per-category .agrid
+  wiring. Cross mode (`_hitCross`): over another card's middle 60% the
+  placeholder goes next to it (same grid: swap like before; other grid:
+  before/after by which half the finger is in); over an empty part of a
+  grid it goes to that grid's end. `_flip` animates every card AND
+  category title. `_edgeScroll`: a finger within 70px of the page's
+  top/bottom scrolls it (rAF, up to 12px/frame) and re-hits. Every group
+  ALWAYS renders its grid now; an empty one is `.agrid.zone-empty` — no
+  height/margin at rest (measured: layout identical), and while
+  body.proj-drag a 72px faint slot (55% card colour) with the normal 22px
+  margin, so empty categories and the no-category area can be dropped
+  into. On drop `DB.setProjectGroups({key:[pids]})` writes every group from
+  the screen and sets each project's categoryId (entries that aren't real
+  projects, e.g. legacy 'habits', are kept at the end of their group),
+  then renderGrids. The -2px War Room rule skips a zone-empty grid (else a
+  0-height zone would pull the first category up 2px). Without opts
+  (Daily habits) DragReorder runs exactly the old code path — tested.
 - Drag-to-reorder (2.84, `DragReorder`): long-press (`DRAG_HOLD_MS`: 450ms, 900ms
   since 3.20 — "double the time", cancelled by
   >10px movement before then) picks an item up — `position:fixed`, a

@@ -734,7 +734,11 @@ html:not(#x) .ts-head .ts-pri{flex:none;margin:0}
 html:not(#x) .ts-head .ts-pri .opt-row{box-sizing:border-box;height:48px;min-height:48px;padding:0 10px 0 14px;border-bottom:none}
 /* Overview: projects without a category sit right under the War Room —
    card after card, so 20px apart like everywhere else (not 22). */
-html:not(#x) #war-box:not([style*="none"])+#overview-grid>.nocat-block:first-child>.agrid{margin-top:-2px}
+html:not(#x) #war-box:not([style*="none"])+#overview-grid>.nocat-block:first-child>.agrid:not(.zone-empty){margin-top:-2px}
+/* Overview: an empty group's grid takes no room — until a project is being
+   dragged (body.proj-drag): then it opens as a faint slot to drop into */
+html:not(#x) #overview-grid .agrid.zone-empty{min-height:0;margin:0;border-radius:14px;background:transparent;transition:min-height .2s ease,margin-bottom .2s ease,background-color .2s ease}
+html:not(#x) body.proj-drag #overview-grid .agrid.zone-empty{min-height:72px;margin-bottom:22px;background:color-mix(in srgb,var(--card) 55%,transparent)}
 html:not(#x) #war-box:not([style*="none"])+#overview-grid>.add-block:first-child>.agrid{margin-top:-2px}
 /* Overview with no project yet: the "+" card (a project card's size) */
 .add-card .aico{color:var(--ink)}
@@ -1057,7 +1061,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
     </div>
     <div class="guide-item">
       <div class="guide-t">Move projects by holding</div>
-      <div class="guide-p">In Overview, hold a project for a second until it lifts, then drag it to a new place in its category. Hold a category's title to move the whole category.</div>
+      <div class="guide-p">In Overview, hold a project for a second until it lifts, then drag it anywhere — also into another category, or to the top for no category. Hold a category's title to move the whole category.</div>
     </div>
     <div class="guide-item">
       <div class="guide-t">Move habits by holding</div>
@@ -1529,7 +1533,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.21';
+var APP_VERSION='Beta 4.22';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2654,6 +2658,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.21',notes:[
     "Overview, dark theme: the projects' coloured squares are a touch brighter (the colour at 21% instead of 18%); badges in task rows are unchanged"
+  ]},
+  {v:'Beta 4.22',notes:[
+    "Overview: hold a project and drag it into another category — or to the top, for no category. While you drag, empty categories (and the no-category area at the top) open up as faint slots to drop into, and the page scrolls when you drag near its top or bottom edge"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2749,7 +2756,8 @@ var USER_LOG={
   'Beta 4.18':'design',
   'Beta 4.19':'design',
   'Beta 4.20':'design',
-  'Beta 4.21':'design'
+  'Beta 4.21':'design',
+  'Beta 4.22':["Drag projects into other categories"]
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -3049,6 +3057,18 @@ var DB={
   // at a time like the Edit layout arrows above.
   reorderCategories:function(orderedIds){this.data.categoryOrder=orderedIds;this.save();},
   reorderProjects:function(catId,orderedIds){this.data.projectOrder[catId]=orderedIds;this.save();},
+  // After a drag on Overview: {groupKey:[pid,…]} read from the screen. A
+  // project that changed group gets its new categoryId; entries that aren't
+  // real projects (nothing on screen for them) stay at the end of their group.
+  setProjectGroups:function(groups){
+    var d=this.data;
+    Object.keys(groups).forEach(function(k){
+      var keep=(d.projectOrder[k]||[]).filter(function(pid){return !d.projects[pid];});
+      d.projectOrder[k]=groups[k].concat(keep);
+      groups[k].forEach(function(pid){if(d.projects[pid])d.projects[pid].categoryId=k;});
+    });
+    this.save();
+  },
   // Habits/tracker links aren't kept in a separate per-category order
   // array (unlike projects) — a dailyItems entry's position in that ONE
   // flat array is all that decides display order, and only relative to
@@ -3379,7 +3399,7 @@ var I18N=(function(){
     'All done':'Alles erledigt','No entries yet':'Noch keine Einträge','No tasks yet.':'Noch keine Aufgaben.','No list tasks yet.':'Noch keine Listenaufgaben.',
     'No one-time tasks yet.':'Noch keine einmaligen Aufgaben.','Guide':'Anleitung','Hidden features':'Versteckte Funktionen','Move projects by holding':'Projekte durch Halten verschieben','Move habits by holding':'Gewohnheiten durch Halten verschieben','Zoom and scroll charts':'Diagramme zoomen und verschieben','Days':'Tage','Weeks':'Wochen','Months':'Monate',
     'Pinch a chart with two fingers to zoom. Zoomed out, the columns turn from days into weeks and then months. Drag a chart sideways to look back at older history.':'Zieh ein Diagramm mit zwei Fingern auf oder zu, um zu zoomen. Weiter herausgezoomt werden aus den Tagen Wochen und dann Monate. Wisch ein Diagramm seitwärts, um ältere Verläufe anzusehen.',
-    "In Overview, hold a project for a second until it lifts, then drag it to a new place in its category. Hold a category's title to move the whole category.":'Halte in der Übersicht ein Projekt eine Sekunde lang, bis es sich anhebt, und ziehe es an eine neue Stelle in seiner Kategorie. Halte den Titel einer Kategorie, um die ganze Kategorie zu verschieben.',
+    "In Overview, hold a project for a second until it lifts, then drag it anywhere — also into another category, or to the top for no category. Hold a category's title to move the whole category.":'Halte in der Übersicht ein Projekt eine Sekunde lang, bis es sich anhebt, und ziehe es an eine beliebige Stelle — auch in eine andere Kategorie oder ganz nach oben für keine Kategorie. Halte den Titel einer Kategorie, um die ganze Kategorie zu verschieben.',
     "In Daily, hold a habit's bar — not its tick box — until it lifts, then drag it up or down. The order is the same on every day and in Today.":'Halte in Täglich den Balken einer Gewohnheit – nicht ihr Kästchen –, bis er sich anhebt, und ziehe ihn nach oben oder unten. Die Reihenfolge gilt an jedem Tag und auch in Heute.',
     'Reset skipped tasks every new day':'Übersprungene Aufgaben jeden Tag zurücksetzen',
     "In a Habits project, swipe a habit to the right to skip it on the day you're looking at — also a day in the past, if you were sick.":'Wische in einem Gewohnheiten-Projekt eine Gewohnheit nach rechts, um sie an dem angezeigten Tag zu überspringen — auch an einem vergangenen Tag, wenn du krank warst.',
@@ -3551,8 +3571,10 @@ function renderGrids(){
   var h='';
   // projects without a category first, in their own grid with no title
   // (.nocat-block, not a .cat-block: categories can't be dragged above it)
-  var loose=d.projectOrder[NO_CAT]||[];
-  if(loose.some(function(pid){return d.projects[pid];}))h+='<div class="nocat-block" data-cat="'+NO_CAT+'"><div class="agrid">'+loose.map(projCard).join('')+'</div></div>';
+  // (an empty group still gets its grid: a drop slot, shown only while a
+  // project is being dragged — see .zone-empty)
+  var loose=d.projectOrder[NO_CAT]||[],has=loose.some(function(pid){return d.projects[pid];});
+  h+='<div class="nocat-block" data-cat="'+NO_CAT+'"><div class="agrid'+(has?'':' zone-empty')+'">'+(has?loose.map(projCard).join(''):'')+'</div></div>';
   // no project at all yet: one card shaped like a project that opens New project
   if(!Object.keys(d.projects).length)h+='<div class="add-block"><div class="agrid add-grid"><div class="acard add-card" onclick="A.newProject()">'
     +'<div class="aico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>'
@@ -3560,9 +3582,8 @@ function renderGrids(){
   d.categoryOrder.forEach(function(catId){
     var cat=d.categories[catId];if(!cat)return;
     h+='<div class="cat-block" data-cat="'+catId+'"><div class="shdr">'+cat.name+'</div>';
-    var projs=d.projectOrder[catId]||[];
-    if(!projs.length){h+='</div>';return;}
-    h+='<div class="agrid">'+projs.map(projCard).join('')+'</div></div>';
+    var projs=d.projectOrder[catId]||[],cards=projs.map(projCard).join('');
+    h+='<div class="agrid'+(cards?'':' zone-empty')+'">'+cards+'</div></div>';
   });
   document.getElementById('overview-grid').innerHTML=h;
   document.getElementById('p-overview').classList.toggle('ov-min',!!d.settings.overviewMinimal);
@@ -3619,35 +3640,32 @@ function fitMinimalGrid(){
 }
 window.addEventListener('resize',fitMinimalGrid);
 // Long-press a category title to drag the whole block (reorders
-// categoryOrder); long-press anywhere on a project card to drag just
-// that card within its own category's grid (reorders projectOrder for
-// that one catId — each .agrid is its own drag container, so a card
-// can't be dropped into a different category this way).
+// categoryOrder); long-press a project card to drag it anywhere on
+// Overview — within its group or into another one (DB.setProjectGroups).
 function wireOverviewDrag(){
   var grid=document.getElementById('overview-grid');
-  // #overview-grid itself is a fixed element that survives every
-  // renderGrids() call (only its CHILDREN get replaced by innerHTML=h) —
-  // wiring it again on every render would stack up duplicate listeners
-  // that each independently fire _prime()/_begin() for the same touch,
-  // so this only ever wires it once. Its callback re-queries the DOM
-  // live at drop time, so a single wiring stays correct across any
-  // number of later re-renders. Each .agrid below IS freshly created by
-  // every render, so those need no such guard — old ones (and their
-  // listeners) are simply discarded with the DOM they were attached to.
+  // #overview-grid itself survives every renderGrids() call (only its
+  // CHILDREN are replaced), so it's wired once: wiring it on every render
+  // would stack duplicate listeners that each fire for the same touch. The
+  // callbacks read the DOM live at drop time, so one wiring stays correct.
   if(!grid.dataset.dragWired){
     grid.dataset.dragWired='1';
     DragReorder.init(grid,'.shdr','.cat-block','list',function(container){
       var ids=[].slice.call(container.querySelectorAll('.cat-block')).map(function(el){return el.getAttribute('data-cat');});
       DB.reorderCategories(ids);
     });
+    // projects: one drag across all of Overview, so a project can be moved
+    // into another category (or above them all, without one)
+    DragReorder.init(grid,'.acard:not(.add-card)','.acard:not(.add-card)','grid',function(container){
+      var groups={};
+      container.querySelectorAll('[data-cat]').forEach(function(b){
+        var g=b.querySelector('.agrid');if(!g)return;
+        groups[b.getAttribute('data-cat')]=[].map.call(g.querySelectorAll('.acard[data-pid]'),function(c){return c.getAttribute('data-pid');});
+      });
+      DB.setProjectGroups(groups);
+      renderGrids();
+    },{cross:true,zoneSel:'[data-cat]>.agrid',flipSel:'.acard,.shdr',bodyClass:'proj-drag'});
   }
-  grid.querySelectorAll('.agrid:not(.add-grid)').forEach(function(agrid){
-    var catId=agrid.closest('[data-cat]').getAttribute('data-cat');
-    DragReorder.init(agrid,'.acard','.acard','grid',function(container){
-      var ids=[].slice.call(container.querySelectorAll('.acard')).map(function(el){return el.getAttribute('data-pid');});
-      DB.reorderProjects(catId,ids);
-    });
-  });
 }
 
 function renderTracker(pid){
@@ -8044,7 +8062,12 @@ var DragReorder={
   active:false,_endedAt:0,_timer:null,_el:null,_ph:null,_container:null,_itemSel:null,_mode:'grid',
   _onDrop:null,_startX:0,_startY:0,_offX:0,_offY:0,_preMove:null,_preEnd:null,
   _onMove:null,_onEnd:null,
-  init:function(container,handleSel,itemSel,mode,onDrop){
+  // opts (Overview's projects): {cross:true, zoneSel, flipSel, bodyClass} —
+  // items can move between groups inside `container`: over another item they
+  // swap/insert next to it, over an empty part of a group (zoneSel) they go
+  // to its end; flipSel = what slides along; bodyClass is on <body> while
+  // dragging; near the page's top/bottom edge the page scrolls.
+  init:function(container,handleSel,itemSel,mode,onDrop,opts){
     var self=this;
     container.addEventListener('touchstart',function(e){
       if(self.active)return; // a drag already in progress elsewhere
@@ -8056,11 +8079,11 @@ var DragReorder={
       if(!handle||!container.contains(handle))return;
       var item=handle.closest(itemSel);
       if(!item||!container.contains(item))return;
-      self._prime(item,container,itemSel,mode,onDrop,e.touches[0]);
+      self._prime(item,container,itemSel,mode,onDrop,e.touches[0],opts);
     },{passive:true});
   },
-  _prime:function(el,container,itemSel,mode,onDrop,touch){
-    this._el=el;this._container=container;this._itemSel=itemSel;this._mode=mode;this._onDrop=onDrop;
+  _prime:function(el,container,itemSel,mode,onDrop,touch,opts){
+    this._el=el;this._container=container;this._itemSel=itemSel;this._mode=mode;this._onDrop=onDrop;this._opts=opts||{};
     this._startX=touch.clientX;this._startY=touch.clientY;
     var self=this;
     this._timer=setTimeout(function(){self._begin();},DRAG_HOLD_MS);
@@ -8107,6 +8130,7 @@ var DragReorder={
     el.style.position='fixed';el.style.left=r.left+'px';el.style.top=r.top+'px';
     el.style.zIndex='999';el.style.margin='0';
     el.classList.add('dragging');
+    if(this._opts.bodyClass)document.body.classList.add(this._opts.bodyClass);
     var self=this;
     this._onMove=function(e){self._move(e);};
     // Touch events always keep targeting whatever element touchstart
@@ -8130,6 +8154,7 @@ var DragReorder={
     var t=e.touches[0],el=this._el;
     el.style.left=(t.clientX-this._offX)+'px';
     el.style.top=(t.clientY-this._offY)+'px';
+    if(this._opts.cross){this._lastT={x:t.clientX,y:t.clientY};this._hitCross();this._edgeScroll();return;}
     // Real siblings only — the placeholder stands in for `el` among them
     // and is never itself a swap candidate.
     var items=[].slice.call(this._container.querySelectorAll(this._itemSel)).filter(function(x){return x!==el;});
@@ -8191,9 +8216,74 @@ var DragReorder={
       });
     });
   },
+  // cross mode: the item under the finger (middle 60%, like _move), else an
+  // empty part of a group → the placeholder goes there
+  _hitCross:function(){
+    var x=this._lastT.x,y=this._lastT.y,el=this._el,ph=this._ph,self=this;
+    var items=[].filter.call(this._container.querySelectorAll(this._itemSel),function(n){return n!==el;});
+    for(var i=0;i<items.length;i++){
+      var it=items[i];
+      if(it===this._lastSwapWith&&Date.now()-this._lastSwapAt<250)continue;
+      var r=it.getBoundingClientRect(),mx=r.width*0.2,my=r.height*0.2;
+      if(x>=r.left+mx&&x<=r.right-mx&&y>=r.top+my&&y<=r.bottom-my){
+        this._flip(function(){
+          if(ph.parentNode===it.parentNode){
+            var kids=[].slice.call(it.parentNode.children);
+            it.parentNode.insertBefore(ph,kids.indexOf(ph)<kids.indexOf(it)?it.nextSibling:it);
+          } else it.parentNode.insertBefore(ph,x>r.left+r.width/2?it.nextSibling:it);
+        });
+        this._lastSwapWith=it;this._lastSwapAt=Date.now();
+        return;
+      }
+    }
+    var zones=this._container.querySelectorAll(this._opts.zoneSel);
+    for(var j=0;j<zones.length;j++){
+      var z=zones[j],zr=z.getBoundingClientRect();
+      if(x>=zr.left&&x<=zr.right&&y>=zr.top&&y<=zr.bottom){
+        if(ph.parentNode!==z)this._flip(function(){z.appendChild(ph);});
+        return;
+      }
+    }
+  },
+  // FLIP like _swap, for everything matching opts.flipSel in the container
+  _flip:function(mutate){
+    var el=this._el,ph=this._ph;
+    var els=[].filter.call(this._container.querySelectorAll(this._opts.flipSel||this._itemSel),function(n){return n!==el&&n!==ph;});
+    var before=els.map(function(n){return n.getBoundingClientRect();});
+    mutate();
+    els.forEach(function(s,i){
+      var b=before[i],a=s.getBoundingClientRect(),dx=b.left-a.left,dy=b.top-a.top;
+      if(!dx&&!dy)return;
+      s.style.transition='none';
+      s.style.transform='translate('+dx+'px,'+dy+'px)';
+      requestAnimationFrame(function(){requestAnimationFrame(function(){
+        s.style.transition='transform .22s cubic-bezier(.22,.8,.2,1)';
+        s.style.transform='';
+      });});
+    });
+  },
+  // cross mode: a finger near the top/bottom of the page scrolls it
+  _edgeScroll:function(){
+    var self=this,pg=this._el&&this._el.closest('.page');if(!pg)return;
+    var r=pg.getBoundingClientRect(),y=this._lastT.y,E=70,v=0;
+    if(y<r.top+E)v=-Math.ceil(Math.min(1,(r.top+E-y)/E)*12);
+    else if(y>r.bottom-E)v=Math.ceil(Math.min(1,(y-(r.bottom-E))/E)*12);
+    this._scrollV=v;
+    if(v&&!this._scrollRaf){
+      var step=function(){
+        if(!self.active||!self._scrollV){self._scrollRaf=null;return;}
+        var t0=pg.scrollTop;pg.scrollTop+=self._scrollV;
+        if(pg.scrollTop!==t0)self._hitCross();
+        self._scrollRaf=requestAnimationFrame(step);
+      };
+      this._scrollRaf=requestAnimationFrame(step);
+    }
+  },
   _end:function(e){
     e.preventDefault();
     e.stopPropagation();
+    this._scrollV=0;
+    if(this._opts.bodyClass)document.body.classList.remove(this._opts.bodyClass);
     this._endedAt=Date.now(); // see the click guard below
     var el=this._el,ph=this._ph;
     el.removeEventListener('touchmove',this._onMove,{passive:false});

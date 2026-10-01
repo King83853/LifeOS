@@ -1034,20 +1034,9 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
   </div>
   <div class="opt-group" style="margin-top:8px">
     <div class="guide-item">
-      <div class="guide-t">What it is</div>
       <div class="guide-p">The War Room priority is meant for your most urgent tasks: nothing else matters until they're done.</div>
       <div class="guide-p">To put a task in the War Room, open it and pick War Room among the other priorities.</div>
-    </div>
-    <div class="guide-item">
-      <div class="guide-t">Red square</div>
-      <div class="guide-p">War Room tasks have a red tick box.</div>
-    </div>
-    <div class="guide-item">
-      <div class="guide-t">Always first</div>
-      <div class="guide-p">They always rank highest in Today and Tasks.</div>
-    </div>
-    <div class="guide-item">
-      <div class="guide-t">In Overview</div>
+      <div class="guide-p">War Room tasks have a red tick box and always rank highest in Today and Tasks.</div>
       <div class="guide-p">Show them in their own card at the top of Overview with Show War Room in Menu → Overview.</div>
     </div>
   </div>
@@ -1540,7 +1529,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.19';
+var APP_VERSION='Beta 4.20';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2659,6 +2648,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.19',notes:[
     "Menu > Guide: the War Room row's icon is a warning triangle (white on red) instead of the chess knight"
+  ]},
+  {v:'Beta 4.20',notes:[
+    "Menu > Guide > War Room: one card with four short lines, no titles"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2752,7 +2744,8 @@ var USER_LOG={
   'Beta 4.16':["Import events from your calendar","Welcome tour for new users","German phones start in German"],
   'Beta 4.17':'design',
   'Beta 4.18':'design',
-  'Beta 4.19':'design'
+  'Beta 4.19':'design',
+  'Beta 4.20':'design'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -3338,7 +3331,7 @@ var I18N=(function(){
     "Every task by priority, or as a calendar":"Alle Aufgaben nach Priorität oder als Kalender",
     "How consistent you are with your habits":"Wie beständig du deine Gewohnheiten pflegst",
     "Settings, the Guide and your data":"Einstellungen, Anleitung und deine Daten",
-    "Good to know":"Gut zu wissen","The War Room priority is meant for your most urgent tasks: nothing else matters until they're done.":"Die Priorität War Room ist für deine dringendsten Aufgaben: Nichts anderes zählt, bis sie erledigt sind.","To put a task in the War Room, open it and pick War Room among the other priorities.":"Um eine Aufgabe in den War Room zu legen, öffne sie und wähle War Room bei den Prioritäten.","Red square":"Rotes Kästchen","War Room tasks have a red tick box.":"War-Room-Aufgaben haben ein rotes Kästchen.","Always first":"Immer zuerst","They always rank highest in Today and Tasks.":"Sie stehen in Heute und Aufgaben immer ganz oben.","In Overview":"In der Übersicht","Show them in their own card at the top of Overview with Show War Room in Menu → Overview.":"Zeige sie in einer eigenen Karte oben in der Übersicht: War Room anzeigen in Menü → Übersicht.","Two things before you start.":"Zwei Dinge vorab.",
+    "Good to know":"Gut zu wissen","War Room tasks have a red tick box and always rank highest in Today and Tasks.":"War-Room-Aufgaben haben ein rotes Kästchen und stehen in Heute und Aufgaben immer ganz oben.","The War Room priority is meant for your most urgent tasks: nothing else matters until they're done.":"Die Priorität War Room ist für deine dringendsten Aufgaben: Nichts anderes zählt, bis sie erledigt sind.","To put a task in the War Room, open it and pick War Room among the other priorities.":"Um eine Aufgabe in den War Room zu legen, öffne sie und wähle War Room bei den Prioritäten.","Show them in their own card at the top of Overview with Show War Room in Menu → Overview.":"Zeige sie in einer eigenen Karte oben in der Übersicht: War Room anzeigen in Menü → Übersicht.","Two things before you start.":"Zwei Dinge vorab.",
     "Your data stays on this phone":"Deine Daten bleiben auf diesem Handy",
     "No account and no cloud. Make a backup now and then: Menu → Data → Export.":"Kein Konto und keine Cloud. Mach ab und zu ein Backup: Menü → Daten → Exportieren.",
     "The Guide":"Die Anleitung",
@@ -3349,14 +3342,7 @@ var I18N=(function(){
     "Add your own projects and habits":"Eigene Projekte und Gewohnheiten anlegen",
     "Use a template":"Vorlage verwenden",
     "Set up with AI":"Mit KI einrichten",
-    "What it is":"Was es ist",
-    "The War Room holds your most urgent tasks. It sits in red at the top of Overview: nothing else matters until it's clear.":"Im War Room liegen deine dringendsten Aufgaben. Er steht rot ganz oben in der Übersicht: Nichts anderes zählt, bis er leer ist.",
-    "Put a task in it":"Eine Aufgabe hineinlegen",
-    "Open a task and set its priority to War Room. New tasks can get it right away in their window.":"Öffne eine Aufgabe und setze ihre Priorität auf War Room. Neue Aufgaben können sie gleich in ihrem Fenster bekommen.",
-    "Where you see them":"Wo du sie siehst",
-    "War Room tasks come before every other priority in Today and Tasks, and have a red tick box so they stand out.":"War-Room-Aufgaben stehen in Heute und Aufgaben vor allen anderen Prioritäten und haben ein rotes Kästchen, damit sie auffallen.",
-    "Turn it off":"Ausschalten",
-    "Don't need it? Switch off Show War Room in Menu → Overview.":"Brauchst du ihn nicht? Schalte War Room anzeigen in Menü → Übersicht aus.",'Import calendar':'Kalender importieren','Untitled':'Ohne Titel','Left out:':'Nicht übernommen:',
+    'Import calendar':'Kalender importieren','Untitled':'Ohne Titel','Left out:':'Nicht übernommen:',
     'Upcoming events from Google Calendar, Apple Calendar or Outlook become Calendar tasks. Export your calendar as a file first: Google Calendar on a computer, Settings → Import & export → Export; Apple Calendar on a Mac, File → Export; Outlook, Save calendar.':'Kommende Termine aus Google Kalender, Apple Kalender oder Outlook werden zu Kalender-Aufgaben. Exportiere deinen Kalender zuerst als Datei: Google Kalender am Computer, Einstellungen → Importieren & exportieren → Exportieren; Apple Kalender am Mac, Ablage → Exportieren; Outlook, Kalender speichern.',
     '1 event added to your calendar.':'1 Termin zu deinem Kalender hinzugefügt.',
     "This file couldn't be read — pick a calendar file (.ics) or Google Calendar's export (.zip).":"Diese Datei konnte nicht gelesen werden — wähle eine Kalenderdatei (.ics) oder den Export von Google Kalender (.zip).",

@@ -1887,8 +1887,10 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   (Welcome.finish) deletes it. Pages: 'install' only outside standalone
   (iOS steps if IS_IOS, else Android) → 'hello' (tabs, icons copied from
   the tab bar) → 'know' (data stays on the phone / backup; the Guide) →
-  'start' (Start empty; template and AI "Coming soon", dimmed). Menu >
-  Guide > Welcome tour replays it. (2) `phoneLang()`: a new install (and
+  'start' (Start empty; template and AI "Coming soon", dimmed). 4.16 had a
+  Menu > Guide > Welcome tour row to replay it; removed in 4.17 by request
+  (to see it again for testing: `Welcome.open()` in the console, or clear
+  the preview's storage). (2) `phoneLang()`: a new install (and
   Reset settings) starts in German when navigator.languages[0] starts with
   'de'; DEFAULT_SETTINGS.language stays 'en' (exports strip defaults —
   a device-dependent default would make that ambiguous). (3) Overview with
@@ -1896,7 +1898,12 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   project card's size, 104x117 measured) → A.newProject; the add grid is
   skipped by wireOverviewDrag (no data-cat, no pid — reordering it would
   write [null] into projectOrder). (4) Menu > Guide > War Room
-  (`#p-guide-war`, in SETTINGS_SUBPAGES, back → guide).
+  (`#p-guide-war`, in SETTINGS_SUBPAGES, back → guide). Its row icon
+  (4.17, asked for with a chess-knight logo, "just a chess knight from the
+  side", flat white on the red #ef4444): a hand-drawn filled knight path +
+  two rounded rects (collar, base), nudged translate(-.15 -.1) so its box
+  centre lands on 12,12 (measured from a qlmanage render with PIL — the
+  browser tool was down).
 - Calendar import (4.16, Menu > Data > Import calendar, `IcsImport`):
   file input `#ics-file` (.ics, or Google's .zip — `_unzip` reads the
   zip's central directory, stored or deflate-raw via DecompressionStream).

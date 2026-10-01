@@ -735,6 +735,39 @@ html:not(#x) .ts-head .ts-pri .opt-row{box-sizing:border-box;height:48px;min-hei
 /* Overview: projects without a category sit right under the War Room —
    card after card, so 20px apart like everywhere else (not 22). */
 html:not(#x) #war-box:not([style*="none"])+#overview-grid>.nocat-block:first-child>.agrid{margin-top:-2px}
+html:not(#x) #war-box:not([style*="none"])+#overview-grid>.add-block:first-child>.agrid{margin-top:-2px}
+/* Overview with no project yet: the "+" card (a project card's size) */
+.add-card .aico{color:var(--ink)}
+/* Menu > Data: the note under Import calendar, and the import window's list */
+.data-note{font-size:13px;font-weight:500;line-height:18px;color:#999;margin:-12px 4px 22px}
+/* First open: the welcome screens (Welcome) */
+.wel{position:fixed;inset:0;z-index:650;background:var(--pg);display:none;flex-direction:column;padding:calc(env(safe-area-inset-top) + 20px) 16px calc(env(safe-area-inset-bottom) + 16px);opacity:0;transition:opacity .25s ease}
+.wel.on{display:flex}.wel.show{opacity:1}
+.wel-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding-top:16px}
+.wel-hero{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;margin-bottom:18px}
+.wel-hero svg{width:34px;height:34px}
+.wel-title{font-size:26px;font-weight:700;line-height:32px;color:var(--ink);margin-bottom:8px}
+.wel-text{font-size:15px;font-weight:500;line-height:21px;color:#999;margin-bottom:22px}
+.wel-card{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.wel-row{display:flex;align-items:center;gap:12px;padding:10px 14px;min-height:48px;box-sizing:border-box}
+.wel-row+.wel-row{border-top:0.5px solid var(--line)}
+.wel-row .opt-ico{flex:none;width:30px;height:30px;border-radius:8px}.wel-row .opt-ico svg{width:20px;height:20px}
+.wel-rt{font-size:15px;font-weight:500;line-height:20px;color:var(--ink)}
+.wel-rs{font-size:13px;font-weight:500;line-height:18px;color:#999;margin-top:1px}
+.wel-opt{cursor:pointer;transition:background .2s ease}.wel-opt:active{background:var(--press)}
+.wel-opt.off{cursor:default}.wel-opt.off:active{background:none}.wel-opt.off .opt-ico,.wel-opt.off .wel-rt{opacity:.45}
+.wel-soon{margin-left:auto;flex:none;font-size:12px;font-weight:500;color:#999;white-space:nowrap}
+.wel-foot{display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:12px}
+.wel-dots{display:flex;gap:7px}.wel-dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}.wel-dots i.on{background:var(--ink)}
+.wel-btn{width:100%;height:50px;border:none;border-radius:14px;background:var(--card);color:var(--blue,#007aff);font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;transition:transform .12s ease-out}
+.wel-btn:active{transform:scale(.97)}
+.ics-card{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.ics-row{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 14px;border-bottom:0.5px solid var(--line);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ics-row:last-child{border-bottom:none}
+.ics-t{flex:1;min-width:0;font-size:15px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ics-d{flex:none;font-size:13px;font-weight:500;color:#999}
+.ics-row input[type=checkbox]{-webkit-appearance:none;appearance:none;width:26px;height:26px;margin:0;border:none;border-radius:8px;background-color:var(--box);background-repeat:no-repeat;background-position:center;background-size:18px;flex-shrink:0;cursor:pointer;transition:background-color .18s ease}
+.ics-row input[type=checkbox]:checked{background-color:var(--go);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 .cal-none{font-size:13px;font-weight:500;color:#bbb;padding:12px 14px 14px}
 .wdays{scrollbar-width:none}.wdays::-webkit-scrollbar{display:none}
 input,textarea,select{font-family:inherit}
@@ -990,6 +1023,33 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
   </div>
   <div class="opt-group" style="margin-top:8px">
     <div class="opt-row" onclick="Nav.go('guide-hidden')"><div class="opt-ico" style="background:#6366f1"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.25c2.5 2 6.5 2 10 3.5 3.5-1.5 7.5-1.5 10-3.5.5 6.5-1.5 11.5-5.2 11.5-2.2 0-3.5-1.5-4.8-3-1.3 1.5-2.6 3-4.8 3C3.5 17.75 1.5 12.75 2 6.25z"/><path d="M2 6.25c2.5 2 6.5 2 10 3.5 3.5-1.5 7.5-1.5 10-3.5.5 6.5-1.5 11.5-5.2 11.5-2.2 0-3.5-1.5-4.8-3-1.3 1.5-2.6 3-4.8 3C3.5 17.75 1.5 12.75 2 6.25zM4.2 12.15c1.6-1.8 4.6-1.8 6.2.6-1.7 1.9-4.5 1.8-6.2-.6zM19.8 12.15c-1.6-1.8-4.6-1.8-6.2.6 1.7 1.9 4.5 1.8 6.2-.6z" fill="currentColor" stroke="none" fill-rule="evenodd"/></svg></div><div class="opt-text"><div class="opt-title">Hidden features</div></div><span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+    <div class="opt-row" onclick="Nav.go('guide-war')"><div class="opt-ico" style="background:#ef4444"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg></div><div class="opt-text"><div class="opt-title">War Room</div></div><span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+    <div class="opt-row" onclick="Welcome.open()"><div class="opt-ico" style="background:#22c55e"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M10.5 8.5l3.5 3.5-3.5 3.5"/></svg></div><div class="opt-text"><div class="opt-title">Welcome tour</div></div><span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+  </div>
+</div>
+
+<div class="page sp" id="p-guide-war">
+  <div class="hh">
+    <div class="hh-bar"><button class="hh-btn" onclick="navBack()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button></div>
+    <div class="hh-title">War Room</div>
+  </div>
+  <div class="opt-group" style="margin-top:8px">
+    <div class="guide-item">
+      <div class="guide-t">What it is</div>
+      <div class="guide-p">The War Room holds your most urgent tasks. It sits in red at the top of Overview: nothing else matters until it's clear.</div>
+    </div>
+    <div class="guide-item">
+      <div class="guide-t">Put a task in it</div>
+      <div class="guide-p">Open a task and set its priority to War Room. New tasks can get it right away in their window.</div>
+    </div>
+    <div class="guide-item">
+      <div class="guide-t">Where you see them</div>
+      <div class="guide-p">War Room tasks come before every other priority in Today and Tasks, and have a red tick box so they stand out.</div>
+    </div>
+    <div class="guide-item">
+      <div class="guide-t">Turn it off</div>
+      <div class="guide-p">Don't need it? Switch off Show War Room in Menu → Overview.</div>
+    </div>
   </div>
 </div>
 
@@ -1040,6 +1100,11 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
     <div class="opt-row btn-row" onclick="A.exportData()"><div class="opt-text"><div class="opt-title">Export</div></div></div>
     <div class="opt-row btn-row" onclick="A.importData()"><div class="opt-text"><div class="opt-title">Import</div></div></div>
   </div>
+  <div class="opt-group">
+    <div class="opt-row btn-row" onclick="IcsImport.pick()"><div class="opt-text"><div class="opt-title">Import calendar</div></div></div>
+  </div>
+  <div class="data-note">Upcoming events from Google Calendar, Apple Calendar or Outlook become Calendar tasks. Export your calendar as a file first: Google Calendar on a computer, Settings → Import &amp; export → Export; Apple Calendar on a Mac, File → Export; Outlook, Save calendar.</div>
+  <input type="file" id="ics-file" accept=".ics,.zip,text/calendar,application/zip" style="display:none" onchange="IcsImport.read(this)">
 </div>
 
 <div class="page sp" id="p-settoday">
@@ -1249,6 +1314,14 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
   </div>
 </div>
 
+<div class="wel" id="welcome">
+  <div class="wel-body" id="wel-body"></div>
+  <div class="wel-foot">
+    <div class="wel-dots" id="wel-dots"></div>
+    <button class="wel-btn" id="wel-next" onclick="Welcome.next()">Continue</button>
+  </div>
+</div>
+
 <div class="update-overlay" id="update-overlay">
   <div class="update-slot">
     <div class="update-bar-track" id="update-bar-track"><div class="update-bar-fill" id="update-bar-fill"></div></div>
@@ -1271,6 +1344,15 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
     <div class="exp-note" id="export-len"></div>
     <div class="sheet-btns"><button class="sheet-save native-tap" id="export-copy" onclick="ExportSheet.copy()">Copy</button></div>
     <div class="sheet-btns" id="export-share-row" style="margin-top:8px"><button class="sheet-save native-tap" onclick="ExportSheet.share()">Share</button></div>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="ics-sheet-overlay" onclick="if(event.target===this)IcsImport.close()">
+  <div class="sheet">
+    <div class="sheet-title">Import calendar</div>
+    <div class="exp-note" id="ics-note"></div>
+    <div class="ics-card" id="ics-list"></div>
+    <div class="sheet-btns"><button class="sheet-save" id="ics-go" onclick="IcsImport.save()">Import</button></div>
   </div>
 </div>
 
@@ -1458,7 +1540,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.15';
+var APP_VERSION='Beta 4.16';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2561,6 +2643,13 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.15',notes:[
     "Hold to complete is now off by default: a tap ticks things off. Only new installs and Reset settings get the new default; if you had it on, it stays on. Importing an export made before this version keeps it on too"
+  ]},
+  {v:'Beta 4.16',notes:[
+    "Menu > Data > Import calendar: pick a calendar file (.ics from Google Calendar, Apple Calendar or Outlook, or Google Calendar's .zip export). Its upcoming events are listed with a tick each and become Calendar tasks (Today and Tasks > Calendar). Past events, repeating events and ones already in your calendar are left out, and the window says how many",
+    "Overview with no project yet shows a + card the size of a project: it opens New project",
+    "A new install starts in German when the phone is set to German (also after Reset settings); a language picked in Menu stays",
+    "Welcome screens on a new install's first open (only once): in a browser first how to add the app to the Home Screen, then what each tab is for, that your data stays on the phone (back it up in Menu > Data) and where the Guide is, then how to start (Start empty; a template and AI setup are coming soon). Menu > Guide > Welcome tour shows them again",
+    "Menu > Guide has a War Room page: what it is, how a task gets in, where you see it and how to turn it off"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2650,7 +2739,8 @@ var USER_LOG={
   'Beta 4.12':'design',
   'Beta 4.13':'both',
   'Beta 4.14':["Projects don't need a category anymore"],
-  'Beta 4.15':'design'
+  'Beta 4.15':'design',
+  'Beta 4.16':["Import events from your calendar","Welcome tour for new users","German phones start in German"]
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -2712,6 +2802,12 @@ var COLOR_NAMES={
 // ── DB ────────────────────────────────────────────────────
 // Settings a fresh install starts with, and what "Reset settings" restores
 // (lastSeenVersion is bookkeeping and is never reset).
+// The app's language for a phone set to German, else English (first launch
+// and Reset settings only; a language picked in Menu stays).
+function phoneLang(){
+  var l=((navigator.languages&&navigator.languages[0])||navigator.language||'').toLowerCase();
+  return l.indexOf('de')===0?'de':'en';
+}
 var DEFAULT_SETTINGS={
   startTab:'today',hiddenTabs:['blocker'],holdToComplete:false,autoUpdate:true,language:'en',theme:'system',
   dayStartHour:3,todayHabitsDisappear:true,skipHabits:false,
@@ -2752,7 +2848,7 @@ var DB={
       categories:{}, // {id:{name,icon}}
       categoryOrder:[],      // [catId,...]
       projectOrder:{},       // {catId:[projId,...]}
-      settings:Object.assign({lastSeenVersion:APP_VERSION,blockerSeeded:true},JSON.parse(JSON.stringify(DEFAULT_SETTINGS)))};
+      settings:Object.assign({lastSeenVersion:APP_VERSION,blockerSeeded:true},JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),{language:phoneLang(),onboard:true})};
   },
   // If the saved data exists but can't be read (the phone's storage refused,
   // or it isn't valid data), the app runs with an empty set in memory and
@@ -3175,6 +3271,11 @@ var DB={
     this.save();
   },
   isDailyChecked:function(itemId,ds){return !!(this.data.dailyChecks[ds]&&this.data.dailyChecks[ds][itemId]);},
+  addOnceMany:function(list){
+    var d=this.data;
+    list.forEach(function(o,i){d.dailyOnce.push({id:'once'+Date.now()+i+Math.random().toString(36).slice(2),text:o.text,date:o.date});});
+    this.save();
+  },
   addOnce:function(text,date){
     var id='once'+Date.now()+Math.random().toString(36).slice(2);
     this.data.dailyOnce.push({id:id,text:text,date:date});
@@ -3205,6 +3306,49 @@ var I18N=(function(){
     // tab bar + page titles
     'Today':'Heute','Overview':'Übersicht','Tasks':'Aufgaben','Stats':'Statistik','Settings':'Einstellungen','Statistics':'Statistik',
     'Daily':'Täglich','Habits':'Gewohnheiten','Trash':'Papierkorb','Edit layout':'Layout bearbeiten','Reorder or remove':'Neu ordnen oder entfernen','Reorder the Statistics widgets':'Statistik-Widgets neu ordnen','Reorder the sections in Today':'Abschnitte in Heute neu ordnen','No category':'Keine Kategorie',
+    "Continue":"Weiter",
+    "Welcome tour":"Willkommens-Tour",
+    "Add Today to your Home Screen":"Füge Today zu deinem Home-Bildschirm hinzu",
+    "It works best as an app on your Home Screen: full screen and offline.":"Am besten funktioniert es als App auf deinem Home-Bildschirm: im Vollbild und offline.",
+    "Tap the Share button":"Tippe auf Teilen",
+    "At the bottom or top of Safari":"Unten oder oben in Safari",
+    "Choose Add to Home Screen":"Wähle Zum Home-Bildschirm",
+    "Tap the menu ⋮":"Tippe auf das Menü ⋮",
+    "Top right in Chrome":"Oben rechts in Chrome",
+    "Choose Add to Home screen":"Wähle Zum Startbildschirm hinzufügen",
+    "Or Install app":"Oder App installieren",
+    "Open Today from your Home Screen":"Öffne Today von deinem Home-Bildschirm",
+    "What you add here in the browser stays here — the Home Screen app starts fresh.":"Was du hier im Browser anlegst, bleibt hier — die App auf dem Home-Bildschirm startet neu.",
+    "Welcome to Today":"Willkommen bei Today",
+    "Your day in one place: tasks, habits and projects.":"Dein Tag an einem Ort: Aufgaben, Gewohnheiten und Projekte.",
+    "What's on today: tasks, calendar and habits":"Was heute ansteht: Aufgaben, Kalender und Gewohnheiten",
+    "Your projects, grouped the way you like":"Deine Projekte, gruppiert wie du willst",
+    "Every task by priority, or as a calendar":"Alle Aufgaben nach Priorität oder als Kalender",
+    "How consistent you are with your habits":"Wie beständig du deine Gewohnheiten pflegst",
+    "Settings, the Guide and your data":"Einstellungen, Anleitung und deine Daten",
+    "Good to know":"Gut zu wissen","Two things before you start.":"Zwei Dinge vorab.",
+    "Your data stays on this phone":"Deine Daten bleiben auf diesem Handy",
+    "No account and no cloud. Make a backup now and then: Menu → Data → Export.":"Kein Konto und keine Cloud. Mach ab und zu ein Backup: Menü → Daten → Exportieren.",
+    "The Guide":"Die Anleitung",
+    "Menu → Guide explains hidden features, like holding to move things and swiping to skip.":"Menü → Anleitung erklärt versteckte Funktionen, zum Beispiel Halten zum Verschieben und Wischen zum Überspringen.",
+    "How do you want to start?":"Wie möchtest du starten?",
+    "You can change everything later.":"Du kannst später alles ändern.",
+    "Start empty":"Leer starten",
+    "Add your own projects and habits":"Eigene Projekte und Gewohnheiten anlegen",
+    "Use a template":"Vorlage verwenden",
+    "Set up with AI":"Mit KI einrichten",
+    "What it is":"Was es ist",
+    "The War Room holds your most urgent tasks. It sits in red at the top of Overview: nothing else matters until it's clear.":"Im War Room liegen deine dringendsten Aufgaben. Er steht rot ganz oben in der Übersicht: Nichts anderes zählt, bis er leer ist.",
+    "Put a task in it":"Eine Aufgabe hineinlegen",
+    "Open a task and set its priority to War Room. New tasks can get it right away in their window.":"Öffne eine Aufgabe und setze ihre Priorität auf War Room. Neue Aufgaben können sie gleich in ihrem Fenster bekommen.",
+    "Where you see them":"Wo du sie siehst",
+    "War Room tasks come before every other priority in Today and Tasks, and have a red tick box so they stand out.":"War-Room-Aufgaben stehen in Heute und Aufgaben vor allen anderen Prioritäten und haben ein rotes Kästchen, damit sie auffallen.",
+    "Turn it off":"Ausschalten",
+    "Don't need it? Switch off Show War Room in Menu → Overview.":"Brauchst du ihn nicht? Schalte War Room anzeigen in Menü → Übersicht aus.",'Import calendar':'Kalender importieren','Untitled':'Ohne Titel','Left out:':'Nicht übernommen:',
+    'Upcoming events from Google Calendar, Apple Calendar or Outlook become Calendar tasks. Export your calendar as a file first: Google Calendar on a computer, Settings → Import & export → Export; Apple Calendar on a Mac, File → Export; Outlook, Save calendar.':'Kommende Termine aus Google Kalender, Apple Kalender oder Outlook werden zu Kalender-Aufgaben. Exportiere deinen Kalender zuerst als Datei: Google Kalender am Computer, Einstellungen → Importieren & exportieren → Exportieren; Apple Kalender am Mac, Ablage → Exportieren; Outlook, Kalender speichern.',
+    '1 event added to your calendar.':'1 Termin zu deinem Kalender hinzugefügt.',
+    "This file couldn't be read — pick a calendar file (.ics) or Google Calendar's export (.zip).":"Diese Datei konnte nicht gelesen werden — wähle eine Kalenderdatei (.ics) oder den Export von Google Kalender (.zip).",
+    "No upcoming events in this file — past and repeating events aren't imported.":"Keine kommenden Termine in dieser Datei — vergangene und wiederkehrende Termine werden nicht übernommen.",
     'Version history':'Versionsverlauf','Advanced update info':'Erweiterte Update-Infos','Bug fixes':'Fehlerbehebungen','Design fixes':'Design-Korrekturen','Design and bug fixes':'Design-Korrekturen und Fehlerbehebungen',"What's new":'Neuigkeiten','Got it':'Verstanden','General':'Allgemein','Data':'Daten',
     // headers
     '📆 Daily':'📆 Täglich','📅 One-time':'📅 Einmalig','One-time tasks':'Einmalige Aufgaben','One-time':'Einmalig',
@@ -3272,6 +3416,9 @@ var I18N=(function(){
     'Blue':'Blau','Indigo':'Indigo','Violet':'Violett','Purple':'Lila','Fuchsia':'Fuchsia','Pink':'Pink','Slate':'Schiefer','Black':'Schwarz'
   };
   var RULES=[
+    [/^Upcoming events: (\d+)$/,'Kommende Termine: $1'],[/^(\d+) past$/,'$1 vergangen'],[/^(\d+) repeating$/,'$1 wiederkehrend'],
+    [/^(\d+) already added$/,'$1 schon vorhanden'],[/^Import (\d+)$/,'$1 importieren'],
+    [/^(\d+) events added to your calendar\.$/,'$1 Termine zu deinem Kalender hinzugefügt.'],
     [/^1 tasks?$/,'1 Aufgabe'],[/^(\d+) tasks$/,'$1 Aufgaben'],
     [/^(Skipped|Done|Not done) — (.*)$/,function(m,a,b){return DE[a]+' — '+b;}],
     [/^habits · (\d+) skipped$/,'Gewohnheiten · $1 übersprungen'],
@@ -3404,6 +3551,10 @@ function renderGrids(){
   // (.nocat-block, not a .cat-block: categories can't be dragged above it)
   var loose=d.projectOrder[NO_CAT]||[];
   if(loose.some(function(pid){return d.projects[pid];}))h+='<div class="nocat-block" data-cat="'+NO_CAT+'"><div class="agrid">'+loose.map(projCard).join('')+'</div></div>';
+  // no project at all yet: one card shaped like a project that opens New project
+  if(!Object.keys(d.projects).length)h+='<div class="add-block"><div class="agrid add-grid"><div class="acard add-card" onclick="A.newProject()">'
+    +'<div class="aico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>'
+    +'<div class="albl">New project</div><div class="acnt">&nbsp;</div></div></div></div>';
   d.categoryOrder.forEach(function(catId){
     var cat=d.categories[catId];if(!cat)return;
     h+='<div class="cat-block" data-cat="'+catId+'"><div class="shdr">'+cat.name+'</div>';
@@ -3488,7 +3639,7 @@ function wireOverviewDrag(){
       DB.reorderCategories(ids);
     });
   }
-  grid.querySelectorAll('.agrid').forEach(function(agrid){
+  grid.querySelectorAll('.agrid:not(.add-grid)').forEach(function(agrid){
     var catId=agrid.closest('[data-cat]').getAttribute('data-cat');
     DragReorder.init(agrid,'.acard','.acard','grid',function(container){
       var ids=[].slice.call(container.querySelectorAll('.acard')).map(function(el){return el.getAttribute('data-pid');});
@@ -4607,7 +4758,7 @@ var A={
   resetSettings:function(){
     Alert.confirm('Reset all settings to the defaults? Your data stays.',function(){
       var keep=DB.data.settings.lastSeenVersion;
-      DB.data.settings=Object.assign({},JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),{lastSeenVersion:keep,blockerSeeded:true});
+      DB.data.settings=Object.assign({},JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),{lastSeenVersion:keep,blockerSeeded:true,language:phoneLang()});
       DB.data.todaySet=null;DB.save();
       recomputeT();Nav.sd=0;LockedIn.view=LockedIn.startView();
       applyHoldMode();applyTheme();I18N.set(DB.data.settings.language);TabBar.applyTabs();
@@ -4845,7 +4996,7 @@ function navSwitch(id){
 // back button (navBack with no arg) and the swipe-back gesture get the
 // right target without each call site needing to know about it.
 // Pages opened from the Settings list (back returns there; the Settings tab stays lit)
-var SETTINGS_SUBPAGES=['guide','guide-hidden','editlayout','statslayout','todaylayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats','setblocker'];
+var SETTINGS_SUBPAGES=['guide','guide-hidden','guide-war','editlayout','statslayout','todaylayout','archive','app','general','appearance','data','settoday','setoverview','settasks','setstats','setblocker'];
 // Where back goes: the page this one was opened from (Nav.stack), skipping
 // any that no longer exist (e.g. a deleted project). The fixed rules below
 // only apply when there's no history (e.g. right after the app reopened).
@@ -4856,7 +5007,7 @@ function _backTarget(){
   // Edit layout and Completed Tasks are only ever opened from Settings
   // (their opt-rows there), never from Overview — back should return
   // where they were actually opened from.
-  if(cur&&cur.id==='p-guide-hidden')return 'guide'; // a Guide page, opened from the Guide list
+  if(cur&&(cur.id==='p-guide-hidden'||cur.id==='p-guide-war'))return 'guide'; // a Guide page, opened from the Guide list
   if(cur&&cur.id==='p-statslayout')return 'setstats';
   if(cur&&cur.id==='p-todaylayout')return 'settoday';
   if(cur&&SETTINGS_SUBPAGES.indexOf(cur.id.slice(2))!==-1)return 'settings';
@@ -6232,6 +6383,117 @@ document.addEventListener('change',function(e){
 // clipboard empty on the iPhone ("paste into Telegram, nothing happens").
 // Here the text is ready before Copy is tapped; Share opens the phone's own
 // share sheet (Telegram, Notes…); and the text itself can be selected.
+// Menu > Data > Import calendar: a calendar file (.ics — Google, Apple,
+// Outlook) or Google Calendar's export (.zip of .ics files). Each upcoming
+// one-off event becomes a Calendar task (dailyOnce: title + date). Past
+// events, repeating events (and their changed single dates), cancelled ones
+// and ones already in the calendar are left out and counted. A list with a
+// tick per event comes first; nothing is saved before Import.
+var IcsImport={
+  items:[],
+  pick:function(){var f=document.getElementById('ics-file');f.value='';f.click();},
+  read:function(inp){
+    var file=inp.files&&inp.files[0],self=this;if(!file)return;
+    file.arrayBuffer().then(function(buf){
+      var b=new Uint8Array(buf);
+      return (b[0]===0x50&&b[1]===0x4b)?self._unzip(b):[new TextDecoder().decode(b)];
+    }).then(function(texts){
+      if(!texts.some(function(t){return t.indexOf('BEGIN:VCALENDAR')!==-1;}))throw new Error('no calendar');
+      self._show(texts);
+    }).catch(function(){Alert.info("This file couldn't be read — pick a calendar file (.ics) or Google Calendar's export (.zip).");});
+  },
+  // the .ics files inside a zip (stored or deflated), via its central directory
+  _unzip:function(b){
+    var v=new DataView(b.buffer,b.byteOffset,b.byteLength),e=-1;
+    for(var i=b.length-22;i>=Math.max(0,b.length-65557);i--){if(v.getUint32(i,true)===0x06054b50){e=i;break;}}
+    if(e<0)return Promise.reject(new Error('zip'));
+    var n=v.getUint16(e+10,true),p=v.getUint32(e+16,true),jobs=[];
+    for(var k=0;k<n&&v.getUint32(p,true)===0x02014b50;k++){
+      var method=v.getUint16(p+10,true),size=v.getUint32(p+20,true),nl=v.getUint16(p+28,true),xl=v.getUint16(p+30,true),cl=v.getUint16(p+32,true),off=v.getUint32(p+42,true);
+      var name=new TextDecoder().decode(b.subarray(p+46,p+46+nl));
+      p+=46+nl+xl+cl;
+      if(!/\.ics$/i.test(name))continue;
+      var start=off+30+v.getUint16(off+26,true)+v.getUint16(off+28,true),data=b.subarray(start,start+size);
+      jobs.push(method===0?Promise.resolve(new TextDecoder().decode(data))
+        :new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text());
+    }
+    return Promise.all(jobs);
+  },
+  _date:function(v){ // 'YYYYMMDD' / 'YYYYMMDDTHHMMSS(Z)' -> the local day 'YYYY-MM-DD'
+    var m=/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?(Z)?)?/.exec(v||'');if(!m)return null;
+    if(m[7])return dStr(new Date(Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0))));
+    return m[1]+'-'+m[2]+'-'+m[3];
+  },
+  _text:function(v){return v.replace(/\\n/gi,' ').replace(/\\([,;\\])/g,'$1').trim();},
+  _parse:function(text){
+    var out=[],ev=null,sub=0,self=this;
+    text.replace(/\r\n?/g,'\n').replace(/\n[ \t]/g,'').split('\n').forEach(function(l){
+      l=l.trim();if(!l)return;
+      if(/^BEGIN:VEVENT$/i.test(l)){ev={};sub=0;return;}
+      if(!ev)return;
+      if(/^END:VEVENT$/i.test(l)){out.push(ev);ev=null;return;}
+      if(/^BEGIN:/i.test(l)){sub++;return;} // an alarm inside the event
+      if(/^END:/i.test(l)){sub--;return;}
+      if(sub>0)return;
+      var i=l.indexOf(':');if(i<0)return;
+      var name=l.slice(0,i).split(';')[0].toUpperCase(),val=l.slice(i+1);
+      if(name==='SUMMARY')ev.text=self._text(val);
+      else if(name==='DTSTART')ev.date=self._date(val.trim());
+      else if(name==='RRULE'||name==='RECURRENCE-ID')ev.repeat=true;
+      else if(name==='STATUS')ev.cancelled=/CANCELLED/i.test(val);
+    });
+    return out;
+  },
+  _show:function(texts){
+    var self=this,today=pDate(0),seen={},past=0,rep=0,dup=0;
+    DB.data.dailyOnce.forEach(function(o){seen[o.text+'|'+o.date]=1;});
+    var list=[];
+    texts.forEach(function(tx){self._parse(tx).forEach(function(ev){
+      if(ev.cancelled||!ev.date)return;
+      if(ev.repeat){rep++;return;}
+      if(ev.date<today){past++;return;}
+      var text=ev.text||t('Untitled'),k=text+'|'+ev.date;
+      if(seen[k]){dup++;return;}
+      seen[k]=1;list.push({text:text,date:ev.date});
+    });});
+    list.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
+    this.items=list;
+    if(!list.length){Alert.info('No upcoming events in this file — past and repeating events aren\'t imported.');return;}
+    var left=[];
+    if(past)left.push('<span>'+past+' past</span>');
+    if(rep)left.push('<span>'+rep+' repeating</span>');
+    if(dup)left.push('<span>'+dup+' already added</span>');
+    document.getElementById('ics-note').innerHTML='<span>Upcoming events: '+list.length+'</span>'
+      +(left.length?'<br><span>Left out:</span> '+left.join(' · '):'');
+    var yr=new Date().getFullYear();
+    document.getElementById('ics-list').innerHTML=list.map(function(o,i){
+      var d=new Date(o.date+'T12:00:00');
+      var opts={weekday:'short',day:'numeric',month:'short'};if(d.getFullYear()!==yr)opts.year='numeric';
+      return '<label class="ics-row"><input type="checkbox" checked data-i="'+i+'" onchange="IcsImport.count()"><span class="ics-t">'+esc(o.text)+'</span><span class="ics-d">'+d.toLocaleDateString('de-CH',opts)+'</span></label>';
+    }).join('');
+    this.count();
+    _overlayOpen('ics-sheet-overlay');
+  },
+  _picked:function(){
+    var self=this;
+    return [].filter.call(document.querySelectorAll('#ics-list input'),function(c){return c.checked;}).map(function(c){return self.items[+c.getAttribute('data-i')];});
+  },
+  count:function(){
+    var n=this._picked().length,b=document.getElementById('ics-go');
+    b.textContent='Import '+n;b.disabled=!n;b.style.opacity=n?'':'.4';
+  },
+  save:function(){
+    if(!_sheetLive('ics-sheet-overlay'))return; // already saved, window closing
+    var sel=this._picked();if(!sel.length)return;
+    DB.addOnceMany(sel);
+    _overlayClose('ics-sheet-overlay');
+    if(Nav.cur==='today')renderToday();
+    if(Nav.cur==='lockedin')renderLockedIn();
+    setTimeout(function(){Alert.info(sel.length===1?'1 event added to your calendar.':sel.length+' events added to your calendar.');},SHEET_ANIM_MS+30);
+  },
+  close:function(){_overlayClose('ics-sheet-overlay');}
+};
+
 var ExportSheet={
   text:'',
   open:function(){
@@ -6828,7 +7090,7 @@ var _instantClose=false; // set by the swipe-down dismiss: its own slide already
     // doesn't work, I can't scroll" once Priority/Project became dropdowns
     // living inside the Task sheet — DSel dropdowns opened from Settings
     // pages never hit this because _overlayCount is 0 there (no sheet open).
-    var sheet=e.target.closest&&e.target.closest('.sheet,.dsel-menu');
+    var sheet=e.target.closest&&e.target.closest('.sheet,.dsel-menu,.wel-body');
     if(!sheet){e.preventDefault();return;}
     var sc=scroller(e.target,sheet);
     if(!sc){e.preventDefault();return;}
@@ -6990,6 +7252,90 @@ var UpdateOverlay={
   hide:function(){
     document.getElementById('update-overlay').classList.remove('on');
     if(this._on){this._on=false;_overlayCount=Math.max(0,_overlayCount-1);if(_overlayCount===0)_unlockBodyScroll();}
+  }
+};
+// The welcome screens: on a new install's first open (settings.onboard,
+// set only by DB._blank — existing data never has it), and again from
+// Menu → Guide → Welcome tour. In a browser (not opened from the Home
+// Screen) an "Add to Home Screen" page comes first. Full screen, above
+// everything; counts as an open overlay (scroll lock, no swipe-back).
+var Welcome={
+  page:0,pages:[],_on:false,
+  _svg:function(inner){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+inner+'</svg>';},
+  _tab:function(tab){var e=document.querySelector('.tab-item[data-tab="'+tab+'"] svg');return e?e.outerHTML:'';},
+  _row:function(ico,bg,title,sub,extra,cls,click){
+    return '<div class="wel-row'+(cls?' '+cls:'')+'"'+(click?' onclick="'+click+'"':'')+'><div class="opt-ico" style="background:'+bg+'">'+ico+'</div>'
+      +'<div style="flex:1;min-width:0"><div class="wel-rt">'+title+'</div>'+(sub?'<div class="wel-rs">'+sub+'</div>':'')+'</div>'+(extra||'')+'</div>';
+  },
+  open:function(){
+    var standalone=navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+    this.pages=(standalone?[]:['install']).concat(['hello','know','start']);
+    this.page=0;this.render();
+    var el=document.getElementById('welcome');
+    el.classList.add('on');
+    if(!this._on){this._on=true;_overlayCount++;if(_overlayCount===1)_lockBodyScroll();}
+    requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('show');});});
+  },
+  next:function(){if(this.page<this.pages.length-1){this.page++;this.render();}},
+  render:function(){
+    var k=this.pages[this.page],S=this._svg,R=this._row.bind(this),h='';
+    var hero=function(bg,ico){return '<div class="wel-hero" style="background:'+bg+'">'+ico+'</div>';};
+    if(k==='install'){
+      var share=S('<path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/>');
+      var plus=S('<rect x="4" y="4" width="16" height="16" rx="4"/><line x1="12" y1="8.5" x2="12" y2="15.5"/><line x1="8.5" y1="12" x2="15.5" y2="12"/>');
+      var dots=S('<circle cx="12" cy="5.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="18.5" r="1.3" fill="currentColor" stroke="none"/>');
+      var home=S('<path d="M4 11.5l8-7 8 7"/><path d="M6.5 10v9.5h11V10"/>');
+      h=hero('#3b82f6',plus)+'<div class="wel-title">Add Today to your Home Screen</div>'
+        +'<div class="wel-text">It works best as an app on your Home Screen: full screen and offline.</div>'
+        +'<div class="wel-card">'+(IS_IOS?R(share,'#3b82f6','Tap the Share button','At the bottom or top of Safari')+R(plus,'#3b82f6','Choose Add to Home Screen',''):R(dots,'#3b82f6','Tap the menu ⋮','Top right in Chrome')+R(plus,'#3b82f6','Choose Add to Home screen','Or Install app'))
+        +R(home,'#3b82f6','Open Today from your Home Screen','')+'</div>'
+        +'<div class="wel-text">What you add here in the browser stays here — the Home Screen app starts fresh.</div>';
+    } else if(k==='hello'){
+      h=hero('#38bdf8',this._tab('today'))+'<div class="wel-title">Welcome to Today</div>'
+        +'<div class="wel-text">Your day in one place: tasks, habits and projects.</div>'
+        +'<div class="wel-card">'
+        +R(this._tab('today'),'#38bdf8','Today',"What's on today: tasks, calendar and habits")
+        +R(this._tab('overview'),'#3b82f6','Overview','Your projects, grouped the way you like')
+        +R(this._tab('lockedin'),'#6b7280','Tasks','Every task by priority, or as a calendar')
+        +R(this._tab('stats'),'#22c55e','Stats','How consistent you are with your habits')
+        +R(this._tab('settings'),'#6b7280','Menu','Settings, the Guide and your data')
+        +'</div>';
+    } else if(k==='know'){
+      var db=S('<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>');
+      var book=S('<path d="M2 5.5A1.5 1.5 0 0 1 3.5 4H9a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5h-6A1.5 1.5 0 0 1 2 16z"/><path d="M22 5.5A1.5 1.5 0 0 0 20.5 4H15a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5h6a1.5 1.5 0 0 0 1.5-1.5z"/>');
+      h=hero('#22c55e',S('<path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/>'))+'<div class="wel-title">Good to know</div>'
+        +'<div class="wel-text">Two things before you start.</div>'
+        +'<div class="wel-card">'
+        +R(db,'#6b7280','Your data stays on this phone','No account and no cloud. Make a backup now and then: Menu → Data → Export.')
+        +R(book,'#f97316','The Guide','Menu → Guide explains hidden features, like holding to move things and swiping to skip.')
+        +'</div>';
+    } else {
+      var spark=S('<path d="M12 3.5l1.9 5 5 1.9-5 1.9-1.9 5-1.9-5-5-1.9 5-1.9z"/>');
+      var grid=S('<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>');
+      var chev='<span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto;color:#999">'+ICON_CHEVRON+'</span>';
+      var soon='<span class="wel-soon">Coming soon</span>';
+      h=hero('#6366f1',spark)+'<div class="wel-title">How do you want to start?</div>'
+        +'<div class="wel-text">You can change everything later.</div>'
+        +'<div class="wel-card">'
+        +R(S('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'),'#3b82f6','Start empty','Add your own projects and habits',chev,'wel-opt','Welcome.finish()')
+        +R(grid,'#f59e0b','Use a template','',soon,'wel-opt off')
+        +R(spark,'#6366f1','Set up with AI','',soon,'wel-opt off')
+        +'</div>';
+    }
+    var body=document.getElementById('wel-body');body.innerHTML=h;body.scrollTop=0;
+    document.getElementById('wel-dots').innerHTML=this.pages.map(function(_,i){return '<i'+(i===this.page?' class="on"':'')+'></i>';},this).join('');
+    var btn=document.getElementById('wel-next');
+    btn.style.visibility=k==='start'?'hidden':'';
+    btn.textContent=k==='install'?'Continue in the browser':'Continue';
+  },
+  finish:function(){
+    if(DB.data.settings.onboard){delete DB.data.settings.onboard;DB.save();}
+    var el=document.getElementById('welcome'),self=this;
+    el.classList.remove('show');
+    setTimeout(function(){
+      el.classList.remove('on');
+      if(self._on){self._on=false;_overlayCount=Math.max(0,_overlayCount-1);if(_overlayCount===0)_unlockBodyScroll();}
+    },260);
   }
 };
 var WhatsNew={
@@ -8149,6 +8495,7 @@ LockedIn.view=LockedIn.startView();
 // open on the tab chosen in Settings > Open app on
 TabBar.applyTabs();
 (function(){var st=TabBar.startTab();if(st&&st!=='today'&&document.getElementById('p-'+st))TabBar.go(st);})();
+if(DB.data.settings.onboard&&!DB.readOnly)Welcome.open(); // a new install's first open
 setTimeout(function(){WhatsNew.checkAndShow();},400);
 // automatic updates: check shortly after launch, and again when the app is reopened after a while
 var _lastAutoCheck=Date.now();

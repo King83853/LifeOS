@@ -1878,6 +1878,41 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   `instant` too, for the same reason — the generic close always assumes
   it's starting the slide from scratch unless told otherwise.
 
+- First-time users (4.16): (1) `Welcome` — full-screen `#welcome`
+  (z-index 650, counts in _overlayCount like UpdateOverlay, scroll
+  carve-out `.wel-body` in the sheet touchmove blocker) shown once on a
+  NEW install: `DB._blank()` sets `settings.onboard:true` (existing data
+  never has it; not in DEFAULT_SETTINGS, so Reset settings doesn't bring
+  it back); startup opens it when set and not readOnly; "Start empty"
+  (Welcome.finish) deletes it. Pages: 'install' only outside standalone
+  (iOS steps if IS_IOS, else Android) → 'hello' (tabs, icons copied from
+  the tab bar) → 'know' (data stays on the phone / backup; the Guide) →
+  'start' (Start empty; template and AI "Coming soon", dimmed). Menu >
+  Guide > Welcome tour replays it. (2) `phoneLang()`: a new install (and
+  Reset settings) starts in German when navigator.languages[0] starts with
+  'de'; DEFAULT_SETTINGS.language stays 'en' (exports strip defaults —
+  a device-dependent default would make that ambiguous). (3) Overview with
+  NO project at all shows `.add-card` in `.add-block>.agrid.add-grid` (a
+  project card's size, 104x117 measured) → A.newProject; the add grid is
+  skipped by wireOverviewDrag (no data-cat, no pid — reordering it would
+  write [null] into projectOrder). (4) Menu > Guide > War Room
+  (`#p-guide-war`, in SETTINGS_SUBPAGES, back → guide).
+- Calendar import (4.16, Menu > Data > Import calendar, `IcsImport`):
+  file input `#ics-file` (.ics, or Google's .zip — `_unzip` reads the
+  zip's central directory, stored or deflate-raw via DecompressionStream).
+  `_parse` unfolds lines, skips nested blocks (VALARM), reads SUMMARY,
+  DTSTART (UTC 'Z' → local day via dStr, otherwise the date as written),
+  RRULE/RECURRENCE-ID (= repeating, LEFT OUT: one-time Calendar tasks
+  can't represent them, and a wrong next date is worse than none), STATUS
+  CANCELLED (left out). Past and already-present (text+date) events are
+  left out too; the window lists the rest with a tick each (`.ics-row`
+  labels — NOT .opt-row, so TAPPABLE/press-grey/hold handlers leave them
+  alone) and counts what was left out; Import N → `DB.addOnceMany` (one
+  save). Tested with a real Python-built Google-style zip (2 .ics + a
+  txt), escapes, folding, alarms, Z times. Loop variables must not be
+  called `t` — it hides the global translate t() (caught in review).
+  URL / account sync (Google OAuth, iCloud) is NOT built: a static site
+  can't fetch calendar URLs (CORS) without a proxy.
 - Hold to complete is OFF by default since 4.15 (`DEFAULT_SETTINGS.
   holdToComplete:false`; asked for after I flagged it as the worst
   first-day trap: a new user's tap on a tick box did nothing). Existing

@@ -1023,7 +1023,7 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
   </div>
   <div class="opt-group" style="margin-top:8px">
     <div class="opt-row" onclick="Nav.go('guide-hidden')"><div class="opt-ico" style="background:#6366f1"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.25c2.5 2 6.5 2 10 3.5 3.5-1.5 7.5-1.5 10-3.5.5 6.5-1.5 11.5-5.2 11.5-2.2 0-3.5-1.5-4.8-3-1.3 1.5-2.6 3-4.8 3C3.5 17.75 1.5 12.75 2 6.25z"/><path d="M2 6.25c2.5 2 6.5 2 10 3.5 3.5-1.5 7.5-1.5 10-3.5.5 6.5-1.5 11.5-5.2 11.5-2.2 0-3.5-1.5-4.8-3-1.3 1.5-2.6 3-4.8 3C3.5 17.75 1.5 12.75 2 6.25zM4.2 12.15c1.6-1.8 4.6-1.8 6.2.6-1.7 1.9-4.5 1.8-6.2-.6zM19.8 12.15c-1.6-1.8-4.6-1.8-6.2.6 1.7 1.9 4.5 1.8 6.2-.6z" fill="currentColor" stroke="none" fill-rule="evenodd"/></svg></div><div class="opt-text"><div class="opt-title">Hidden features</div></div><span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg></span></div>
-    <div class="opt-row" onclick="Nav.go('guide-war')"><div class="opt-ico" style="background:#ef4444"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><g transform="translate(-.15 -.1)"><path fill-rule="evenodd" d="M7.6 16.8C7 13 7.9 9.5 10.3 6.6L12.2 4.5L13 2.7L14.3 4.4C16.4 5.6 18.1 7.6 19.2 10C19.6 10.8 19.3 11.7 18.5 12L17.1 12.5C16.3 12.8 15.4 12.5 14.8 11.9C14.4 13.3 15 15.1 16.3 16.8ZM13.1 7.9a.85.85 0 1 0 .01 0Z"/><rect x="6.6" y="17.5" width="10.4" height="1.5" rx=".6"/><rect x="5" y="19.6" width="14" height="1.9" rx=".9"/></g></svg></div><div class="opt-text"><div class="opt-title">War Room</div></div><span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+    <div class="opt-row" onclick="Nav.go('guide-war')"><div class="opt-ico" style="background:#ef4444"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path fill-rule="evenodd" transform="translate(12 12) scale(.88) translate(-12 -12)" d="M10.27 4.05a2 2 0 0 1 3.46 0L21.73 17.95A2 2 0 0 1 20 20.95H4A2 2 0 0 1 2.27 17.95ZM10.9 9.7a1.1 1.1 0 0 1 2.2 0v4.2a1.1 1.1 0 0 1-2.2 0ZM12 16.35a1.25 1.25 0 1 0 .001 0Z"/></svg></div><div class="opt-text"><div class="opt-title">War Room</div></div><span style="display:inline-flex;transform:rotate(-90deg);margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg></span></div>
   </div>
 </div>
 
@@ -1540,7 +1540,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.18';
+var APP_VERSION='Beta 4.19';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2656,6 +2656,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.18',notes:[
     "Menu > Guide > War Room: shorter, simpler text — what it is and how a task gets in, then three one-liners (red tick box, always first in Today and Tasks, its own card in Overview)"
+  ]},
+  {v:'Beta 4.19',notes:[
+    "Menu > Guide: the War Room row's icon is a warning triangle (white on red) instead of the chess knight"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2748,7 +2751,8 @@ var USER_LOG={
   'Beta 4.15':'design',
   'Beta 4.16':["Import events from your calendar","Welcome tour for new users","German phones start in German"],
   'Beta 4.17':'design',
-  'Beta 4.18':'design'
+  'Beta 4.18':'design',
+  'Beta 4.19':'design'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal

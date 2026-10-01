@@ -1898,12 +1898,11 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   project card's size, 104x117 measured) → A.newProject; the add grid is
   skipped by wireOverviewDrag (no data-cat, no pid — reordering it would
   write [null] into projectOrder). (4) Menu > Guide > War Room
-  (`#p-guide-war`, in SETTINGS_SUBPAGES, back → guide). Its row icon
-  (4.17, asked for with a chess-knight logo, "just a chess knight from the
-  side", flat white on the red #ef4444): a hand-drawn filled knight path +
-  two rounded rects (collar, base), nudged translate(-.15 -.1) so its box
-  centre lands on 12,12 (measured from a qlmanage render with PIL — the
-  browser tool was down).
+  (`#p-guide-war`, in SETTINGS_SUBPAGES, back → guide). Its row icon is a
+  warning triangle (4.19, option A of eight tappable samples): one white
+  path, rounded triangle scaled .88 around 12,12 with the exclamation cut
+  out (evenodd), so it works on any background. 4.17's hand-drawn chess
+  knight was called ugly — don't bring it back.
 - Calendar import (4.16, Menu > Data > Import calendar, `IcsImport`):
   file input `#ics-file` (.ics, or Google's .zip — `_unzip` reads the
   zip's central directory, stored or deflate-raw via DecompressionStream).

@@ -296,7 +296,7 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   pinch = zoom over a span of time `D` (calendar days); columns are days up
   to ZC_DAY_MAX (45) on screen, then weeks up to ZC_WEEK_MAX (26), then
   months (≤60); min 7 columns, default 14 days; zoom-out capped a little past
-  the data (always ≥ 12 weeks). Sideways drag = scroll back in time, with a
+  the data (always ≥ a year since 4.26). Sideways drag = scroll back in time, with a
   fling, settling on whole columns; clamped at today and the oldest data.
   The right edge stays put in time while zooming. A small grey label (Days/
   Weeks/Months) sits where the buttons were; a tap still shows the readout
@@ -311,6 +311,24 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   host isn't wired again on every visit (the Overview duplicate-listener
   lesson); every visit resets the view to the last 14 days. Hidden features
   has a tip for it.
+  4.26 ("pinching never changes the duration of one bar… taking way too
+  long, not smooth, can't get monthly bars"): (1) render() replaces the
+  whole svg every frame, and a touch keeps targeting the element it STARTED
+  on — on iOS, once that rect/svg is gone the rest of the gesture goes to
+  the removed node and never bubbles to the host's listeners (MDN: attach
+  listeners to the target, or keep it in the document). Each pinch zoomed
+  about one frame, then nothing; touchend never arrived either, so mode
+  stayed 3. Fix: `.zchart svg{pointer-events:none}` → the host is always
+  the target; a tap finds its bar by x (`_step`, `_padL`, offset) instead
+  of `rect[data-i]`. Synthetic events dispatched on the host (how 3.72 was
+  tested) can't show this — dispatch on `document.elementFromPoint(x,y)`
+  like a real finger. Anything that redraws its own content under a finger
+  needs the same. (2) Dmax was "a little past the data, at least 12 weeks":
+  with little history, months (D > 182) were unreachable; now at least
+  `ZC_OUT_MIN` 366 days (12 monthly bars, empty ones as stripes). (3) pinch
+  = span x (finger distance ratio)^`ZC_PINCH` 1.5 (was 1:1), so one pinch
+  goes days → weeks → months. Measured in the preview with finger-targeted
+  touches: one pinch 14d → 366d (Months), back in to 7d, drag + fling fine.
 
 - Swipe-right-to-skip on Today (`Skip`, `swipeWrap`; rows are wrapped in
   `.sw` with the amber action behind `.sw-row`). Two different data

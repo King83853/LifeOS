@@ -533,6 +533,8 @@ html[data-theme="light"] .seg-btn.active{background:#fff;color:#000;box-shadow:0
 .seg-btn:active{opacity:.7}
 .chart-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;min-height:24px}
 .zchart{touch-action:pan-y;-webkit-user-select:none;user-select:none}
+/* the chart redraws while a finger is on it: the drawing must never be the touch's target (see ZChart._wire) */
+.zchart svg{pointer-events:none}
 .chart-scale{flex:none;font-size:12px;font-weight:600;color:#999}
 .chart-hdr .chart-readout{font-size:12px;font-weight:700;color:#999;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(prefers-color-scheme:dark){.type-btn.active{border-color:#fff;color:#fff;background:#252320}}
@@ -1572,7 +1574,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.25';
+var APP_VERSION='Beta 4.26';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2709,6 +2711,10 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.25',notes:[
     "Starter templates: Basics, Student, Fitness, Work & focus and Routines. Tick one or more on the welcome screen (Use a template) or later from Overview's + > Template; each folds out its projects, habits and trackers with a tick each, so you can leave single ones out. It only adds — anything already there by name is left out. Two or more templates each get their own category"
+  ]},
+  {v:'Beta 4.26',notes:[
+    "Fixed: zooming the bar charts (Statistics and habit pages) by pinching. On the iPhone a pinch only zoomed for a moment and then stopped, because the chart redraws itself while you pinch and the phone lost track of your fingers. It now follows your fingers the whole way, zooms faster, and always zooms out far enough for monthly bars (up to a year, further when your data goes back further)",
+    "Templates: Fitness has a yellow square"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2808,7 +2814,8 @@ var USER_LOG={
   'Beta 4.22':["Drag projects into other categories"],
   'Beta 4.23':'design',
   'Beta 4.24':'design',
-  'Beta 4.25':["Starter templates"]
+  'Beta 4.25':["Starter templates"],
+  'Beta 4.26':'both'
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -5477,8 +5484,11 @@ function habitConsistency(item,withToday,span){
 // habit the day columns are its scheduled days only; for Statistics every
 // calendar day.
 // columns on screen: at least ZC_MIN; days up to ZC_DAY_MAX, then weeks up to
-// ZC_WEEK_MAX (half a year), then months up to ZC_MONTH_MAX (five years)
-var ZC_MIN=7,ZC_DAY_MAX=45,ZC_WEEK_MAX=26,ZC_MONTH_MAX=60,ZC_DEFAULT=14;
+// ZC_WEEK_MAX (half a year), then months up to ZC_MONTH_MAX (five years).
+// Zooming out always reaches ZC_OUT_MIN calendar days (a year: months), more
+// when the data goes further back. A pinch scales the time span by the
+// finger distance to the power ZC_PINCH (4x closer = 8x the span).
+var ZC_MIN=7,ZC_DAY_MAX=45,ZC_WEEK_MAX=26,ZC_MONTH_MAX=60,ZC_DEFAULT=14,ZC_OUT_MIN=366,ZC_PINCH=1.5;
 function _sumDays(items,start,end){ // completed/scheduled/skipped over start..end (never past today)
   var c=0,s=0,k=0,cur=new Date(start.getFullYear(),start.getMonth(),start.getDate()),todayS=dStr(T);
   while(cur<=end){
@@ -5554,8 +5564,8 @@ ZChart.prototype.reset=function(src,readout,scale){
   this.src=src;this.readout=readout;this.scale=scale;
   this.len={day:src.dayLen,week:7,month:30.44};
   this.Dmin=ZC_MIN*src.dayLen;
-  // zoom out as far as the data goes (a little past it), but always to 12 weeks
-  this.Dmax=Math.min(ZC_MONTH_MAX*30.44,Math.max(84,28*src.dayLen,src.spanDays*1.15+7));
+  // zoom out as far as the data goes (a little past it), but always to a year
+  this.Dmax=Math.min(ZC_MONTH_MAX*30.44,Math.max(ZC_OUT_MIN,src.spanDays*1.15+7));
   this.D=ZC_DEFAULT*src.dayLen; // calendar days in view
   this.offset=0; // columns back from now (0 = today at the right edge)
   this._stopAnim();this._apply();
@@ -5585,7 +5595,7 @@ ZChart.prototype.render=function(){
   var ps=[],maxVal=1,tallest=0;
   for(var i=i0;i<=i1;i++){var p=src.period(g,i);ps.push(p);maxVal=Math.max(maxVal,p.completed,p.scheduled);tallest=Math.max(tallest,p.completed,p.scheduled);}
   var padL=String(Math.max(1,tallest)).length*4.5+9;this._padL=padL;
-  var step=(w-padL)/n,gap=Math.min(6,step*0.3),bw=Math.max(1,step-gap);
+  var step=(w-padL)/n,gap=Math.min(6,step*0.3),bw=Math.max(1,step-gap);this._step=step;
   // Every column: a grey bar as tall as the habits it had (a low grey stripe
   // when it had none — before any habit existed, or nothing scheduled), and
   // the done part in green (skipped in light green) growing up inside it.
@@ -5665,7 +5675,7 @@ ZChart.prototype._wire=function(){
     else if(mode!==3&&mode!==4){mode=1;sx=e.touches[0].clientX;sy=e.touches[0].clientY;o0=self.offset;moves=[];}
   },{passive:true});
   h.addEventListener('touchmove',function(e){
-    if(mode===3){if(e.touches.length<2)return;e.preventDefault();self.zoomTo(D0*d0/dist(e.touches));draw();return;}
+    if(mode===3){if(e.touches.length<2)return;e.preventDefault();self.zoomTo(D0*Math.pow(d0/dist(e.touches),ZC_PINCH));draw();return;}
     if(mode===4){e.preventDefault();return;}
     if(mode===1){
       var dx=e.touches[0].clientX-sx,dy=e.touches[0].clientY-sy;
@@ -5693,9 +5703,18 @@ ZChart.prototype._wire=function(){
   h.addEventListener('touchend',end,{passive:true});
   h.addEventListener('touchcancel',end,{passive:true});
   h.addEventListener('gesturestart',function(e){e.preventDefault();}); // iOS: no page zoom
+  // The svg ignores touches (pointer-events:none): render() replaces it on
+  // every frame, and a touch keeps targeting the element it started on — once
+  // that's gone, iOS sends the rest of the gesture to the removed element and
+  // nothing reaches these listeners (each pinch zoomed one frame, then
+  // stopped). So the host is the target, and a tap finds its bar by position.
   h.addEventListener('click',function(e){
-    var r=e.target.closest&&e.target.closest('rect[data-i]');if(!r||!self.readout)return;
-    self.readout.textContent=barReadout(self.src.period(self.gran,+r.getAttribute('data-i')));
+    if(!self.readout||!self._step)return;
+    var r=h.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*300;
+    if(x<(self._padL||0))return;
+    var q=self.src.period(self.gran,Math.floor((300-x)/self._step+self.offset));
+    if(!q.completed&&!q.scheduled)return;
+    self.readout.textContent=barReadout(q);
   });
 };
 // Draws (or re-draws) the chart in hostId. The host keeps its ZChart, so
@@ -6636,7 +6655,7 @@ var TEMPLATES=[
     {kind:'tracker',name:['Study time','Lernzeit'],icon:'⏱️',color:'c-indigo',unit:['h','Std.'],bars:true,habit:{hp:'study',goal:1,days:WORK_DAYS}},
     {kind:'habit',hp:'study',text:['Flashcards 15 min','15 Min. Karteikarten'],days:ALL_DAYS},
     {kind:'habit',hp:'study',text:['Pack your bag for tomorrow','Tasche für morgen packen'],days:[0,1,2,3,6],dl:['Sun–Thu','So–Do']}]},
-  {k:'fitness',icon:'💪',color:'c-red',name:['Fitness','Fitness'],cat:['Fitness','Fitness'],
+  {k:'fitness',icon:'💪',color:'c-yellow',name:['Fitness','Fitness'],cat:['Fitness','Fitness'],
    sub:['Workouts, steps and weight','Workouts, Schritte und Gewicht'],
    hp:{training:{name:['Training','Training'],icon:'🏋️',color:'c-red'}},
    items:[

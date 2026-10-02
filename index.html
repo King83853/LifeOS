@@ -772,6 +772,19 @@ html:not(#x) #war-box:not([style*="none"])+#overview-grid>.add-block:first-child
 .ics-d{flex:none;font-size:13px;font-weight:500;color:#999}
 .ics-row input[type=checkbox]{-webkit-appearance:none;appearance:none;width:26px;height:26px;margin:0;border:none;border-radius:8px;background-color:var(--box);background-repeat:no-repeat;background-position:center;background-size:18px;flex-shrink:0;cursor:pointer;transition:background-color .18s ease}
 .ics-row input[type=checkbox]:checked{background-color:var(--go);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 12.5l4.2 4.2 8.8-9.4' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+/* Starter templates window (Templates): one card per template, its items
+   fold out under it once it's ticked. Above the welcome screens. */
+#tpl-sheet-overlay{z-index:660}
+#tpl-sheet-overlay .sheet{max-height:88vh}
+.tpl-head{min-height:60px;padding:10px 14px}
+.tpl-card:not(.on) .tpl-head{border-bottom:none}
+.tpl-ico{flex:none;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;line-height:1}
+.tpl-b{flex:1;min-width:0;display:flex;flex-direction:column}
+.tpl-head .ics-t{font-weight:600}.tpl-head .tpl-s{white-space:normal}
+.tpl-s{font-size:13px;font-weight:500;line-height:18px;color:#999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tpl-items{display:none}.tpl-card.on .tpl-items{display:block}
+.tpl-it{min-height:52px;padding:6px 14px 6px 56px}
+.tpl-card.none .tpl-head{cursor:default}.tpl-card.none .tpl-head input,.tpl-card.none .tpl-ico,.tpl-card.none .ics-t{opacity:.4}
 .cal-none{font-size:13px;font-weight:500;color:#bbb;padding:12px 14px 14px}
 .wdays{scrollbar-width:none}.wdays::-webkit-scrollbar{display:none}
 input,textarea,select{font-family:inherit}
@@ -1365,6 +1378,16 @@ html:not(#x) #p-overview.ov-min .acard:active{background:transparent}
   </div>
 </div>
 
+<div class="sheet-overlay" id="tpl-sheet-overlay" onclick="if(event.target===this)Templates.close()">
+  <div class="sheet">
+    <div class="sheet-title">Templates</div>
+    <div class="exp-note">Pick one or more. Untick anything you don't want.</div>
+    <div id="tpl-list"></div>
+    <div class="exp-note" id="tpl-sum"></div>
+    <div class="sheet-btns"><button class="sheet-save" id="tpl-go" onclick="Templates.save()">Add</button></div>
+  </div>
+</div>
+
 <div class="sheet-overlay" id="input-sheet-overlay" onclick="if(event.target===this)InputSheet.cancel()">
   <div class="sheet">
     <div id="input-sheet-title" class="sheet-title">Name</div>
@@ -1549,7 +1572,7 @@ if('serviceWorker' in navigator){
 // sw.js — see CLAUDE.md). Add a matching CHANGELOG entry so the "What's
 // new" sheet has something to show after the update completes. Still in
 // beta — just the number goes up (1.0, 1.1, 1.2, ...), no 1.0 "release" cutoff planned yet.
-var APP_VERSION='Beta 4.24';
+var APP_VERSION='Beta 4.25';
 var CHANGELOG=[
   {v:'Beta 1.0',notes:[
     'New Settings > Today section: choose whether completed habits disappear or stay checked off',
@@ -2683,6 +2706,9 @@ var CHANGELOG=[
   ]},
   {v:'Beta 4.24',notes:[
     "Menu > General > Developer mode: a switch that only turns on with an access code. While it's on, Menu has a Developer row with pages for testing — for now the welcome screens and the Add to Home Screen page (iPhone and Android) — that nobody else sees"
+  ]},
+  {v:'Beta 4.25',notes:[
+    "Starter templates: Basics, Student, Fitness, Work & focus and Routines. Tick one or more on the welcome screen (Use a template) or later from Overview's + > Template; each folds out its projects, habits and trackers with a tick each, so you can leave single ones out. It only adds — anything already there by name is left out. Two or more templates each get their own category"
   ]}
 ];
 // ── THE SIMPLE UPDATE LOG ─────────────────────────────────────
@@ -2781,7 +2807,8 @@ var USER_LOG={
   'Beta 4.21':'design',
   'Beta 4.22':["Drag projects into other categories"],
   'Beta 4.23':'design',
-  'Beta 4.24':'design'
+  'Beta 4.24':'design',
+  'Beta 4.25':["Starter templates"]
 };
 // For a version without a new feature: 'bug', 'design' or 'both' (null for
 // a feature). Not in USER_LOG: a note starting with "Fixed" (or an internal
@@ -3389,6 +3416,9 @@ var I18N=(function(){
     "Start empty":"Leer starten",
     "Add your own projects and habits":"Eigene Projekte und Gewohnheiten anlegen",
     "Use a template":"Vorlage verwenden",
+    "Pick one or more to start with":"Wähle eine oder mehrere für den Start",
+    "Template":"Vorlage","Templates":"Vorlagen",
+    "Pick one or more. Untick anything you don't want.":"Wähle eine oder mehrere. Entferne den Haken bei allem, was du nicht willst.",
     "Set up with AI":"Mit KI einrichten",
     'Import calendar':'Kalender importieren','Untitled':'Ohne Titel','Left out:':'Nicht übernommen:',
     'Upcoming events from Google Calendar, Apple Calendar or Outlook become Calendar tasks. Export your calendar as a file first: Google Calendar on a computer, Settings → Import & export → Export; Apple Calendar on a Mac, File → Export; Outlook, Save calendar.':'Kommende Termine aus Google Kalender, Apple Kalender oder Outlook werden zu Kalender-Aufgaben. Exportiere deinen Kalender zuerst als Datei: Google Kalender am Computer, Einstellungen → Importieren & exportieren → Exportieren; Apple Kalender am Mac, Ablage → Exportieren; Outlook, Kalender speichern.',
@@ -6573,6 +6603,204 @@ var IcsImport={
   close:function(){_overlayClose('ics-sheet-overlay');}
 };
 
+// Starter templates (welcome "Use a template", Overview "+" > Template):
+// tick one or more, untick single items, Add. Only ever ADDS: a project,
+// habit or calendar task already there by name is left out (a template with
+// nothing left reads "Already added"); a Habits project or category of the
+// same name is reused. Names are made in the app's language at that moment —
+// they're the user's own data afterwards, not UI text. One template goes in
+// without a category; two or more (or someone who already has categories)
+// put each template into a category of its own. Habits start today, trackers
+// empty: no made-up history (it would show in Statistics).
+var ALL_DAYS=[0,1,2,3,4,5,6],WORK_DAYS=[0,1,2,3,4];
+var TEMPLATES=[
+  {k:'basics',icon:'🌱',color:'c-green',name:['Basics','Basics'],cat:['Everyday','Alltag'],
+   sub:['Daily habits and a to-do that shows you around','Tägliche Gewohnheiten und eine To-do, die dir die App zeigt'],
+   hp:{daily:{name:['Daily','Täglich'],icon:'☀️',color:'c-amber'}},
+   items:[
+    {kind:'habit',hp:'daily',text:['Drink water','Wasser trinken'],days:ALL_DAYS},
+    {kind:'habit',hp:'daily',text:['Move 20 min','20 Min. bewegen'],days:ALL_DAYS},
+    {kind:'habit',hp:'daily',text:['Read 10 pages','10 Seiten lesen'],days:ALL_DAYS},
+    {kind:'todo',name:['Personal','Persönlich'],icon:'📝',color:'c-blue',tasks:[
+      {text:['Tick me off','Hak mich ab'],pri:'bs',desc:['Tap the box to complete a task. Done tasks go to Menu → Trash, where you can bring them back.','Tippe auf das Kästchen, um eine Aufgabe zu erledigen. Erledigte Aufgaben landen in Menü → Papierkorb, dort kannst du sie zurückholen.']},
+      {text:['Swipe me right','Wisch mich nach rechts'],pri:'bs',desc:['On Today, swipe a task to the right to skip it for today. It\'s back tomorrow.','In Heute wischst du eine Aufgabe nach rechts, um sie für heute zu überspringen. Morgen ist sie wieder da.']},
+      {text:['Open me','Öffne mich'],pri:'bp',desc:['Tap a task\'s name to open it: rename it, change its priority or write notes like these.','Tippe auf den Namen einer Aufgabe, um sie zu öffnen: umbenennen, Priorität ändern oder Notizen wie diese schreiben.']},
+      {text:['Hold a project to move it','Halte ein Projekt gedrückt'],pri:'bl',desc:['On Overview, hold a project for a moment, then drag it to another place or category.','Halte in der Übersicht ein Projekt kurz gedrückt und zieh es an einen anderen Platz oder in eine andere Kategorie.']}]},
+    {kind:'cal',text:['Read the Guide in the Menu','Anleitung im Menü ansehen'],inDays:1}]},
+  {k:'student',icon:'🎓',color:'c-indigo',name:['Student','Studium & Schule'],cat:['School','Schule'],
+   sub:['Homework, exam topics and study time','Hausaufgaben, Prüfungsthemen und Lernzeit'],
+   hp:{study:{name:['Study','Lernen'],icon:'✏️',color:'c-indigo'}},
+   items:[
+    {kind:'todo',name:['Homework','Hausaufgaben'],icon:'📚',color:'c-blue'},
+    {kind:'list',name:['Exam topics','Prüfungsthemen'],icon:'🗂️',color:'c-violet'},
+    {kind:'tracker',name:['Study time','Lernzeit'],icon:'⏱️',color:'c-indigo',unit:['h','Std.'],bars:true,habit:{hp:'study',goal:1,days:WORK_DAYS}},
+    {kind:'habit',hp:'study',text:['Flashcards 15 min','15 Min. Karteikarten'],days:ALL_DAYS},
+    {kind:'habit',hp:'study',text:['Pack your bag for tomorrow','Tasche für morgen packen'],days:[0,1,2,3,6],dl:['Sun–Thu','So–Do']}]},
+  {k:'fitness',icon:'💪',color:'c-red',name:['Fitness','Fitness'],cat:['Fitness','Fitness'],
+   sub:['Workouts, steps and weight','Workouts, Schritte und Gewicht'],
+   hp:{training:{name:['Training','Training'],icon:'🏋️',color:'c-red'}},
+   items:[
+    {kind:'habit',hp:'training',text:['Workout','Workout'],days:[0,2,4]},
+    {kind:'habit',hp:'training',text:['Stretch 10 min','10 Min. dehnen'],days:ALL_DAYS},
+    {kind:'tracker',name:['Steps','Schritte'],icon:'👟',color:'c-orange',unit:['steps','Schritte'],bars:true,habit:{hp:'training',goal:8000,days:ALL_DAYS}},
+    {kind:'tracker',name:['Weight','Gewicht'],icon:'⚖️',color:'c-teal',unit:['kg','kg'],ma:true},
+    {kind:'list',name:['Gym plan','Trainingsplan'],icon:'🗒️',color:'c-slate'}]},
+  {k:'work',icon:'💼',color:'c-blue',name:['Work & focus','Arbeit & Fokus'],cat:['Work','Arbeit'],
+   sub:['Work tasks, ideas and a workday routine','Arbeitsaufgaben, Ideen und eine Routine für den Arbeitstag'],
+   hp:{workday:{name:['Workday','Arbeitstag'],icon:'🗓️',color:'c-sky'}},
+   items:[
+    {kind:'todo',name:['Work','Arbeit'],icon:'💼',color:'c-blue',tasks:[
+      {text:['Your most urgent task','Deine dringendste Aufgabe'],pri:'bu',desc:['War Room tasks always come first. Open a task and pick War Room as its priority — rename this one to your own.','War-Room-Aufgaben stehen immer ganz oben. Öffne eine Aufgabe und wähle War Room als Priorität — benenne diese hier in deine eigene um.']}]},
+    {kind:'list',name:['Ideas','Ideen'],icon:'💡',color:'c-yellow'},
+    {kind:'habit',hp:'workday',text:['Plan the day','Den Tag planen'],days:WORK_DAYS},
+    {kind:'habit',hp:'workday',text:['2 hours of deep work','2 Std. fokussiert arbeiten'],days:WORK_DAYS},
+    {kind:'habit',hp:'workday',text:['Clear the inbox','Posteingang leeren'],days:WORK_DAYS}]},
+  {k:'routines',icon:'⏰',color:'c-orange',name:['Routines','Routinen'],cat:['Routines','Routinen'],
+   sub:['Morning and evening habits, and your mood','Gewohnheiten für morgens und abends, deine Stimmung'],
+   hp:{morning:{name:['Morning','Morgen'],icon:'🌅',color:'c-orange'},evening:{name:['Evening','Abend'],icon:'🌙',color:'c-violet'}},
+   items:[
+    {kind:'habit',hp:'morning',text:['Make the bed','Bett machen'],days:ALL_DAYS},
+    {kind:'habit',hp:'morning',text:['Meditate 10 min','10 Min. meditieren'],days:ALL_DAYS},
+    {kind:'habit',hp:'morning',text:['Phone-free first 30 min','Erste 30 Min. ohne Handy'],days:ALL_DAYS},
+    {kind:'habit',hp:'evening',text:['No screens after 22:00','Ab 22 Uhr kein Bildschirm'],days:ALL_DAYS},
+    {kind:'habit',hp:'evening',text:['Journal','Tagebuch schreiben'],days:ALL_DAYS},
+    {kind:'tracker',name:['Mood','Stimmung'],icon:'🙂',color:'c-yellow',unit:['/10','/10'],habit:{hp:'evening',days:ALL_DAYS}}]}
+];
+var Templates={
+  _rows:[],_fromWelcome:false,
+  L:function(p){return I18N.lang==='de'?p[1]:p[0];},
+  _key:function(s){return (s||'').trim().toLowerCase();},
+  // what's already there: project name -> pid, habit names, calendar texts
+  _has:function(){
+    var d=DB.data,self=this,h={proj:{},habit:{},cal:{}};
+    Object.keys(d.projects).forEach(function(pid){var p=d.projects[pid];if(p&&p.name)h.proj[self._key(p.name)]=pid;});
+    d.dailyItems.forEach(function(it){if(it.text)h.habit[self._key(it.text)]=1;});
+    d.dailyOnce.forEach(function(o){h.cal[self._key(o.text)]=1;});
+    return h;
+  },
+  // by its English OR German name: added in one language, still found after a switch
+  _find:function(map,p){return map[this._key(p[0])]||map[this._key(p[1])];},
+  _exists:function(it,h){
+    if(it.kind==='habit')return !!this._find(h.habit,it.text);
+    if(it.kind==='cal')return !!this._find(h.cal,it.text);
+    return !!this._find(h.proj,it.name);
+  },
+  _days:function(it,days){
+    if(it.dl)return this.L(it.dl);
+    if(days.length===7)return this.L(['Every day','Jeden Tag']);
+    if(days.join()===WORK_DAYS.join())return this.L(['Mon–Fri','Mo–Fr']);
+    var n=this.L([['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],['Mo','Di','Mi','Do','Fr','Sa','So']]);
+    return days.map(function(i){return n[i];}).join(', ');
+  },
+  _detail:function(tp,it){
+    var L=this.L;
+    if(it.kind==='habit')return L(tp.hp[it.hp].name)+' · '+this._days(it,it.days);
+    if(it.kind==='cal')return L(['Calendar · tomorrow','Kalender · morgen']);
+    if(it.kind==='list')return L(['List','Liste']);
+    if(it.kind==='todo'){var n=(it.tasks||[]).length;return 'To-do'+(n?' · '+n+' '+L(n===1?['task','Aufgabe']:['tasks','Aufgaben']):'');}
+    var parts=['Tracker'];
+    if(it.habit)parts.push(L(tp.hp[it.habit.hp].name));
+    if(it.habit&&it.habit.goal!=null)parts.push(L(['goal ','Ziel '])+it.habit.goal+' '+L(it.unit));
+    else if(!it.habit)parts.push(L(it.unit));
+    return parts.join(' · ');
+  },
+  open:function(fromWelcome){
+    this._fromWelcome=!!fromWelcome;
+    var self=this,L=this.L,h=this._has(),rows=[];
+    document.getElementById('tpl-list').innerHTML=TEMPLATES.map(function(tp,ti){
+      var its=tp.items.filter(function(it){return !self._exists(it,h);}),none=!its.length;
+      var body=its.map(function(it){
+        rows.push({tp:tp,it:it});
+        var label=it.kind==='habit'||it.kind==='cal'?L(it.text):it.icon+' '+L(it.name);
+        return '<label class="ics-row tpl-it"><input type="checkbox" checked data-i="'+(rows.length-1)+'" onchange="Templates.count()">'
+          +'<span class="tpl-b"><span class="ics-t">'+esc(label)+'</span><span class="tpl-s">'+esc(self._detail(tp,it))+'</span></span></label>';
+      }).join('');
+      return '<div class="ics-card tpl-card'+(none?' none':'')+'" data-t="'+ti+'"><label class="ics-row tpl-head">'
+        +'<input type="checkbox"'+(none?' disabled':'')+' onchange="Templates.toggle(this)">'
+        +'<span class="tpl-ico" style="'+tintStyle(COLORS[tp.color])+'">'+tp.icon+'</span>'
+        +'<span class="tpl-b"><span class="ics-t">'+esc(L(tp.name))+'</span><span class="tpl-s">'+esc(none?L(['Already added','Schon hinzugefügt']):L(tp.sub))+'</span></span></label>'
+        +'<div class="tpl-items">'+body+'</div></div>';
+    }).join('');
+    this._rows=rows;
+    this.count();
+    _overlayOpen('tpl-sheet-overlay');
+  },
+  // ticking a template folds its items out, all ticked
+  toggle:function(cb){
+    var card=cb.closest('.tpl-card');
+    card.classList.toggle('on',cb.checked);
+    if(cb.checked)card.querySelectorAll('.tpl-items input').forEach(function(c){c.checked=true;});
+    this.count();
+  },
+  _picked:function(){
+    var self=this;
+    return [].filter.call(document.querySelectorAll('#tpl-list .tpl-card.on .tpl-items input'),function(c){return c.checked;})
+      .map(function(c){return self._rows[+c.getAttribute('data-i')];});
+  },
+  _tps:function(sel){var out=[];sel.forEach(function(r){if(out.indexOf(r.tp)===-1)out.push(r.tp);});return out;},
+  _useCats:function(sel){return this._tps(sel).length>1||DB.data.categoryOrder.length>0;},
+  _catId:function(tp){
+    var d=DB.data,self=this,k=[this._key(tp.cat[0]),this._key(tp.cat[1])];
+    return d.categoryOrder.find(function(c){return d.categories[c]&&k.indexOf(self._key(d.categories[c].name))!==-1;})||null;
+  },
+  // an existing Habits project of that name, else null
+  _hpId:function(tp,key,h){var pid=this._find(h.proj,tp.hp[key].name);return pid&&isHabitsProject(pid)?pid:null;},
+  count:function(){
+    var self=this,L=this.L,sel=this._picked(),n=sel.length,h=this._has(),hps={},c={p:0,h:0,c:0,k:0};
+    sel.forEach(function(r){
+      var it=r.it,hp=it.kind==='habit'?it.hp:(it.habit&&it.habit.hp);
+      if(hp&&!hps[r.tp.k+'.'+hp]){hps[r.tp.k+'.'+hp]=1;if(!self._hpId(r.tp,hp,h))c.p++;}
+      if(it.kind==='habit'||it.habit)c.h++;
+      if(it.kind==='cal')c.c++;else if(it.kind!=='habit')c.p++;
+    });
+    if(n&&this._useCats(sel))this._tps(sel).forEach(function(tp){if(!self._catId(tp))c.k++;});
+    function P(x,w){return x+' '+L(x===1?[w[0],w[2]]:[w[1],w[3]]);}
+    var parts=[];
+    if(c.p)parts.push(P(c.p,['project','projects','Projekt','Projekte']));
+    if(c.h)parts.push(P(c.h,['habit','habits','Gewohnheit','Gewohnheiten']));
+    if(c.c)parts.push(c.c+' '+L(['in the calendar','im Kalender']));
+    if(c.k)parts.push(P(c.k,['category','categories','Kategorie','Kategorien']));
+    document.getElementById('tpl-sum').textContent=n?L(['Adds ','Fügt hinzu: '])+parts.join(' · '):L(['Nothing picked yet','Noch nichts ausgewählt']);
+    var b=document.getElementById('tpl-go');
+    b.textContent=n?L(['Add '+n,n+' hinzufügen']):L(['Add','Hinzufügen']);b.disabled=!n;b.style.opacity=n?'':'.4';
+  },
+  save:function(){
+    if(!_sheetLive('tpl-sheet-overlay'))return; // already saved, window closing
+    var self=this,L=this.L,d=DB.data,sel=this._picked();if(!sel.length)return;
+    var h=this._has(),useCats=this._useCats(sel),cats={},hps={};
+    function catFor(tp){
+      if(!useCats)return NO_CAT;
+      return cats[tp.k]||(cats[tp.k]=self._catId(tp)||DB.addCategory(L(tp.cat),'📁'));
+    }
+    function hpFor(tp,key){
+      var k=tp.k+'.'+key;if(hps[k])return hps[k];
+      var pid=self._hpId(tp,key,h),def=tp.hp[key];
+      if(!pid){
+        pid=DB.addProject(catFor(tp),L(def.name),def.icon,def.color,'','daily');
+        if(!isHabitsProject(d.habitsProjectId))d.habitsProjectId=pid; // the first one
+      }
+      return hps[k]=pid;
+    }
+    sel.forEach(function(r){
+      var tp=r.tp,it=r.it;
+      if(it.kind==='habit'){var hp=hpFor(tp,it.hp);DB.addDailyItem(DB.habitCatId(),L(it.text),it.days.slice(),hp);return;}
+      if(it.kind==='cal'){DB.addOnce(L(it.text),pDate(it.inDays));return;}
+      var hp2=it.habit?hpFor(tp,it.habit.hp):null;
+      var pid=DB.addProject(catFor(tp),L(it.name),it.icon,it.color,'',it.kind,it.unit?L(it.unit):'');
+      if(it.kind==='tracker'){d.projects[pid].maEnabled=!!it.ma;d.projects[pid].chartBars=!!it.bars;}
+      (it.tasks||[]).forEach(function(tk){var key=DB.addTask(pid,L(tk.text),tk.pri);if(tk.desc)DB.updateTask(pid,key,{desc:L(tk.desc)});});
+      if(it.habit)DB.addTrackerDailyItem(DB.habitCatId(),pid,it.habit.days.slice(),it.habit.goal,hp2);
+    });
+    DB.save();
+    _overlayClose('tpl-sheet-overlay');
+    buildProjPages();renderGrids();renderEditLayout();
+    buildPanels();restoreChecks(Nav.sd);renderToday();
+    if(Nav.cur==='lockedin')renderLockedIn();
+    if(this._fromWelcome)Welcome.finish();
+  },
+  close:function(){_overlayClose('tpl-sheet-overlay');}
+};
+
 var ExportSheet={
   text:'',
   open:function(){
@@ -7404,7 +7632,7 @@ var Welcome={
         +'<div class="wel-text">You can change everything later.</div>'
         +'<div class="wel-card">'
         +R(S('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'),'#3b82f6','Start empty','Add your own projects and habits',chev,'wel-opt','Welcome.finish()')
-        +R(grid,'#f59e0b','Use a template','',soon,'wel-opt off')
+        +R(grid,'#f59e0b','Use a template','Pick one or more to start with',chev,'wel-opt','Templates.open(true)')
         +R(spark,'#6366f1','Set up with AI','',soon,'wel-opt off')
         +'</div>';
     }
@@ -7788,15 +8016,16 @@ var TabPlus={
     if(p&&p.type==='tracker'){TrackerAddSheet.open(cur);return;}
     if(p&&p.type!=='daily'){TaskSheet.openNew(cur);return;}
     if(btn){
-      DSel.menu(btn,[{value:'category',label:'Category'},{value:'project',label:'Project'},{value:'calendar',label:'Calendar'}],null,function(v){
-        if(v==='category')A.newCategory();else if(v==='calendar')OnceAddSheet.open();else A.newProject();
+      DSel.menu(btn,[{value:'category',label:'Category'},{value:'project',label:'Project'},{value:'calendar',label:'Calendar'},{value:'template',label:'Template'}],null,function(v){
+        if(v==='category')A.newCategory();else if(v==='calendar')OnceAddSheet.open();else if(v==='template')Templates.open();else A.newProject();
       });
       return;
     }
     AddChoice.show('Add',[
       {icon:'',label:'Category',fn:function(){A.newCategory();}},
       {icon:'',label:'Project',fn:function(){A.newProject();}},
-      {icon:'',label:'Calendar',fn:function(){OnceAddSheet.open();}}
+      {icon:'',label:'Calendar',fn:function(){OnceAddSheet.open();}},
+      {icon:'',label:'Template',fn:function(){Templates.open();}}
     ]);
   }
 };

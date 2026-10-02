@@ -1917,7 +1917,8 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   (Welcome.finish) deletes it. Pages: 'install' only outside standalone
   (iOS steps if IS_IOS, else Android) → 'hello' (tabs, icons copied from
   the tab bar) → 'know' (data stays on the phone / backup; the Guide) →
-  'start' (Start empty; template and AI "Coming soon", dimmed). 4.16 had a
+  'start' (Start empty; Use a template since 4.25 — see STARTER TEMPLATES;
+  AI "Coming soon", dimmed). 4.16 had a
   Menu > Guide > Welcome tour row to replay it; removed in 4.17 by request
   (to see it again for testing: `Welcome.open()` in the console, or clear
   the preview's storage). (2) `phoneLang()`: a new install (and
@@ -1933,6 +1934,28 @@ king83853/LifeOS; the old address is gone, GitHub Pages doesn't redirect).
   path, rounded triangle scaled .88 around 12,12 with the exclamation cut
   out (evenodd), so it works on any background. 4.17's hand-drawn chess
   knight was called ugly — don't bring it back.
+- STARTER TEMPLATES (4.25, `TEMPLATES` + `Templates`, `#tpl-sheet-overlay`,
+  z-index 660 so it opens over the welcome screens): opened from the
+  welcome start page ("Use a template", `Templates.open(true)` → Welcome.
+  finish() after Add) and Overview "+" > Template. Basics, Student,
+  Fitness, Work & focus, Routines. Several can be ticked; a ticked one
+  folds out its items (projects, habits, tracker, calendar task), each
+  with its own tick (`.ics-row` labels like the calendar import — not
+  .opt-row). It ONLY ADDS: an item whose name already exists (project,
+  habit text, calendar text — in EITHER language, `_find`) is left out;
+  a template with nothing left reads "Already added" (disabled); a Habits
+  project / category of the same name is reused. Names are created in the
+  current language (`[en,de]` pairs) — they're user data, not I18N. One
+  template → no category; 2+ templates, or a user who already has
+  categories → each template's own category (`cat`). Habits projects are
+  created on their first ticked habit (the first ever becomes
+  habitsProjectId). No made-up history. Basics' To-do teaches the app:
+  SHORT titles (Today's rows with a badge fit ~25 characters on a 375px
+  phone — "Swipe me right to skip me for today" was cut off) and the
+  explanation in each task's notes. A new template needs: entry in
+  TEMPLATES (sub, cat, hp map, items), unique names vs the others.
+  Changing a template's wording later = old installs won't match it as
+  "already there" (dedupe is by name).
 - DEVELOPER MODE (4.24, "a switch… where I can test stuff… but I don't
   want everyone to see it… you need an access code"): Menu > General >
   Developer > Developer mode (`settings.devMode`, default false, in
